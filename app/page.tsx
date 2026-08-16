@@ -512,19 +512,19 @@ export default function Page() {
   return (
     <>
       <nav className="sticky top-0 z-50 bg-[#F4F1EA]/85 backdrop-blur-md border-b border-line">
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px] py-2.5 sm:py-3 flex items-center gap-4 sm:gap-[18px]">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px] py-2 sm:py-3 flex items-center justify-between">
           <a href="#section-a" className="flex items-center gap-2 no-underline font-display font-bold tracking-[0.06em] text-[13px] sm:text-[14px] shrink-0">
             <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-green shadow-[0_0_0_4px_var(--color-green-soft)]"></span>
             TCHIBO <em className="not-italic text-green text-[10px] border border-green rounded-full px-1.5 py-0 tracking-[0.12em]">DPP</em>
           </a>
-          <div className="flex gap-0.5 overflow-x-auto no-scrollbar mask-fade-right">
-            <a href="#section-a" className="text-[12px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white active:bg-ink active:text-[#F4F1EA]">A · Overview</a>
-            <a href="#section-b" className="text-[12px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">B · Traceability</a>
-            <a href="#section-c" className="text-[12px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">C · Quality</a>
-            <a href="#section-d" className="text-[12px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">D · Care</a>
-            <a href="#section-e" className="text-[12px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">E · Circularity</a>
-            <a href="#section-f" className="text-[12px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">F · Impact</a>
-            <a href="#section-g" className="text-[12px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">G · Data</a>
+          <div className="flex gap-0.5 overflow-x-auto no-scrollbar mask-fade-right mx-4 sm:mx-0">
+            <a href="#section-a" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white active:bg-ink active:text-[#F4F1EA]">A · Overview</a>
+            <a href="#section-b" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">B · Traceability</a>
+            <a href="#section-c" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">C · Quality</a>
+            <a href="#section-d" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">D · Care</a>
+            <a href="#section-e" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">E · Circularity</a>
+            <a href="#section-f" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">F · Impact</a>
+            <a href="#section-g" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">G · Data</a>
           </div>
           <div className="hidden lg:flex items-center gap-4 ml-auto">
             <select className="bg-transparent border border-line-2 rounded-full px-3 py-1.5 text-[11.5px] font-semibold text-muted outline-none cursor-pointer">
@@ -540,79 +540,80 @@ export default function Page() {
               <Download size={14} /> JSON
             </button>
           </div>
+          <button className="lg:hidden p-1.5 text-muted hover:text-ink transition-colors">
+            <Share size={18} />
+          </button>
         </div>
       </nav>
 
-      <section className="pt-8 max-w-[1120px] mx-auto px-[22px]">
-        <Reveal className="bg-green-dark text-[#EAF3EC] border border-[#2A362E] rounded-[18px] p-5 sm:p-6 flex flex-wrap justify-between items-center gap-4 shadow-custom">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-green flex items-center justify-center text-lime shrink-0">
-              <ShieldCheck size={26} />
+      <section className="pt-6 sm:pt-8 max-w-[1120px] mx-auto px-4 sm:px-[22px]">
+        <Reveal className="bg-green-dark text-[#EAF3EC] border border-[#2A362E] rounded-[18px] p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-custom">
+          <div className="flex items-center gap-3.5 sm:gap-4 w-full sm:w-auto">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green flex items-center justify-center text-lime shrink-0">
+              <ShieldCheck className="w-[22px] h-[22px] sm:w-[26px] sm:h-[26px]" />
             </div>
             <div>
-              <h2 className="text-[18px] font-bold text-white tracking-tight flex items-center gap-2">
-                Verified Digital Product Passport <CheckCircle2 size={16} className="text-lime" />
+              <h2 className="text-[16px] sm:text-[18px] font-bold text-white tracking-tight flex items-center gap-2">
+                Verified Passport <CheckCircle2 className="w-[15px] h-[15px] sm:w-[16px] sm:h-[16px] text-lime" />
               </h2>
-              <p className="text-[13px] text-[#B9D3C1] mt-0.5">Product ID: DPP-EU-TXT-151546 · v2.4</p>
+              <p className="text-[12px] sm:text-[13px] text-[#B9D3C1] mt-0.5">Project ID: 151546 · v2.4</p>
             </div>
           </div>
-          <div className="flex gap-3 flex-wrap">
-            <span className="text-[11.5px] font-mono bg-ink/50 px-3 py-1.5 rounded-lg text-[#B9D3C1]">Updated: 30 Oct 2025</span>
-            <span className="text-[11.5px] font-mono bg-ink/50 px-3 py-1.5 rounded-lg text-lime">Completeness: 94%</span>
+          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto no-scrollbar">
+            <span className="text-[10px] sm:text-[11.5px] font-mono bg-ink/50 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[#B9D3C1] whitespace-nowrap">Updated: 30 Oct 2025</span>
+            <span className="text-[10px] sm:text-[11.5px] font-mono bg-ink/50 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg text-lime whitespace-nowrap">Completeness: 94%</span>
           </div>
         </Reveal>
       </section>
 
-      <section className="pt-6 sm:pt-12 pb-2" id="section-a">
+      <section className="pt-6 sm:pt-12 pb-4 sm:pb-6" id="section-a">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
-          <Reveal className="flex items-center gap-4 sm:gap-[18px] mb-6 sm:mb-[30px]">
-            <div className="w-[48px] h-[48px] sm:w-[58px] sm:h-[58px] shrink-0 rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[22px] sm:text-[26px] shadow-custom">A</div>
+          <Reveal className="flex items-center gap-3.5 sm:gap-[18px] mb-6 sm:mb-[30px]">
+            <div className="w-[42px] h-[42px] sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">A</div>
             <div>
-              <h2 className="text-[20px] sm:text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight">Product Overview & Visuals</h2>
-              <p className="text-muted text-[12.5px] sm:text-[13.5px] mt-0.5">Identity, AI visualization & interactive fit data</p>
+              <h2 className="text-[18px] sm:text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight">Product Overview</h2>
+              <p className="text-muted text-[12px] sm:text-[13.5px] mt-0.5">Identity, AI visuals & fit data</p>
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-5 sm:gap-[26px] items-stretch">
-            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-6 sm:p-[34px] sm:pb-[30px] flex flex-col">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-4 sm:gap-[26px] items-stretch">
+            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[34px] sm:pb-[30px] flex flex-col">
               <div>
-                <div className="inline-flex items-center gap-2 text-[10.5px] sm:text-[11.5px] text-green-dark bg-green-soft border border-[#BCD8C6] rounded-full px-3 py-1 sm:py-1.5 mb-4">
-                  <span className="w-[6px] h-[6px] rounded-full bg-green animate-pulse-ring"></span>
-                  DPP · PROJECT 151546 · ORDER 4300085070
+                <div className="inline-flex items-center gap-2 text-[10px] sm:text-[11.5px] text-green-dark bg-green-soft border border-[#BCD8C6] rounded-full px-2.5 py-1 sm:py-1.5 mb-3.5">
+                  <span className="w-[5px] h-[5px] rounded-full bg-green animate-pulse-ring"></span>
+                  DPP · PROJECT 151546
                 </div>
               </div>
-              <h1 className="font-display text-[26px] sm:text-[clamp(28px,4.2vw,42px)] font-bold tracking-tight leading-[1.1] sm:leading-[1.06]">Men&apos;s Shorty Pyjamas, Modal</h1>
-              <p className="text-muted my-2 mb-4 sm:mb-[22px] text-[13.5px] sm:text-[14.5px]">Single jersey 160 g/m² · V-neck top + shorts · Sizes S–XXL</p>
+              <h1 className="font-display text-[24px] sm:text-[clamp(28px,4.2vw,42px)] font-bold tracking-tight leading-[1.1] sm:leading-[1.06]">Men&apos;s Shorty Pyjamas, Modal</h1>
+              <p className="text-muted my-1.5 mb-4 sm:mb-[22px] text-[13px] sm:text-[14.5px]">Single jersey 160 g/m² · Sizes S–XXL</p>
               
-              <div className="border border-dashed border-line-2 rounded-[14px] p-4 px-[18px] grid gap-2.5 bg-surface-2">
-                <div className="flex justify-between items-center gap-3 text-[13px]"><span className="text-muted font-semibold text-[11px] tracking-widest uppercase">Brand / Owner</span><span className="font-mono text-[12.5px] font-medium text-right">Tchibo GmbH · Hamburg, DE</span></div>
-                <div className="flex justify-between items-center gap-3 text-[13px]"><span className="text-muted font-semibold text-[11px] tracking-widest uppercase">Article No.</span>
-                  <span className="flex gap-2 items-center"><span className="font-mono text-[12.5px] font-medium text-right">{ART[curStyle][curSize]}</span><button onClick={handleCopy} className="border border-line-2 bg-white rounded-lg px-[9px] py-[3px] text-[11px] font-semibold text-muted transition-colors hover:text-green-dark hover:border-green cursor-pointer">Copy</button></span>
+              <div className="border border-dashed border-line-2 rounded-[14px] p-3.5 sm:p-4 sm:px-[18px] grid gap-2.5 bg-surface-2">
+                <div className="flex justify-between items-center gap-3 text-[12.5px] sm:text-[13px]"><span className="text-muted font-semibold text-[10px] tracking-widest uppercase">Brand</span><span className="font-mono text-[12px] sm:text-[12.5px] font-medium text-right">Tchibo GmbH</span></div>
+                <div className="flex justify-between items-center gap-3 text-[12.5px] sm:text-[13px]"><span className="text-muted font-semibold text-[10px] tracking-widest uppercase">Article No.</span>
+                  <span className="flex gap-2 items-center"><span className="font-mono text-[12px] sm:text-[12.5px] font-medium text-right">{ART[curStyle][curSize]}</span><button onClick={handleCopy} className="border border-line-2 bg-white rounded-lg px-2 py-0.5 sm:px-[9px] sm:py-[3px] text-[10px] font-semibold text-muted transition-colors hover:text-green-dark hover:border-green cursor-pointer">Copy</button></span>
                 </div>
-                <div className="flex justify-between items-center gap-3 text-[13px]"><span className="text-muted font-semibold text-[11px] tracking-widest uppercase">Variant</span><span className="font-mono text-[12.5px] font-medium text-right">He. Shorty, Modal, {curStyle}, {curSize}</span></div>
-                <div className="flex justify-between items-center gap-3 text-[13px]"><span className="text-muted font-semibold text-[11px] tracking-widest uppercase">Season</span><span className="font-mono text-[12.5px] font-medium text-right">Autumn/Winter 2025</span></div>
-                <div className="flex justify-between items-center gap-3 text-[13px]"><span className="text-muted font-semibold text-[11px] tracking-widest uppercase">Colourways</span><span className="font-mono text-[12.5px] font-medium text-right">Jadeite 16-5304 TCX · Dark Green 097-36-06</span></div>
-                <div className="mt-4 pt-4 border-t border-line-2">
-                  <p className="text-[12px] leading-relaxed text-muted"><b className="text-ink">Design:</b> V-neck short-sleeve top with self-fabric piping neckline; matching shorts with drawstring waistband, side pockets, fake fly &quot;J&quot; stitch.</p>
+                <div className="flex justify-between items-center gap-3 text-[12.5px] sm:text-[13px]"><span className="text-muted font-semibold text-[10px] tracking-widest uppercase">Season</span><span className="font-mono text-[12px] sm:text-[12.5px] font-medium text-right">AW 2025</span></div>
+                <div className="mt-3 pt-3 border-t border-line-2">
+                  <p className="text-[11.5px] leading-relaxed text-muted"><b className="text-ink">Design:</b> V-neck top with piping; shorts with drawstring, pockets & fake fly.</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-[18px]">
-                <div className="bg-surface-2 border border-line rounded-xl p-3">
-                  <div className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Weight</div>
-                  <div className="text-[14px] font-bold">160 g/m²</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 sm:mt-[18px]">
+                <div className="bg-surface-2 border border-line rounded-xl p-2.5 sm:p-3 text-center sm:text-left">
+                  <div className="text-[9px] font-semibold text-muted uppercase tracking-widest mb-1">Weight</div>
+                  <div className="text-[13px] sm:text-[14px] font-bold">160 g/m²</div>
                 </div>
-                <div className="bg-surface-2 border border-line rounded-xl p-3">
-                  <div className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Manufactured</div>
-                  <div className="text-[14px] font-bold">Bangladesh</div>
+                <div className="bg-surface-2 border border-line rounded-xl p-2.5 sm:p-3 text-center sm:text-left">
+                  <div className="text-[9px] font-semibold text-muted uppercase tracking-widest mb-1">Origin</div>
+                  <div className="text-[13px] sm:text-[14px] font-bold">Bangladesh</div>
                 </div>
-                <div className="bg-surface-2 border border-line rounded-xl p-3">
-                  <div className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Lifetime</div>
-                  <div className="text-[14px] font-bold">3+ Years</div>
+                <div className="bg-surface-2 border border-line rounded-xl p-2.5 sm:p-3 text-center sm:text-left">
+                  <div className="text-[9px] font-semibold text-muted uppercase tracking-widest mb-1">Lifetime</div>
+                  <div className="text-[13px] sm:text-[14px] font-bold">3+ Years</div>
                 </div>
-                <div className="bg-surface-2 border border-line rounded-xl p-3">
-                  <div className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-1">Footprint</div>
-                  <div className="text-[14px] font-bold text-green-dark">4.8 kg CO₂e</div>
+                <div className="bg-surface-2 border border-line rounded-xl p-2.5 sm:p-3 text-center sm:text-left">
+                  <div className="text-[9px] font-semibold text-muted uppercase tracking-widest mb-1">Impact</div>
+                  <div className="text-[13px] sm:text-[14px] font-bold text-green-dark">4.8 kg CO₂e</div>
                 </div>
               </div>
 
@@ -811,20 +812,20 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="pt-[72px] pb-2" id="section-b">
-        <div className="max-w-[1120px] mx-auto px-[22px]">
-          <Reveal className="flex items-center gap-[18px] mb-[30px]">
-            <div className="w-[58px] h-[58px] shrink-0 rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[26px] shadow-custom">B</div>
+      <section className="pt-10 sm:pt-[72px] pb-2" id="section-b">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
+          <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
+            <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">B</div>
             <div>
-              <h2 className="text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight">Supply Chain & Traceability Journey</h2>
-              <p className="text-muted text-[13.5px] mt-0.5">Fibre → yarn → fabric → garment → lab, per FiTS & SCOT tracking</p>
+              <h2 className="text-[20px] sm:text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight">Traceability Journey</h2>
+              <p className="text-muted text-[12px] sm:text-[13.5px] mt-0.5">Tier 1 to Tier 4 verified nodes per FiTS & SCOT</p>
             </div>
           </Reveal>
 
           <Reveal><OriginMap /></Reveal>
           <Reveal><TraceBar /></Reveal>
 
-          <RevealGroup className="relative pl-[34px] grid gap-[22px] mb-3.5">
+          <RevealGroup className="relative pl-6 sm:pl-[34px] grid gap-4 sm:gap-[22px] mb-3.5">
             <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-green via-green to-amber-line"></div>
             
             <RevealItem className="relative">
@@ -972,18 +973,18 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="pt-[72px] pb-2" id="section-c">
-        <div className="max-w-[1120px] mx-auto px-[22px]">
-          <Reveal className="flex items-center gap-[18px] mb-[30px]">
-            <div className="w-[58px] h-[58px] shrink-0 rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[26px] shadow-custom">C</div>
+      <section className="pt-10 sm:pt-[72px] pb-2" id="section-c">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
+          <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
+            <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">C</div>
             <div>
-              <h2 className="text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight">Quality & Material Performance</h2>
-              <p className="text-muted text-[13.5px] mt-0.5">Composition (ISO 1833), colour fastness & RSL results — Lab (6825)298-0551</p>
+              <h2 className="text-[20px] sm:text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight">Quality Analysis</h2>
+              <p className="text-muted text-[12px] sm:text-[13.5px] mt-0.5">Composition, colour fastness & RSL results</p>
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-[26px] items-start mb-[26px]">
-            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
+          <div className="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-4 sm:gap-[26px] items-start mb-6 sm:mb-[26px]">
+            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[26px]">
               <h3 className="text-[16px] font-bold mb-1">Fabric Composition</h3>
               <p className="text-[12.5px] text-muted mb-[18px]">Labeled per Regulation (EU) 1007/2011 · tolerance ±3%</p>
               
@@ -1096,8 +1097,8 @@ export default function Page() {
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-[26px] items-start">
-            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-[26px] items-start">
+            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[26px]">
               <h3 className="text-[16px] font-bold mb-1">Standard Care Instructions</h3>
               <p className="text-[12.5px] text-muted mb-[18px]">As printed on the 25 mm woven care label (side seam, wearer&apos;s left)</p>
               
@@ -1207,11 +1208,11 @@ export default function Page() {
 
       <section className="pt-10 sm:pt-[72px] pb-2" id="section-e">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
-          <Reveal className="flex items-center gap-4 sm:gap-[18px] mb-6 sm:mb-[30px]">
-            <div className="w-12 h-12 sm:w-[58px] sm:h-[58px] shrink-0 rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[22px] sm:text-[26px] shadow-custom">E</div>
+          <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
+            <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">E</div>
             <div>
-              <h2 className="text-[clamp(20px,3.4vw,30px)] font-bold tracking-tight">Circularity & Upcycling</h2>
-              <p className="text-muted text-[13px] sm:text-[13.5px] mt-0.5">Second life strategies and fiber-to-fiber recycling</p>
+              <h2 className="text-[20px] sm:text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight">Circularity</h2>
+              <p className="text-muted text-[12px] sm:text-[13.5px] mt-0.5">Fibre-to-fiber strategies & recycling instructions</p>
             </div>
           </Reveal>
 
@@ -1265,8 +1266,8 @@ export default function Page() {
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-[26px]">
-            <Reveal className="bg-green-dark text-[#EAF3EC] border border-none rounded-[18px] shadow-custom p-[26px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-[26px]">
+            <Reveal className="bg-green-dark text-[#EAF3EC] border border-none rounded-[18px] shadow-custom p-5 sm:p-[26px]">
               <h3 className="text-[16px] font-bold text-white mb-1.5">♻️ Fibre Facts & Take-Back</h3>
               <p className="text-[12.5px] text-[#B9D3C1] mb-4">What happens after the last wear</p>
               <ul className="list-none grid gap-2.5 text-[13px]">
@@ -1301,11 +1302,11 @@ export default function Page() {
 
       <section className="pt-10 sm:pt-[72px] pb-2" id="section-f">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
-          <Reveal className="flex items-center gap-4 sm:gap-[18px] mb-6 sm:mb-[30px]">
-            <div className="w-12 h-12 sm:w-[58px] sm:h-[58px] shrink-0 rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[22px] sm:text-[26px] shadow-custom">F</div>
+          <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
+            <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">F</div>
             <div>
               <h2 className="text-[clamp(20px,3.4vw,30px)] font-bold tracking-tight">Environmental Dashboard</h2>
-              <p className="text-muted text-[13px] sm:text-[13.5px] mt-0.5">Lifecycle assessment & resource efficiency metrics</p>
+              <p className="text-muted text-[12.5px] sm:text-[13.5px] mt-0.5">Lifecycle assessment & resource efficiency metrics</p>
             </div>
           </Reveal>
           
@@ -1371,62 +1372,62 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="pt-10 sm:pt-[72px] pb-[60px] sm:pb-[80px]" id="section-g">
+      <section className="pt-10 sm:pt-[72px] pb-[40px] sm:pb-[80px]" id="section-g">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
-          <Reveal className="flex items-center gap-4 sm:gap-[18px] mb-6 sm:mb-[30px]">
-            <div className="w-12 h-12 sm:w-[58px] sm:h-[58px] shrink-0 rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[22px] sm:text-[26px] shadow-custom">G</div>
+          <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
+            <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">G</div>
             <div>
               <h2 className="text-[clamp(20px,3.4vw,30px)] font-bold tracking-tight">Data & Compliance</h2>
-              <p className="text-muted text-[13px] sm:text-[13.5px] mt-0.5">Certifications, data provenance, and machine-readable export</p>
+              <p className="text-muted text-[12.5px] sm:text-[13.5px] mt-0.5">Certifications and machine-readable export</p>
             </div>
           </Reveal>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-[26px] mb-6 sm:mb-[26px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-[26px] mb-4 sm:mb-[26px]">
             <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[26px]">
               <h3 className="text-[16px] font-bold mb-4">Certifications & Audits</h3>
-              <div className="grid gap-3">
-                <div className="flex justify-between items-start bg-surface-2 border border-line rounded-xl p-3.5">
+              <div className="grid gap-2.5">
+                <div className="flex justify-between items-start bg-surface-2 border border-line rounded-xl p-3 sm:p-3.5">
                   <div>
-                    <div className="font-bold text-[13.5px]">Cotton made in Africa (CmiA)</div>
-                    <div className="text-[11.5px] text-muted mt-1">Scope: Raw cotton origin · Valid until Dec 2026</div>
+                    <div className="font-bold text-[13px] sm:text-[13.5px]">Cotton made in Africa (CmiA)</div>
+                    <div className="text-[11px] sm:text-[11.5px] text-muted mt-1">Scope: Raw cotton origin · Valid until Dec 2026</div>
                   </div>
-                  <span className="text-[10px] font-bold tracking-widest text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-1 rounded-full">VERIFIED</span>
+                  <span className="text-[9px] font-bold tracking-widest text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-0.5 rounded-full">VERIFIED</span>
                 </div>
-                <div className="flex justify-between items-start bg-surface-2 border border-line rounded-xl p-3.5">
+                <div className="flex justify-between items-start bg-surface-2 border border-line rounded-xl p-3 sm:p-3.5">
                   <div>
-                    <div className="font-bold text-[13.5px]">OEKO-TEX® Standard 100</div>
-                    <div className="text-[11.5px] text-muted mt-1">Class I · Cert: 12345678 Hohenstein</div>
+                    <div className="font-bold text-[13px] sm:text-[13.5px]">OEKO-TEX® Standard 100</div>
+                    <div className="text-[11px] sm:text-[11.5px] text-muted mt-1">Class I · Cert: 12345678 Hohenstein</div>
                   </div>
-                  <span className="text-[10px] font-bold tracking-widest text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-1 rounded-full">VERIFIED</span>
+                  <span className="text-[9px] font-bold tracking-widest text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-0.5 rounded-full">VERIFIED</span>
                 </div>
-                <div className="flex justify-between items-start bg-surface-2 border border-line rounded-xl p-3.5">
+                <div className="flex justify-between items-start bg-surface-2 border border-line rounded-xl p-3 sm:p-3.5">
                   <div>
-                    <div className="font-bold text-[13.5px]">BSCI Social Audit</div>
-                    <div className="text-[11.5px] text-muted mt-1">Facility: AKH Knitting · Rating: A · June 12, 2025</div>
+                    <div className="font-bold text-[13px] sm:text-[13.5px]">BSCI Social Audit</div>
+                    <div className="text-[11px] sm:text-[11.5px] text-muted mt-1">Facility: AKH Knitting · Rating: A · June 12, 2025</div>
                   </div>
-                  <span className="text-[10px] font-bold tracking-widest text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-1 rounded-full">VERIFIED</span>
+                  <span className="text-[9px] font-bold tracking-widest text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-0.5 rounded-full">VERIFIED</span>
                 </div>
               </div>
             </Reveal>
             
-            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
+            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[26px]">
               <h3 className="text-[16px] font-bold mb-4">Logistics & Lifecycle</h3>
-              <div className="grid gap-3">
+              <div className="grid gap-2.5">
                 <div className="flex justify-between items-center bg-surface-2 border border-line rounded-xl p-3 px-4">
-                  <span className="text-[11px] tracking-widest uppercase text-muted font-semibold">Sales Channel</span>
-                  <span className="font-mono text-[13px] font-bold text-ink">Online</span>
+                  <span className="text-[10px] tracking-widest uppercase text-muted font-semibold">Sales Channel</span>
+                  <span className="font-mono text-[12px] font-bold text-ink">Online</span>
                 </div>
                 <div className="flex justify-between items-center bg-surface-2 border border-line rounded-xl p-3 px-4">
-                  <span className="text-[11px] tracking-widest uppercase text-muted font-semibold">Available From</span>
-                  <span className="font-mono text-[13px] font-bold text-ink">Nov 15, 2025</span>
+                  <span className="text-[10px] tracking-widest uppercase text-muted font-semibold">Available From</span>
+                  <span className="font-mono text-[12px] font-bold text-ink">Nov 15, 2025</span>
                 </div>
                 <div className="flex justify-between items-center bg-surface-2 border border-line rounded-xl p-3 px-4">
-                  <span className="text-[11px] tracking-widest uppercase text-muted font-semibold">Usage Class</span>
-                  <span className="font-mono text-[13px] font-bold text-ink">Personal</span>
+                  <span className="text-[10px] tracking-widest uppercase text-muted font-semibold">Usage Class</span>
+                  <span className="font-mono text-[12px] font-bold text-ink">Personal</span>
                 </div>
                 <div className="flex justify-between items-center bg-surface-2 border border-line rounded-xl p-3 px-4">
-                  <span className="text-[11px] tracking-widest uppercase text-muted font-semibold">After-Sale Support</span>
-                  <span className="font-mono text-[11px] font-bold text-ink text-right">Repair · Dry Cleaning</span>
+                  <span className="text-[10px] tracking-widest uppercase text-muted font-semibold">After-Sale Support</span>
+                  <span className="font-mono text-[10px] font-bold text-ink text-right">Repair · Dry Cleaning</span>
                 </div>
               </div>
             </Reveal>
