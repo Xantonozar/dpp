@@ -22,7 +22,8 @@ import {
   DEFAULT_CATALOG,
   getAllPassports,
   getPassportById,
-  normalizePassportData
+  normalizePassportData,
+  fetchPassportsFromApi
 } from '@/lib/passport-data';
 
 export default function ProductPassportDetailPage() {
@@ -32,18 +33,32 @@ export default function ProductPassportDetailPage() {
   const productId = typeof rawId === 'string' ? rawId : Array.isArray(rawId) ? rawId[0] : '151546';
 
   const [allProducts, setAllProducts] = useState<PassportData[]>(DEFAULT_CATALOG);
+  const [remotePassport, setRemotePassport] = useState<PassportData | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAllProducts(getAllPassports());
-  }, []);
+
+    // Also fetch from MongoDB API for fresh data / cross-browser persistence
+    fetch(`/api/passports/${productId}`)
+      .then(res => res.json())
+      .then(json => {
+        if (json && json.passport) {
+          setRemotePassport(json.passport);
+        }
+      })
+      .catch(() => {});
+  }, [productId]);
 
   const data = useMemo(() => {
+    if (remotePassport) {
+      return normalizePassportData(remotePassport);
+    }
     const list = Array.isArray(allProducts) ? allProducts : [];
     const found = list.find(p => p.general?.projectId === productId) || list[0] || DEFAULT_PASSPORT_DATA;
     return normalizePassportData(found);
-  }, [allProducts, productId]);
+  }, [allProducts, productId, remotePassport]);
 
   const handleShare = () => {
     if (typeof window !== 'undefined') {

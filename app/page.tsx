@@ -33,7 +33,8 @@ import type { PassportData } from '@/lib/passport-data';
 import {
   getAllPassports,
   resetAllPassports,
-  DEFAULT_CATALOG
+  DEFAULT_CATALOG,
+  fetchPassportsFromApi
 } from '@/lib/passport-data';
 
 export default function DashboardPage() {
@@ -42,6 +43,13 @@ export default function DashboardPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setProducts(getAllPassports());
+
+    // Fetch from MongoDB database API
+    fetchPassportsFromApi().then(res => {
+      if (res.passports && res.passports.length > 0) {
+        setProducts(res.passports);
+      }
+    });
   }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,7 +156,7 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={handleResetCatalog}
               disabled={isResetting}
@@ -161,40 +169,42 @@ export default function DashboardPage() {
 
             <Link
               href="/editor?new=true&autofill=true"
-              className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-[#2E6B4F] text-white hover:bg-[#24543E] text-xs font-bold transition-all shadow-xs shrink-0"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#2E6B4F] text-white hover:bg-[#24543E] text-xs font-bold transition-all shadow-xs shrink-0"
               title="Auto-fill a digital product passport by uploading a technical specification or test report PDF"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#A2E2BD]" />
-              <span>AI Auto-Fill (PDF)</span>
+              <span className="hidden sm:inline">AI Auto-Fill (PDF)</span>
+              <span className="sm:hidden">Auto-Fill</span>
             </Link>
 
             <Link
               href="/editor?new=true"
-              className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl border border-[#D5CFBF] bg-[#FAF8F3] hover:bg-white text-ink text-xs font-bold transition-all shrink-0"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-[#D5CFBF] bg-[#FAF8F3] hover:bg-white text-ink text-xs font-bold transition-all shrink-0"
               title="Add a new blank digital product passport"
             >
               <Plus className="w-3.5 h-3.5 text-[#2E6B4F]" />
-              <span>+ Blank Entry</span>
+              <span className="hidden sm:inline">+ Blank Entry</span>
+              <span className="sm:hidden">+ Blank</span>
             </Link>
           </div>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8">
         {/* Banner Section */}
-        <section className="mb-8 bg-white border border-[#E3DECF] rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <section className="mb-5 sm:mb-8 bg-white border border-[#E3DECF] rounded-2xl p-4 sm:p-6 md:p-8 shadow-xs relative overflow-hidden">
           <div className="absolute -right-12 -top-12 w-64 h-64 bg-[#EBF5EE] rounded-full filter blur-3xl opacity-50 pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF8F3] border border-[#E3DECF] text-[11px] font-bold text-[#24543E] mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FAF8F3] border border-[#E3DECF] text-[10.5px] sm:text-[11px] font-bold text-[#24543E] mb-2 sm:mb-3">
                 <ShieldCheck className="w-3.5 h-3.5 text-green" />
                 <span>Standardized Ecodesign Data Carriers (EU 2024/1781)</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-[#17201B] mb-2">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-black tracking-tight text-[#17201B] mb-1.5 sm:mb-2">
                 Digital Product Passports (DPP)
               </h1>
-              <p className="text-[14.5px] text-muted leading-relaxed">
+              <p className="text-xs sm:text-[14px] text-muted leading-relaxed">
                 Centralized registry of verified textile passports. Select any product to inspect its complete supply chain traceability, fiber composition, laboratory certificates, and circular end-of-life recovery instructions.
               </p>
             </div>
@@ -202,21 +212,21 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
               <Link
                 href="/editor?new=true&autofill=true"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#2E6B4F] text-white hover:bg-[#24543E] text-xs font-bold transition-all shadow-xs"
+                className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#2E6B4F] text-white hover:bg-[#24543E] text-xs font-bold transition-all shadow-xs"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#A2E2BD]" />
                 <span>AI Auto-Fill from PDF</span>
               </Link>
               <Link
                 href="/editor?new=true"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#17201B] text-[#D4AF37] hover:bg-[#2A3830] text-xs font-bold transition-all shadow-xs"
+                className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#17201B] text-[#D4AF37] hover:bg-[#2A3830] text-xs font-bold transition-all shadow-xs"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>+ Add Blank Entry</span>
               </Link>
               <Link
                 href="/editor"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#E3DECF] bg-white hover:bg-[#FAF8F3] text-ink text-xs font-bold transition-all"
+                className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-[#E3DECF] bg-white hover:bg-[#FAF8F3] text-ink text-xs font-bold transition-all"
               >
                 <Edit3 className="w-3.5 h-3.5 text-muted" />
                 <span>Open Data Entry Studio</span>
@@ -226,70 +236,70 @@ export default function DashboardPage() {
         </section>
 
         {/* High-Level Metric Tiles */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white border border-[#E3DECF] rounded-xl p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-muted">Passports</span>
-              <div className="w-8 h-8 rounded-lg bg-[#EBF5EE] text-[#24543E] flex items-center justify-center">
-                <Layers className="w-4 h-4" />
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5 sm:mb-8">
+          <div className="bg-white border border-[#E3DECF] rounded-xl p-3.5 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <span className="text-[11px] sm:text-[12px] font-bold uppercase tracking-wider text-muted">Passports</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#EBF5EE] text-[#24543E] flex items-center justify-center">
+                <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-display font-black text-[#17201B]">
+            <div className="text-xl sm:text-2xl md:text-3xl font-display font-black text-[#17201B]">
               {metrics.total}
             </div>
-            <span className="text-[11.5px] text-muted font-medium mt-1 inline-block">
+            <span className="text-[10.5px] sm:text-[11.5px] text-muted font-medium mt-0.5 sm:mt-1 inline-block">
               {metrics.verifiedCount} verified in registry
             </span>
           </div>
 
-          <div className="bg-white border border-[#E3DECF] rounded-xl p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-muted">Data Completeness</span>
-              <div className="w-8 h-8 rounded-lg bg-[#EBF5EE] text-[#24543E] flex items-center justify-center">
-                <FileCheck className="w-4 h-4" />
+          <div className="bg-white border border-[#E3DECF] rounded-xl p-3.5 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <span className="text-[11px] sm:text-[12px] font-bold uppercase tracking-wider text-muted">Completeness</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#EBF5EE] text-[#24543E] flex items-center justify-center">
+                <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-display font-black text-[#2E6B4F]">
+            <div className="text-xl sm:text-2xl md:text-3xl font-display font-black text-[#2E6B4F]">
               {metrics.avgCompleteness}%
             </div>
-            <span className="text-[11.5px] text-muted font-medium mt-1 inline-block">
-              Target: &gt;90% for EU launch
+            <span className="text-[10.5px] sm:text-[11.5px] text-muted font-medium mt-0.5 sm:mt-1 inline-block">
+              Target: &gt;90% for EU
             </span>
           </div>
 
-          <div className="bg-white border border-[#E3DECF] rounded-xl p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-muted">Avg. Carbon LCA</span>
-              <div className="w-8 h-8 rounded-lg bg-[#FEF6E8] text-[#8C6014] flex items-center justify-center">
-                <Leaf className="w-4 h-4" />
+          <div className="bg-white border border-[#E3DECF] rounded-xl p-3.5 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <span className="text-[11px] sm:text-[12px] font-bold uppercase tracking-wider text-muted">Avg. Carbon</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#FEF6E8] text-[#8C6014] flex items-center justify-center">
+                <Leaf className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-display font-black text-[#17201B]">
-              {metrics.avgCarbon} <span className="text-sm font-sans font-medium text-muted">kg CO₂e</span>
+            <div className="text-xl sm:text-2xl md:text-3xl font-display font-black text-[#17201B]">
+              {metrics.avgCarbon} <span className="text-xs sm:text-sm font-sans font-medium text-muted">kg CO₂e</span>
             </div>
-            <span className="text-[11.5px] text-muted font-medium mt-1 inline-block">
-              ISO 14067 cradle-to-gate
+            <span className="text-[10.5px] sm:text-[11.5px] text-muted font-medium mt-0.5 sm:mt-1 inline-block">
+              ISO 14067 cradle-gate
             </span>
           </div>
 
-          <div className="bg-white border border-[#E3DECF] rounded-xl p-5 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-muted">Traceability</span>
-              <div className="w-8 h-8 rounded-lg bg-[#EBF5EE] text-[#24543E] flex items-center justify-center">
-                <Building2 className="w-4 h-4" />
+          <div className="bg-white border border-[#E3DECF] rounded-xl p-3.5 sm:p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <span className="text-[11px] sm:text-[12px] font-bold uppercase tracking-wider text-muted">Traceability</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#EBF5EE] text-[#24543E] flex items-center justify-center">
+                <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-display font-black text-[#17201B]">
+            <div className="text-xl sm:text-2xl md:text-3xl font-display font-black text-[#17201B]">
               Tier 1–3
             </div>
-            <span className="text-[11.5px] text-muted font-medium mt-1 inline-block">
-              Spinning, Knitting, CMT & Lab
+            <span className="text-[10.5px] sm:text-[11.5px] text-muted font-medium mt-0.5 sm:mt-1 inline-block">
+              Spinning, Knitting, CMT
             </span>
           </div>
         </section>
 
         {/* Filter, Search & View Toolbar */}
-        <section className="bg-white border border-[#E3DECF] rounded-xl p-4 mb-6 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <section className="bg-white border border-[#E3DECF] rounded-xl p-3 sm:p-4 mb-5 sm:mb-6 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
           <div className="w-full md:w-80 relative">
             <Search className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -301,15 +311,15 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full md:w-auto">
             {/* Category */}
-            <div className="flex items-center gap-1.5 bg-[#FAF8F3] border border-[#E3DECF] rounded-lg px-2.5 py-1 text-xs">
-              <span className="text-muted font-medium text-[11px]">Category:</span>
+            <div className="flex items-center gap-1.5 bg-[#FAF8F3] border border-[#E3DECF] rounded-lg px-2 sm:px-2.5 py-1 text-xs flex-1 sm:flex-initial">
+              <span className="text-muted font-medium text-[10.5px] sm:text-[11px]">Category:</span>
               <select
                 aria-label="Filter by category"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="bg-transparent text-ink font-semibold focus:outline-none cursor-pointer text-xs"
+                className="bg-transparent text-ink font-semibold focus:outline-none cursor-pointer text-xs w-full sm:w-auto"
               >
                 {categories.map((c) => (
                   <option key={c} value={c}>
@@ -320,13 +330,13 @@ export default function DashboardPage() {
             </div>
 
             {/* Season */}
-            <div className="flex items-center gap-1.5 bg-[#FAF8F3] border border-[#E3DECF] rounded-lg px-2.5 py-1 text-xs">
-              <span className="text-muted font-medium text-[11px]">Season:</span>
+            <div className="flex items-center gap-1.5 bg-[#FAF8F3] border border-[#E3DECF] rounded-lg px-2 sm:px-2.5 py-1 text-xs flex-1 sm:flex-initial">
+              <span className="text-muted font-medium text-[10.5px] sm:text-[11px]">Season:</span>
               <select
                 aria-label="Filter by season"
                 value={selectedSeason}
                 onChange={(e) => setSelectedSeason(e.target.value)}
-                className="bg-transparent text-ink font-semibold focus:outline-none cursor-pointer text-xs"
+                className="bg-transparent text-ink font-semibold focus:outline-none cursor-pointer text-xs w-full sm:w-auto"
               >
                 {seasons.map((s) => (
                   <option key={s} value={s}>
@@ -337,13 +347,13 @@ export default function DashboardPage() {
             </div>
 
             {/* Status */}
-            <div className="flex items-center gap-1.5 bg-[#FAF8F3] border border-[#E3DECF] rounded-lg px-2.5 py-1 text-xs">
-              <span className="text-muted font-medium text-[11px]">Status:</span>
+            <div className="flex items-center gap-1.5 bg-[#FAF8F3] border border-[#E3DECF] rounded-lg px-2 sm:px-2.5 py-1 text-xs flex-1 sm:flex-initial">
+              <span className="text-muted font-medium text-[10.5px] sm:text-[11px]">Status:</span>
               <select
                 aria-label="Filter by status"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="bg-transparent text-ink font-semibold focus:outline-none cursor-pointer text-xs"
+                className="bg-transparent text-ink font-semibold focus:outline-none cursor-pointer text-xs w-full sm:w-auto"
               >
                 <option value="ALL">All Status</option>
                 <option value="VERIFIED">Verified</option>
@@ -395,7 +405,7 @@ export default function DashboardPage() {
           </div>
         ) : viewMode === 'grid' ? (
           /* Grid View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
             {(filteredProducts || []).map((p, pIdx) => {
               const isVerified = !p.general?.status || p.general.status === 'VERIFIED';
               const fibers = [
@@ -431,18 +441,18 @@ export default function DashboardPage() {
                       </div>
                     )}
 
-                    <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                      <span className="px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-xs text-[11px] font-bold text-ink border border-[#E3DECF] shadow-xs">
+                    <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-wrap gap-1.5">
+                      <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/95 backdrop-blur-xs text-[10px] sm:text-[11px] font-bold text-ink border border-[#E3DECF] shadow-xs">
                         #{p.general.projectId}
                       </span>
-                      <span className="px-2.5 py-1 rounded-full bg-[#17201B]/85 backdrop-blur-xs text-[11px] font-semibold text-white">
+                      <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-[#17201B]/85 backdrop-blur-xs text-[10px] sm:text-[11px] font-semibold text-white">
                         {p.general.season}
                       </span>
                     </div>
 
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3">
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold border shadow-xs ${
+                        className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[10.5px] font-bold border shadow-xs ${
                           isVerified
                             ? 'bg-[#EBF5EE]/95 text-[#24543E] border-[#CFE8D7]'
                             : 'bg-[#FEF6E8]/95 text-[#8C6014] border-[#FCE1B6]'
@@ -453,50 +463,50 @@ export default function DashboardPage() {
                       </span>
                     </div>
 
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-white bg-black/60 backdrop-blur-xs px-3 py-1.5 rounded-lg">
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-3 sm:left-3 sm:right-3 flex items-center justify-between text-[10.5px] sm:text-[11px] text-white bg-black/60 backdrop-blur-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg">
                       <span className="font-medium truncate">{p.general.originCountry}</span>
                       <span className="font-mono font-bold">{p.general.carbonKg} kg CO₂e</span>
                     </div>
                   </div>
 
                   {/* Body Info */}
-                  <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div className="p-3.5 sm:p-5 flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#2E6B4F]">
+                        <span className="text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider text-[#2E6B4F]">
                           {p.general.category || 'Textile'}
                         </span>
-                        <div className="flex items-center gap-1 text-[11.5px] font-bold text-muted">
+                        <div className="flex items-center gap-1 text-[11px] sm:text-[11.5px] font-bold text-muted">
                           <span>{p.general.completeness || 92}% complete</span>
                         </div>
                       </div>
 
                       {/* Completeness Bar */}
-                      <div className="w-full bg-[#FAF8F3] h-1.5 rounded-full overflow-hidden border border-[#E3DECF] mb-3">
+                      <div className="w-full bg-[#FAF8F3] h-1.5 rounded-full overflow-hidden border border-[#E3DECF] mb-2.5 sm:mb-3">
                         <div
                           className="bg-[#2E6B4F] h-full rounded-full transition-all"
                           style={{ width: `${p.general.completeness || 92}%` }}
                         />
                       </div>
 
-                      <h3 className="font-display font-bold text-lg text-[#17201B] mb-1 group-hover:text-green transition-colors leading-snug">
+                      <h3 className="font-display font-bold text-base sm:text-lg text-[#17201B] mb-1 group-hover:text-green transition-colors leading-snug">
                         {p.general.productName}
                       </h3>
-                      <p className="text-xs text-muted mb-3 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-muted mb-2.5 sm:mb-3 line-clamp-2 leading-relaxed">
                         {p.general.subtitle}
                       </p>
 
                       {/* Material badges */}
-                      <div className="text-[11.5px] text-[#425048] bg-[#FAF8F3] border border-[#E3DECF] rounded-lg px-2.5 py-1.5 mb-4 font-mono font-medium">
+                      <div className="text-[10.5px] sm:text-[11.5px] text-[#425048] bg-[#FAF8F3] border border-[#E3DECF] rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 mb-3 sm:mb-4 font-mono font-medium">
                         {fibers}
                       </div>
                     </div>
 
                     {/* Action buttons */}
-                    <div className="pt-4 border-t border-[#E3DECF] flex items-center justify-between gap-2">
+                    <div className="pt-3 sm:pt-4 border-t border-[#E3DECF] flex items-center justify-between gap-2">
                       <Link
                         href={`/editor?id=${p.general.projectId}`}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-muted hover:text-ink px-2.5 py-1.5 rounded-lg hover:bg-[#FAF8F3] transition-colors"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-muted hover:text-ink px-2 sm:px-2.5 py-1.5 rounded-lg hover:bg-[#FAF8F3] transition-colors"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         <span>Edit Data</span>
@@ -504,7 +514,7 @@ export default function DashboardPage() {
 
                       <Link
                         href={`/dpp/${p.general.projectId}`}
-                        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#2E6B4F] text-white hover:bg-[#24543E] text-xs font-bold transition-all shadow-xs group/btn"
+                        className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-[#2E6B4F] text-white hover:bg-[#24543E] text-xs font-bold transition-all shadow-xs group/btn"
                       >
                         <span>View DPP</span>
                         <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />

@@ -39,43 +39,33 @@ export interface AiModelOption {
 
 export const AI_MODELS: AiModelOption[] = [
   {
-    id: 'gemini-2.5-flash',
-    name: 'Gemini 2.5 Flash',
-    shortName: 'Flash 2.5',
-    badge: 'Recommended',
+    id: 'gemini-3.1-flash-lite',
+    name: 'Gemini 3.1 Flash Lite',
+    shortName: 'Flash Lite (Ultra Fast)',
+    badge: 'Fastest / Recommended',
     badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-    tagline: 'High availability & high speed',
-    description: 'Fast, resilient processing with lowest chance of capacity limits or 503 errors.',
-    isLowerModel: true,
-  },
-  {
-    id: 'gemini-2.5-flash-lite',
-    name: 'Gemini 2.5 Flash Lite',
-    shortName: 'Flash Lite (Lowest)',
-    badge: 'Fastest / Low Demand',
-    badgeColor: 'bg-blue-100 text-blue-800 border-blue-300',
-    tagline: 'Ultra-lightweight & instant',
-    description: 'Lightest server load and minimal congestion risk. Best when other models hit 503.',
+    tagline: 'Lowest latency & rapid extraction',
+    description: 'High-speed document parsing designed for immediate form autofill without delay.',
     isLowerModel: true,
   },
   {
     id: 'gemini-3.8-flash',
     name: 'Gemini 3.8 Flash',
     shortName: 'Flash 3.8',
-    badge: 'Deep Reasoning',
-    badgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
-    tagline: 'Latest generation multimodal model',
-    description: 'Google reasoning model; may encounter temporary demand spikes (503) during peak hours.',
+    badge: 'Balanced & Accurate',
+    badgeColor: 'bg-blue-100 text-blue-800 border-blue-300',
+    tagline: 'Comprehensive multimodal understanding',
+    description: 'Deep structural parsing of complex multi-page apparel documents and tech packs.',
     isLowerModel: false,
   },
   {
-    id: 'gemini-2.5-pro',
-    name: 'Gemini 2.5 Pro',
-    shortName: 'Pro 2.5',
-    badge: 'High Precision',
+    id: 'gemini-3.1-pro-preview',
+    name: 'Gemini 3.1 Pro',
+    shortName: 'Pro 3.1',
+    badge: 'Maximum Precision',
     badgeColor: 'bg-purple-100 text-purple-800 border-purple-300',
-    tagline: 'Deep analytical precision',
-    description: 'Advanced reasoning for dense tabular tech specs and lab reports.',
+    tagline: 'Complex tabular reasoning',
+    description: 'Specialized for dense measurement tables and multi-tier chemical tests.',
     isLowerModel: false,
   },
 ];
@@ -112,7 +102,7 @@ export default function PdfAutoFillModal({
         // ignore
       }
     }
-    return 'gemini-2.5-flash';
+    return 'gemini-3.1-flash-lite';
   });
   const [modelUsedInExtraction, setModelUsedInExtraction] = useState<string | null>(null);
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
@@ -249,17 +239,24 @@ export default function PdfAutoFillModal({
       });
 
       setLoadingStep('Synthesizing specs, lab test cards, measurements, and circularity data...');
-      const result = await response.json();
+      let result: any = null;
+      try {
+        result = await response.json();
+      } catch {
+        const text = await response.text();
+        result = { error: text || `HTTP ${response.status}: Server returned an error` };
+      }
 
-      if (!response.ok || result.error) {
-        const errorText = result.error || 'Failed to extract passport from PDFs';
+      if (!response.ok || !result || result.error) {
+        const errorText = result?.error || `Server request failed with HTTP ${response.status}`;
         if (
-          result.isCapacityIssue ||
+          result?.isCapacityIssue ||
           response.status === 503 ||
           errorText.includes('503') ||
           errorText.includes('high demand') ||
           errorText.includes('UNAVAILABLE') ||
-          errorText.includes('temporarily unavailable')
+          errorText.includes('temporarily unavailable') ||
+          errorText.includes('429')
         ) {
           setIsCapacityError(true);
         }
@@ -300,7 +297,7 @@ export default function PdfAutoFillModal({
       ) {
         setIsCapacityError(true);
         setError(
-          `Google Model High Demand Notice (503): "${modelMeta.name}" is currently experiencing peak demand. Please select a lower or faster model below (such as Gemini 2.5 Flash or Gemini 2.5 Flash Lite) to retry.`
+          `Google Model High Demand Notice (503): "${modelMeta.name}" is currently experiencing peak demand. Please select a faster model below (such as Gemini 3.1 Flash Lite) to retry.`
         );
       } else {
         setError(`AI Extraction notice: ${message}`);
@@ -352,27 +349,27 @@ export default function PdfAutoFillModal({
         className="relative w-full max-w-2xl bg-white border border-[#D5CFBF] rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8E4D8] bg-[#FAF8F3]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#2E6B4F]/10 border border-[#2E6B4F]/20 flex items-center justify-center text-[#2E6B4F]">
-              <Sparkles className="w-5 h-5" />
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 border-b border-[#E8E4D8] bg-[#FAF8F3]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#2E6B4F]/10 border border-[#2E6B4F]/20 flex items-center justify-center text-[#2E6B4F] shrink-0">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h3 className="text-sm sm:text-base font-bold text-[#17201B] flex items-center gap-2">
-                Auto-fill DPP with Gemini AI
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#2E6B4F] text-white">
+            <div className="min-w-0">
+              <h3 className="text-xs sm:text-base font-bold text-[#17201B] flex items-center flex-wrap gap-1.5">
+                <span>Auto-fill DPP with Gemini AI</span>
+                <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-[#2E6B4F] text-white">
                   Up to 3 PDFs
                 </span>
               </h3>
-              <p className="text-[11.5px] text-[#6B726C]">
-                Upload 1 to 3 documents (e.g. FiTS Spec, Lab Test Report, Tech Pack) for joint AI synthesis
+              <p className="text-[10.5px] sm:text-[11.5px] text-[#6B726C] truncate sm:whitespace-normal">
+                Upload 1 to 3 documents for joint AI synthesis
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-1.5 rounded-lg text-[#6B726C] hover:text-[#17201B] hover:bg-[#EAE5D8] transition-colors"
+            className="p-1.5 rounded-lg text-[#6B726C] hover:text-[#17201B] hover:bg-[#EAE5D8] transition-colors shrink-0 ml-2"
           >
             <X className="w-5 h-5" />
           </button>
@@ -458,20 +455,20 @@ export default function PdfAutoFillModal({
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       <button
                         type="button"
-                        onClick={() => handleStartExtraction('gemini-2.5-flash')}
+                        onClick={() => handleStartExtraction('gemini-3.1-flash-lite')}
                         className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                       >
                         <Zap className="w-3.5 h-3.5 text-emerald-200" />
-                        <span>Switch to Gemini 2.5 Flash &amp; Retry</span>
+                        <span>Switch to Flash Lite (Fastest) &amp; Retry</span>
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => handleStartExtraction('gemini-2.5-flash-lite')}
+                        onClick={() => handleStartExtraction('gemini-3.8-flash')}
                         className="px-3 py-1.5 rounded-lg bg-white border border-amber-300 hover:bg-amber-100/80 text-amber-950 font-bold text-[11px] flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                       >
                         <RefreshCw className="w-3.5 h-3.5 text-amber-700" />
-                        <span>Switch to Flash Lite (Lowest Model) &amp; Retry</span>
+                        <span>Switch to Gemini 3.8 Flash &amp; Retry</span>
                       </button>
 
                       <button
@@ -519,7 +516,7 @@ export default function PdfAutoFillModal({
                     <span className="text-[10px] text-[#6B726C]">Choose a lower model if experiencing 503 spikes</span>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EBF5EE] text-[#24543E] border border-[#CFE8D7]">
-                    Active: {AI_MODELS.find((m) => m.id === selectedModel)?.shortName || 'Flash 2.5'}
+                    Active: {AI_MODELS.find((m) => m.id === selectedModel)?.shortName || 'Flash Lite'}
                   </span>
                 </div>
 
@@ -563,7 +560,7 @@ export default function PdfAutoFillModal({
                 </div>
 
                 <p className="text-[10.5px] text-[#6B726C] pl-1">
-                  💡 <strong>Tip:</strong> If Google reports a temporary <strong>503 High Demand</strong> error, select <strong>Gemini 2.5 Flash</strong> or <strong>Flash Lite (Lowest)</strong> for guaranteed throughput.
+                  💡 <strong>Tip:</strong> <strong>Gemini 3.1 Flash Lite</strong> is recommended for maximum extraction speed and minimal latency.
                 </p>
               </div>
 
@@ -662,21 +659,21 @@ export default function PdfAutoFillModal({
 
               {/* Action Buttons */}
               {files.length > 0 && (
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1">
                   <button
                     onClick={() => {
                       setFiles([]);
                       setError(null);
                       setIsCapacityError(false);
                     }}
-                    className="px-3 py-2 rounded-lg border border-[#D5CFBF] text-xs font-semibold text-[#555C56] hover:bg-[#FAF8F3] cursor-pointer"
+                    className="px-3 py-2 rounded-lg border border-[#D5CFBF] text-xs font-semibold text-[#555C56] hover:bg-[#FAF8F3] cursor-pointer text-center"
                   >
                     Clear All
                   </button>
                   <button
                     onClick={() => handleStartExtraction()}
                     disabled={isLoading}
-                    className="px-4 py-2.5 rounded-lg bg-[#2E6B4F] hover:bg-[#24543E] text-white text-xs font-bold flex items-center gap-2 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2.5 rounded-lg bg-[#2E6B4F] hover:bg-[#24543E] text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
                   >
                     {isLoading ? (
                       <>
@@ -890,21 +887,21 @@ export default function PdfAutoFillModal({
               </div>
 
               {/* Apply / Back Buttons */}
-              <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#EAE5D8]">
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 border-t border-[#EAE5D8]">
                 <button
                   type="button"
                   onClick={() => setActiveTab('upload')}
-                  className="px-3 py-2 rounded-lg border border-[#D5CFBF] text-xs font-semibold text-[#555C56] hover:bg-[#FAF8F3] flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-2 rounded-lg border border-[#D5CFBF] text-xs font-semibold text-[#555C56] hover:bg-[#FAF8F3] flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  Upload Different PDFs
+                  <span>Upload Different PDFs</span>
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleApply('merge')}
-                    className="px-3.5 py-2 rounded-lg border border-[#2E6B4F] text-[#2E6B4F] hover:bg-[#2E6B4F]/5 text-xs font-bold transition-all cursor-pointer"
+                    className="px-3.5 py-2 rounded-lg border border-[#2E6B4F] text-[#2E6B4F] hover:bg-[#2E6B4F]/5 text-xs font-bold transition-all cursor-pointer text-center"
                     title="Keep existing non-empty fields and fill in missing values"
                   >
                     Merge with Form
@@ -913,7 +910,7 @@ export default function PdfAutoFillModal({
                   <button
                     type="button"
                     onClick={() => handleApply('replace')}
-                    className="px-4 py-2 rounded-lg bg-[#2E6B4F] hover:bg-[#24543E] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                    className="px-4 py-2 rounded-lg bg-[#2E6B4F] hover:bg-[#24543E] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
                     title="Populate the entire passport form with all extracted attributes"
                   >
                     <CheckCircle2 className="w-4 h-4" />

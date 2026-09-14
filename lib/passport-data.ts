@@ -926,54 +926,54 @@ export function normalizePassportData(raw: any): PassportData {
 
   const topMeasurements = rawTop.length > 0
     ? rawTop.map(normalizeMeasurementRow)
-    : (base.measurements?.top || DEFAULT_PASSPORT_DATA.measurements.top);
+    : (base.measurements?.top || (isTchiboProject ? DEFAULT_PASSPORT_DATA.measurements.top : []));
 
   const bottomMeasurements = rawBottom.length > 0
     ? rawBottom.map(normalizeMeasurementRow)
-    : (base.measurements?.bottom || DEFAULT_PASSPORT_DATA.measurements.bottom);
+    : (base.measurements?.bottom || (isTchiboProject ? DEFAULT_PASSPORT_DATA.measurements.bottom : []));
 
   const labCards = Array.isArray(raw.quality?.labCards) && raw.quality.labCards.length > 0
     ? raw.quality.labCards
-    : (base.quality?.labCards || DEFAULT_PASSPORT_DATA.quality.labCards);
+    : (base.quality?.labCards || (isTchiboProject ? DEFAULT_PASSPORT_DATA.quality.labCards : []));
 
   const rslItems = Array.isArray(raw.quality?.rslItems) && raw.quality.rslItems.length > 0
     ? raw.quality.rslItems
-    : (base.quality?.rslItems || DEFAULT_PASSPORT_DATA.quality.rslItems);
+    : (base.quality?.rslItems || (isTchiboProject ? DEFAULT_PASSPORT_DATA.quality.rslItems : []));
 
   const labAnalysis = Array.isArray(raw.materials?.labAnalysis) && raw.materials.labAnalysis.length > 0
     ? raw.materials.labAnalysis
-    : (base.materials?.labAnalysis || DEFAULT_PASSPORT_DATA.materials.labAnalysis);
+    : (base.materials?.labAnalysis || (isTchiboProject ? DEFAULT_PASSPORT_DATA.materials.labAnalysis : []));
 
   const svhcSubstances = Array.isArray(raw.materials?.svhcSubstances) && raw.materials.svhcSubstances.length > 0
     ? raw.materials.svhcSubstances
-    : (base.materials?.svhcSubstances || DEFAULT_PASSPORT_DATA.materials.svhcSubstances);
+    : (base.materials?.svhcSubstances || (isTchiboProject ? DEFAULT_PASSPORT_DATA.materials.svhcSubstances : []));
 
   const nodes = Array.isArray(raw.traceability?.nodes) && raw.traceability.nodes.length > 0
     ? raw.traceability.nodes.map((n: any) => ({
         ...n,
         items: Array.isArray(n?.items) ? n.items : []
       }))
-    : (base.traceability?.nodes || DEFAULT_PASSPORT_DATA.traceability.nodes);
+    : (base.traceability?.nodes || (isTchiboProject ? DEFAULT_PASSPORT_DATA.traceability.nodes : []));
 
   const circularityTips = Array.isArray(raw.circularity?.tips) && raw.circularity.tips.length > 0
     ? raw.circularity.tips
-    : (base.circularity?.tips || DEFAULT_PASSPORT_DATA.circularity.tips);
+    : (base.circularity?.tips || (isTchiboProject ? DEFAULT_PASSPORT_DATA.circularity.tips : []));
 
   const upcycleSteps = Array.isArray(raw.circularity?.upcycleSteps) && raw.circularity.upcycleSteps.length > 0
     ? raw.circularity.upcycleSteps
-    : (base.circularity?.upcycleSteps || DEFAULT_PASSPORT_DATA.circularity.upcycleSteps);
+    : (base.circularity?.upcycleSteps || (isTchiboProject ? DEFAULT_PASSPORT_DATA.circularity.upcycleSteps : []));
 
   const fibreRecyclingFacts = Array.isArray(raw.circularity?.fibreRecyclingFacts) && raw.circularity.fibreRecyclingFacts.length > 0
     ? raw.circularity.fibreRecyclingFacts
-    : (base.circularity?.fibreRecyclingFacts || DEFAULT_PASSPORT_DATA.circularity.fibreRecyclingFacts);
+    : (base.circularity?.fibreRecyclingFacts || (isTchiboProject ? DEFAULT_PASSPORT_DATA.circularity.fibreRecyclingFacts : []));
 
   const carbonBreakdown = Array.isArray(raw.environmental?.carbonBreakdown) && raw.environmental.carbonBreakdown.length > 0
     ? raw.environmental.carbonBreakdown
-    : (base.environmental?.carbonBreakdown || DEFAULT_PASSPORT_DATA.environmental.carbonBreakdown);
+    : (base.environmental?.carbonBreakdown || (isTchiboProject ? DEFAULT_PASSPORT_DATA.environmental.carbonBreakdown : []));
 
   const certifications = Array.isArray(raw.compliance?.certifications) && raw.compliance.certifications.length > 0
     ? raw.compliance.certifications
-    : (base.compliance?.certifications || DEFAULT_PASSPORT_DATA.compliance.certifications);
+    : (base.compliance?.certifications || (isTchiboProject ? DEFAULT_PASSPORT_DATA.compliance.certifications : []));
 
   return {
     general: {
@@ -1022,8 +1022,8 @@ export function normalizePassportData(raw: any): PassportData {
       svhcSubstances
     },
     measurements: {
-      topFit: raw.measurements?.topFit || base.measurements?.topFit || DEFAULT_PASSPORT_DATA.measurements.topFit,
-      bottomFit: raw.measurements?.bottomFit || base.measurements?.bottomFit || DEFAULT_PASSPORT_DATA.measurements.bottomFit,
+      topFit: raw.measurements?.topFit || base.measurements?.topFit || (isTchiboProject ? DEFAULT_PASSPORT_DATA.measurements.topFit : 'N/A'),
+      bottomFit: raw.measurements?.bottomFit || base.measurements?.bottomFit || (isTchiboProject ? DEFAULT_PASSPORT_DATA.measurements.bottomFit : 'N/A'),
       top: topMeasurements,
       bottom: bottomMeasurements
     },
@@ -1043,19 +1043,19 @@ export function normalizePassportData(raw: any): PassportData {
       labCards
     },
     care: {
-      wash: raw.care?.wash || base.care?.wash || DEFAULT_PASSPORT_DATA.care.wash,
-      bleach: raw.care?.bleach || base.care?.bleach || DEFAULT_PASSPORT_DATA.care.bleach,
-      dry: raw.care?.dry || base.care?.dry || DEFAULT_PASSPORT_DATA.care.dry,
-      iron: raw.care?.iron || base.care?.iron || DEFAULT_PASSPORT_DATA.care.iron,
-      dryClean: raw.care?.dryClean || base.care?.dryClean || DEFAULT_PASSPORT_DATA.care.dryClean,
-      labelWording: raw.care?.labelWording || base.care?.labelWording || DEFAULT_PASSPORT_DATA.care.labelWording
+      wash: raw.care?.wash || base.care?.wash || (isTchiboProject ? DEFAULT_PASSPORT_DATA.care.wash : 'N/A'),
+      bleach: raw.care?.bleach || base.care?.bleach || (isTchiboProject ? DEFAULT_PASSPORT_DATA.care.bleach : 'N/A'),
+      dry: raw.care?.dry || base.care?.dry || (isTchiboProject ? DEFAULT_PASSPORT_DATA.care.dry : 'N/A'),
+      iron: raw.care?.iron || base.care?.iron || (isTchiboProject ? DEFAULT_PASSPORT_DATA.care.iron : 'N/A'),
+      dryClean: raw.care?.dryClean || base.care?.dryClean || (isTchiboProject ? DEFAULT_PASSPORT_DATA.care.dryClean : 'N/A'),
+      labelWording: raw.care?.labelWording || base.care?.labelWording || (isTchiboProject ? DEFAULT_PASSPORT_DATA.care.labelWording : 'N/A')
     },
     circularity: {
       ...base.circularity,
       ...(raw.circularity || {}),
       tips: circularityTips,
-      upcycleTitle: raw.circularity?.upcycleTitle || base.circularity?.upcycleTitle || DEFAULT_PASSPORT_DATA.circularity.upcycleTitle,
-      upcycleSubtitle: raw.circularity?.upcycleSubtitle || base.circularity?.upcycleSubtitle || DEFAULT_PASSPORT_DATA.circularity.upcycleSubtitle,
+      upcycleTitle: raw.circularity?.upcycleTitle || base.circularity?.upcycleTitle || (isTchiboProject ? DEFAULT_PASSPORT_DATA.circularity.upcycleTitle : 'N/A'),
+      upcycleSubtitle: raw.circularity?.upcycleSubtitle || base.circularity?.upcycleSubtitle || (isTchiboProject ? DEFAULT_PASSPORT_DATA.circularity.upcycleSubtitle : 'N/A'),
       upcycleImage: sanitizeImageUrl(raw.circularity?.upcycleImage, base.circularity?.upcycleImage || ''),
       upcycleSteps,
       fibreRecyclingFacts
@@ -1063,7 +1063,7 @@ export function normalizePassportData(raw: any): PassportData {
     environmental: {
       ...base.environmental,
       ...(raw.environmental || {}),
-      totalCarbon: raw.environmental?.totalCarbon && raw.environmental.totalCarbon > 0 ? raw.environmental.totalCarbon : (base.environmental?.totalCarbon || DEFAULT_PASSPORT_DATA.environmental.totalCarbon || 3.42),
+      totalCarbon: raw.environmental?.totalCarbon && raw.environmental.totalCarbon > 0 ? raw.environmental.totalCarbon : (base.environmental?.totalCarbon || (isTchiboProject ? DEFAULT_PASSPORT_DATA.environmental.totalCarbon : 0)),
       waterUsage: { ...base.environmental.waterUsage, ...(raw.environmental?.waterUsage || {}) },
       renewableEnergy: { ...base.environmental.renewableEnergy, ...(raw.environmental?.renewableEnergy || {}) },
       recycledPackaging: { ...base.environmental.recycledPackaging, ...(raw.environmental?.recycledPackaging || {}) },
@@ -1073,6 +1073,372 @@ export function normalizePassportData(raw: any): PassportData {
       ...base.compliance,
       ...(raw.compliance || {}),
       certifications
+    }
+  };
+}
+
+/**
+ * Normalizes extracted data from uploaded documents.
+ * Adheres strictly to the rule: if a field or table is missing from the document, write "N/A" (or 0 for numbers).
+ * Does not invent, synthesize, or inject mock data into missing fields.
+ */
+export function normalizeExtractedPassportData(raw: any, existingVisuals?: any): PassportData {
+  if (!raw || typeof raw !== 'object') {
+    raw = {};
+  }
+
+  const clean = (val: any, fallback: string = 'n/a'): string => {
+    if (val === null || val === undefined) return fallback;
+    const s = String(val).trim();
+    if (s === '' || s.toLowerCase() === 'undefined' || s.toLowerCase() === 'null') return fallback;
+    return s;
+  };
+
+  const num = (val: any, fallback: number = 0): number => {
+    if (val === null || val === undefined) return fallback;
+    if (typeof val === 'number') return isNaN(val) ? fallback : val;
+    const parsed = parseFloat(String(val).replace(/[^0-9.-]/g, ''));
+    return isNaN(parsed) ? fallback : parsed;
+  };
+
+  const cleanSizes = (obj: any): Record<Size, string> => ({
+    S: clean(obj?.S),
+    M: clean(obj?.M),
+    L: clean(obj?.L),
+    XL: clean(obj?.XL),
+    XXL: clean(obj?.XXL),
+  });
+
+  const rawTop = Array.isArray(raw.measurements?.top) ? raw.measurements.top : [];
+  const rawBottom = Array.isArray(raw.measurements?.bottom) ? raw.measurements.bottom : [];
+
+  const topMeasurements: MeasurementRow[] = rawTop.map((r: any, idx: number) => {
+    const valsRaw = r?.vals && typeof r.vals === 'object' ? r.vals : {};
+    return {
+      k: clean(r?.k, String.fromCharCode(65 + idx)),
+      name: clean(r?.name, 'n/a'),
+      how: clean(r?.how, 'n/a'),
+      g: r?.g ? String(r.g) : null,
+      vals: {
+        S: num(valsRaw.S ?? r?.S),
+        M: num(valsRaw.M ?? r?.M),
+        L: num(valsRaw.L ?? r?.L),
+        XL: num(valsRaw.XL ?? r?.XL),
+        XXL: num(valsRaw.XXL ?? r?.XXL),
+      },
+    };
+  });
+
+  const bottomMeasurements: MeasurementRow[] = rawBottom.map((r: any, idx: number) => {
+    const valsRaw = r?.vals && typeof r.vals === 'object' ? r.vals : {};
+    return {
+      k: clean(r?.k, String.fromCharCode(65 + idx)),
+      name: clean(r?.name, 'n/a'),
+      how: clean(r?.how, 'n/a'),
+      g: r?.g ? String(r.g) : null,
+      vals: {
+        S: num(valsRaw.S ?? r?.S),
+        M: num(valsRaw.M ?? r?.M),
+        L: num(valsRaw.L ?? r?.L),
+        XL: num(valsRaw.XL ?? r?.XL),
+        XXL: num(valsRaw.XXL ?? r?.XXL),
+      },
+    };
+  });
+
+  const labCards: LabCardData[] =
+    Array.isArray(raw.quality?.labCards) && raw.quality.labCards.length > 0
+      ? raw.quality.labCards.map((c: any) => ({
+          std: clean(c?.std),
+          title: clean(c?.title),
+          val: clean(c?.val),
+          subVal: clean(c?.subVal),
+          desc: clean(c?.desc),
+          hint: clean(c?.hint),
+        }))
+      : [];
+
+  const rslItems: Array<{ name: string; result: string }> =
+    Array.isArray(raw.quality?.rslItems) && raw.quality.rslItems.length > 0
+      ? raw.quality.rslItems.map((item: any) => ({
+          name: clean(item?.name),
+          result: clean(item?.result),
+        }))
+      : [];
+
+  const labAnalysis =
+    Array.isArray(raw.materials?.labAnalysis) && raw.materials.labAnalysis.length > 0
+      ? raw.materials.labAnalysis.map((la: any) => ({
+          fiber: clean(la?.fiber),
+          labeled: clean(la?.labeled),
+          lab: clean(la?.lab),
+        }))
+      : [];
+
+  const svhcSubstances =
+    Array.isArray(raw.materials?.svhcSubstances) && raw.materials.svhcSubstances.length > 0
+      ? raw.materials.svhcSubstances.map((sub: any) => ({
+          substance: clean(sub?.substance),
+          cas: clean(sub?.cas),
+          component: clean(sub?.component),
+          status: clean(sub?.status),
+        }))
+      : [];
+
+  const nodes: TraceabilityNode[] =
+    Array.isArray(raw.traceability?.nodes) && raw.traceability.nodes.length > 0
+      ? raw.traceability.nodes.map((node: any) => ({
+          tier: clean(node?.tier, 'TIER 1'),
+          date: clean(node?.date),
+          title: clean(node?.title),
+          subtitle: clean(node?.subtitle),
+          color: (node?.color === 'amber' ? 'amber' : 'green') as 'green' | 'amber',
+          items:
+            Array.isArray(node?.items) && node.items.length > 0
+              ? node.items.map((it: any) => ({
+                  label: clean(it?.label),
+                  val: clean(it?.val),
+                }))
+              : [{ label: 'Status', val: 'N/A' }],
+        }))
+      : [];
+
+  const tips =
+    Array.isArray(raw.circularity?.tips) && raw.circularity.tips.length > 0
+      ? raw.circularity.tips.map((t: any) => ({
+          emoji: t?.emoji || 'ℹ️',
+          title: clean(t?.title),
+          text: clean(t?.text),
+        }))
+      : [];
+
+  const upcycleSteps =
+    Array.isArray(raw.circularity?.upcycleSteps) && raw.circularity.upcycleSteps.length > 0
+      ? raw.circularity.upcycleSteps.map((s: any) => ({
+          title: clean(s?.title),
+          text: clean(s?.text),
+        }))
+      : [];
+
+  const fibreRecyclingFacts =
+    Array.isArray(raw.circularity?.fibreRecyclingFacts) && raw.circularity.fibreRecyclingFacts.length > 0
+      ? raw.circularity.fibreRecyclingFacts.map((f: any) => clean(f))
+      : [];
+
+  const carbonBreakdown =
+    Array.isArray(raw.environmental?.carbonBreakdown) && raw.environmental.carbonBreakdown.length > 0
+      ? raw.environmental.carbonBreakdown.map((cb: any) => ({
+          label: clean(cb?.label),
+          value: num(cb?.value),
+          color: cb?.color || '#5FA47F',
+        }))
+      : [];
+
+  const certifications =
+    Array.isArray(raw.compliance?.certifications) && raw.compliance.certifications.length > 0
+      ? raw.compliance.certifications.map((c: any) => ({
+          name: clean(c?.name),
+          scope: clean(c?.scope),
+          status: clean(c?.status),
+        }))
+      : [];
+
+  const badges =
+    Array.isArray(raw.general?.badges) && raw.general.badges.length > 0
+      ? raw.general.badges.map((b: any) => clean(b)).filter((b: string) => b.toLowerCase() !== 'n/a')
+      : [];
+
+  // Geolocation helpers: ensure valid coordinates
+  const originLat = num(raw.traceability?.origin?.lat, 23.8103);
+  const originLng = num(raw.traceability?.origin?.lng, 90.4125);
+  const destLat = num(raw.traceability?.destination?.lat, 53.5511);
+  const destLng = num(raw.traceability?.destination?.lng, 9.9937);
+
+  // Compute realistic completeness score based on non-n/a extracted fields
+  const isFilled = (val: string) => Boolean(val && val.trim().toLowerCase() !== 'n/a');
+  const keyChecks = [
+    isFilled(clean(raw.general?.projectId)),
+    isFilled(clean(raw.general?.orderNo)),
+    isFilled(clean(raw.general?.productName)),
+    isFilled(clean(raw.general?.brand)),
+    isFilled(clean(raw.general?.season)),
+    isFilled(clean(raw.general?.category)),
+    isFilled(clean(raw.general?.originCountry)),
+    num(raw.materials?.fabricWeight) > 0 || num(raw.general?.weightGsm) > 0,
+    num(raw.materials?.cotton) > 0 || num(raw.materials?.modal) > 0 || num(raw.materials?.viscose) > 0 || num(raw.materials?.elastane) > 0 || num(raw.materials?.recycledContent) > 0,
+    isFilled(clean(raw.materials?.yarnSources?.cottonCert)) || isFilled(clean(raw.materials?.yarnSources?.modalCert)) || isFilled(clean(raw.materials?.yarnSources?.viscoseCert)),
+    topMeasurements.length > 0 || bottomMeasurements.length > 0,
+    isFilled(clean(raw.quality?.reportNumber)) || isFilled(clean(raw.quality?.testingLab)),
+    isFilled(clean(raw.care?.wash)) || isFilled(clean(raw.care?.labelWording)),
+    nodes.length > 0,
+    certifications.length > 0 || badges.length > 0
+  ];
+  const filledCount = keyChecks.filter(Boolean).length;
+  const computedCompleteness = Math.round((filledCount / keyChecks.length) * 100);
+
+  return {
+    general: {
+      projectId: clean(raw.general?.projectId),
+      orderNo: clean(raw.general?.orderNo),
+      version: clean(raw.general?.version),
+      completeness: raw.general?.completeness ? num(raw.general.completeness) : computedCompleteness,
+      updatedDate: clean(raw.general?.updatedDate, new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })),
+      productName: clean(raw.general?.productName),
+      subtitle: clean(raw.general?.subtitle),
+      brand: clean(raw.general?.brand),
+      season: clean(raw.general?.season),
+      category: clean(raw.general?.category),
+      gender: clean(raw.general?.gender),
+      color: clean(raw.general?.color),
+      fitting: clean(raw.general?.fitting),
+      passportId: clean(raw.general?.passportId, raw.general?.projectId ? `DPP-${raw.general.projectId}` : 'N/A'),
+      status: (raw.general?.status === 'VERIFIED' ? 'VERIFIED' : raw.general?.status === 'AUDIT PENDING' ? 'AUDIT PENDING' : 'DRAFT'),
+      designDescription: clean(raw.general?.designDescription),
+      weightGsm: num(raw.general?.weightGsm || raw.materials?.fabricWeight),
+      originCountry: clean(raw.general?.originCountry),
+      lifetimeYears: clean(raw.general?.lifetimeYears),
+      carbonKg: num(raw.general?.carbonKg || raw.environmental?.totalCarbon),
+      qrCodeSeed: clean(raw.general?.qrCodeSeed),
+      qrCodeLab: clean(raw.general?.qrCodeLab),
+      badges,
+      articleNumbers: {
+        uni: cleanSizes(raw.general?.articleNumbers?.uni || raw.general?.articleNumbers),
+        aop: cleanSizes(raw.general?.articleNumbers?.aop)
+      },
+      gtinStatus: clean(raw.general?.gtinStatus),
+      gtinCodes: {
+        uni: cleanSizes(raw.general?.gtinCodes?.uni || raw.general?.gtinCodes),
+        aop: cleanSizes(raw.general?.gtinCodes?.aop)
+      },
+      packagingInfo: {
+        materials: clean(raw.general?.packagingInfo?.materials),
+        recyclability: clean(raw.general?.packagingInfo?.recyclability),
+        type: clean(raw.general?.packagingInfo?.type),
+        certification: clean(raw.general?.packagingInfo?.certification)
+      },
+      visuals: {
+        cw1Name: clean(raw.general?.visuals?.cw1Name),
+        cw1Image: sanitizeImageUrl(raw.general?.visuals?.cw1Image, existingVisuals?.cw1Image || ''),
+        cw2Name: clean(raw.general?.visuals?.cw2Name),
+        cw2Image: sanitizeImageUrl(raw.general?.visuals?.cw2Image, existingVisuals?.cw2Image || ''),
+        aiModelInfo: clean(raw.general?.visuals?.aiModelInfo),
+        prompt: clean(raw.general?.visuals?.prompt),
+        colors: clean(raw.general?.visuals?.colors)
+      }
+    },
+    materials: {
+      cotton: num(raw.materials?.cotton),
+      viscose: num(raw.materials?.viscose),
+      modal: num(raw.materials?.modal),
+      elastane: num(raw.materials?.elastane),
+      recycledContent: num(raw.materials?.recycledContent),
+      fabricWeight: num(raw.materials?.fabricWeight || raw.general?.weightGsm),
+      tolerance: clean(raw.materials?.tolerance),
+      yarnSources: {
+        cottonCert: clean(raw.materials?.yarnSources?.cottonCert),
+        modalCert: clean(raw.materials?.yarnSources?.modalCert),
+        viscoseCert: clean(raw.materials?.yarnSources?.viscoseCert),
+        elastaneCert: clean(raw.materials?.yarnSources?.elastaneCert)
+      },
+      labAnalysis,
+      microfibreNote: clean(raw.materials?.microfibreNote),
+      svhcSubstances
+    },
+    measurements: {
+      topFit: clean(raw.measurements?.topFit),
+      bottomFit: clean(raw.measurements?.bottomFit),
+      top: topMeasurements,
+      bottom: bottomMeasurements
+    },
+    traceability: {
+      percentage: num(raw.traceability?.percentage),
+      summary: clean(raw.traceability?.summary),
+      origin: {
+        country: clean(raw.traceability?.origin?.country),
+        city: clean(raw.traceability?.origin?.city),
+        facility: clean(raw.traceability?.origin?.facility),
+        lat: originLat,
+        lng: originLng
+      },
+      destination: {
+        country: clean(raw.traceability?.destination?.country),
+        city: clean(raw.traceability?.destination?.city),
+        label: clean(raw.traceability?.destination?.label),
+        lat: destLat,
+        lng: destLng,
+        transportMode: clean(raw.traceability?.destination?.transportMode),
+        distanceKm: num(raw.traceability?.destination?.distanceKm)
+      },
+      testingLab: {
+        name: clean(raw.traceability?.testingLab?.name || raw.quality?.testingLab),
+        reportNo: clean(raw.traceability?.testingLab?.reportNo || raw.quality?.reportNumber),
+        location: clean(raw.traceability?.testingLab?.location),
+        result: clean(raw.traceability?.testingLab?.result || raw.quality?.overallResult)
+      },
+      nodes
+    },
+    quality: {
+      rslStandards: clean(raw.quality?.rslStandards),
+      reportNumber: clean(raw.quality?.reportNumber),
+      overallResult: clean(raw.quality?.overallResult),
+      testingLab: clean(raw.quality?.testingLab),
+      reviewedBy: {
+        name: clean(raw.quality?.reviewedBy?.name),
+        designation: clean(raw.quality?.reviewedBy?.designation),
+        date: clean(raw.quality?.reviewedBy?.date)
+      },
+      rslItems,
+      labCards
+    },
+    care: {
+      wash: clean(raw.care?.wash),
+      bleach: clean(raw.care?.bleach),
+      dry: clean(raw.care?.dry),
+      iron: clean(raw.care?.iron),
+      dryClean: clean(raw.care?.dryClean),
+      labelWording: clean(raw.care?.labelWording)
+    },
+    circularity: {
+      tips,
+      upcycleTitle: clean(raw.circularity?.upcycleTitle),
+      upcycleSubtitle: clean(raw.circularity?.upcycleSubtitle),
+      upcycleImage: sanitizeImageUrl(raw.circularity?.upcycleImage, ''),
+      upcycleSteps,
+      fibreRecyclingFacts
+    },
+    environmental: {
+      carbonStatus: (raw.environmental?.carbonStatus === 'available' || num(raw.environmental?.totalCarbon) > 0) ? 'available' : 'not_provided',
+      carbonDataStatus: clean(raw.environmental?.carbonDataStatus, 'Data not provided in documentation'),
+      carbonSource: clean(raw.environmental?.carbonSource),
+      totalCarbon: num(raw.environmental?.totalCarbon),
+      carbonBreakdown,
+      waterUsage: {
+        value: num(raw.environmental?.waterUsage?.value),
+        max: num(raw.environmental?.waterUsage?.max, 1000),
+        sub: clean(raw.environmental?.waterUsage?.sub)
+      },
+      renewableEnergy: {
+        value: num(raw.environmental?.renewableEnergy?.value),
+        max: num(raw.environmental?.renewableEnergy?.max, 100),
+        sub: clean(raw.environmental?.renewableEnergy?.sub)
+      },
+      recycledPackaging: {
+        value: num(raw.environmental?.recycledPackaging?.value),
+        max: num(raw.environmental?.recycledPackaging?.max, 100),
+        sub: clean(raw.environmental?.recycledPackaging?.sub)
+      },
+      packagingRecyclability: num(raw.environmental?.packagingRecyclability),
+      packagingMaterials: clean(raw.environmental?.packagingMaterials),
+      euPolicyNote: clean(raw.environmental?.euPolicyNote)
+    },
+    compliance: {
+      certifications,
+      salesChannel: clean(raw.compliance?.salesChannel),
+      availableFrom: clean(raw.compliance?.availableFrom),
+      usageClass: clean(raw.compliance?.usageClass),
+      afterSale: clean(raw.compliance?.afterSale),
+      issuer: clean(raw.compliance?.issuer),
+      markets: clean(raw.compliance?.markets)
     }
   };
 }
@@ -1139,6 +1505,94 @@ export function resetAllPassports(): void {
     localStorage.removeItem('tchibo_custom_dpp_data_v1');
   } catch (err) {
     console.error('Failed to reset catalog', err);
+  }
+}
+
+// MongoDB & API Persistence Helpers
+export async function fetchPassportsFromApi(): Promise<{
+  source: string;
+  connected: boolean;
+  passports: PassportData[];
+}> {
+  try {
+    const res = await fetch('/api/passports', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (Array.isArray(data.passports) && data.passports.length > 0) {
+      const normalized = data.passports.map(normalizePassportData);
+      // Keep localStorage in sync as resilient local cache
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(CATALOG_KEY, JSON.stringify(normalized));
+        } catch {
+          // ignore quota error
+        }
+      }
+      return {
+        source: data.source || 'mongodb',
+        connected: Boolean(data.connected),
+        passports: normalized,
+      };
+    }
+  } catch (err) {
+    console.warn('Could not fetch passports from /api/passports, using local storage cache:', err);
+  }
+  return {
+    source: 'local',
+    connected: false,
+    passports: getAllPassports(),
+  };
+}
+
+export async function savePassportToApi(passport: PassportData): Promise<{
+  success: boolean;
+  source: string;
+  connected?: boolean;
+  message?: string;
+}> {
+  // Always update local cache first
+  savePassport(passport);
+
+  try {
+    const res = await fetch('/api/passports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passport }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return {
+      success: true,
+      source: data.source || 'local',
+      connected: data.connected,
+      message: data.message,
+    };
+  } catch (err: any) {
+    console.warn('Failed to persist passport to /api/passports:', err);
+    return {
+      success: true,
+      source: 'local',
+      connected: false,
+      message: 'Saved to local browser cache (MongoDB offline or unconfigured)',
+    };
+  }
+}
+
+export async function deletePassportFromApi(id: string): Promise<{
+  success: boolean;
+  source: string;
+}> {
+  deletePassport(id);
+  try {
+    const res = await fetch(`/api/passports/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return { success: true, source: data.source || 'mongodb' };
+  } catch (err) {
+    console.warn('Failed to delete passport on server:', err);
+    return { success: true, source: 'local' };
   }
 }
 

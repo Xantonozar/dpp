@@ -588,14 +588,17 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
   const [upcycleError, setUpcycleError] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCw1Error(false);
   }, [data.general?.visuals?.cw1Image]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCw2Error(false);
   }, [data.general?.visuals?.cw2Image]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUpcycleError(false);
   }, [data.circularity?.upcycleImage]);
 
@@ -711,20 +714,20 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             </em>
           </a>
 
-          <div className="flex gap-0.5 overflow-x-auto no-scrollbar mask-fade-right mx-4 sm:mx-0">
-            <a href="#section-a" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white active:bg-ink active:text-[#F4F1EA]">A · Overview</a>
-            <a href="#section-b" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">B · Traceability</a>
-            <a href="#section-c" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">C · Quality</a>
-            <a href="#section-d" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">D · Care</a>
-            <a href="#section-e" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">E · Circularity</a>
-            <a href="#section-f" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">F · Impact</a>
-            <a href="#section-g" className="text-[11.5px] sm:text-[12.5px] font-semibold text-muted px-2.5 py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">G · Data</a>
+          <div className="flex-1 min-w-0 flex gap-0.5 overflow-x-auto no-scrollbar mask-fade-right mx-2 sm:mx-4">
+            <a href="#section-a" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white active:bg-ink active:text-[#F4F1EA]">A · Overview</a>
+            <a href="#section-b" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">B · Traceability</a>
+            <a href="#section-c" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">C · Quality</a>
+            <a href="#section-d" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">D · Care</a>
+            <a href="#section-e" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">E · Circularity</a>
+            <a href="#section-f" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">F · Impact</a>
+            <a href="#section-g" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">G · Data</a>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3 ml-auto">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <Link
               href="/editor"
-              className="inline-flex items-center gap-1.5 bg-green hover:bg-green-dark text-white text-[12px] font-semibold px-3 py-1.5 rounded-full transition-colors shadow-sm"
+              className="inline-flex items-center gap-1.5 bg-green hover:bg-green-dark text-white text-[11.5px] sm:text-[12px] font-semibold px-2.5 sm:px-3 py-1.5 rounded-full transition-colors shadow-sm shrink-0"
               title="Open the Passport Data Editor"
             >
               <Edit3 size={13} />
@@ -1098,18 +1101,25 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
               </div>
 
               <div className="relative aspect-square bg-[#EAE4D6] overflow-hidden flex flex-col items-center justify-center">
-                {(isValidImageSrc(data.general.visuals?.cw1Image) && !cw1Error) ||
-                (isValidImageSrc(data.general.visuals?.cw2Image) && !cw2Error) ? (
+                {/* Check if current active colorway has image or if alternate has image */}
+                {((curView === 'cw1' && isValidImageSrc(data.general.visuals?.cw1Image) && !cw1Error) ||
+                  (curView === 'cw2' && isValidImageSrc(data.general.visuals?.cw2Image) && !cw2Error) ||
+                  (!isValidImageSrc(data.general.visuals?.[curView === 'cw1' ? 'cw1Image' : 'cw2Image']) &&
+                    ((isValidImageSrc(data.general.visuals?.cw1Image) && !cw1Error) ||
+                     (isValidImageSrc(data.general.visuals?.cw2Image) && !cw2Error)))) ? (
                   <>
                     {isValidImageSrc(data.general.visuals?.cw1Image) && !cw1Error && (
                       <Image
                         src={data.general.visuals.cw1Image}
                         alt={data.general.visuals.cw1Name || 'Colorway 1'}
                         fill
+                        unoptimized
                         referrerPolicy="no-referrer"
                         onError={() => setCw1Error(true)}
                         className={`object-cover transition-opacity duration-500 ${
-                          curView === 'cw1' ? 'opacity-100' : 'opacity-0'
+                          curView === 'cw1' || (!isValidImageSrc(data.general.visuals?.cw2Image) || cw2Error)
+                            ? 'opacity-100'
+                            : 'opacity-0'
                         }`}
                       />
                     )}
@@ -1118,14 +1128,17 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                         src={data.general.visuals.cw2Image}
                         alt={data.general.visuals.cw2Name || 'Colorway 2'}
                         fill
+                        unoptimized
                         referrerPolicy="no-referrer"
                         onError={() => setCw2Error(true)}
                         className={`object-cover transition-opacity duration-500 ${
-                          curView === 'cw2' ? 'opacity-100' : 'opacity-0'
+                          curView === 'cw2' && (isValidImageSrc(data.general.visuals?.cw2Image) && !cw2Error)
+                            ? 'opacity-100'
+                            : 'opacity-0'
                         }`}
                       />
                     )}
-                    <span className="absolute left-[14px] bottom-[14px] bg-ink/80 text-[#F4F1EA] font-mono text-[10.5px] px-2.5 py-1.5 rounded-lg backdrop-blur-sm">
+                    <span className="absolute left-[14px] bottom-[14px] bg-ink/80 text-[#F4F1EA] font-mono text-[10.5px] px-2.5 py-1.5 rounded-lg backdrop-blur-sm z-10">
                       {data.general.projectId ? `rendered from FiTS ${data.general.projectId} · design sketch` : 'design sketch preview'}
                     </span>
                   </>
@@ -1136,7 +1149,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                     </div>
                     <span className="font-bold text-ink text-[13.5px]">No Product Image Available</span>
                     <span className="text-[11.5px] text-muted mt-1 max-w-[220px]">
-                      Add valid colorway image URLs in the General &amp; Visuals editor tab
+                      Upload an image file or leave blank in the General &amp; Visuals editor tab
                     </span>
                   </div>
                 )}
@@ -1865,11 +1878,13 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                 <span className="absolute top-[14px] left-[14px] bg-ink/85 text-lime font-mono text-[10.5px] rounded-lg px-2.5 py-1.5 z-10">
                   NO-SEW · ~25 MIN
                 </span>
-                {data.circularity.upcycleImage ? (
+                {isValidImageSrc(data.circularity.upcycleImage) ? (
                   <Image
                     src={data.circularity.upcycleImage}
                     alt="Upcycled pyjama fabric"
                     fill
+                    unoptimized
+                    referrerPolicy="no-referrer"
                     className="object-cover"
                   />
                 ) : (

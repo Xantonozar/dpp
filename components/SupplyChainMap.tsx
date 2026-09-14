@@ -201,32 +201,32 @@ export default function SupplyChainMap({
   return (
     <div id="supply-chain-map-container" className="bg-[#121A16] border border-[#203328] rounded-[22px] overflow-hidden text-white shadow-2xl">
       {/* Top Banner & Title */}
-      <div className="p-5 sm:p-6 border-b border-[#203328] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-[#121A16] via-[#16231D] to-[#121A16]">
+      <div className="p-4 sm:p-6 border-b border-[#203328] flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 bg-gradient-to-r from-[#121A16] via-[#16231D] to-[#121A16]">
         <div>
-          <div className="flex items-center gap-2 text-lime text-[11px] font-bold tracking-[0.12em] uppercase mb-1">
-            <Globe size={14} className="animate-spin text-lime" style={{ animationDuration: '12s' }} />
-            <span>Interactive Supply Chain & Maritime Journey</span>
+          <div className="flex items-center gap-2 text-lime text-[10.5px] sm:text-[11px] font-bold tracking-[0.12em] uppercase mb-1">
+            <Globe size={13} className="animate-spin text-lime shrink-0" style={{ animationDuration: '12s' }} />
+            <span className="truncate">Supply Chain & Maritime Journey</span>
           </div>
-          <h3 className="text-[19px] sm:text-[22px] font-bold text-white tracking-tight flex items-center gap-2.5">
+          <h3 className="text-[17px] sm:text-[22px] font-bold text-white tracking-tight flex items-center flex-wrap gap-2 sm:gap-2.5">
             <span>Bangladesh 🇧🇩</span>
-            <ArrowRight size={18} className="text-lime" />
+            <ArrowRight size={16} className="text-lime shrink-0" />
             <span className="text-lime">{destination.city}, {destination.country}</span>
           </h3>
-          <p className="text-[12.5px] text-[#8EAA97] mt-0.5">
+          <p className="text-[11.5px] sm:text-[12.5px] text-[#8EAA97] mt-0.5">
             Traceability route from manufacturing in Bangladesh to European retail distribution
           </p>
         </div>
 
         {/* Live Lab & Status Pill */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="bg-[#1C2C23] border border-[#2D4738] rounded-xl px-3.5 py-2 text-left">
-            <div className="text-[10px] uppercase tracking-wider text-[#8EAA97] font-semibold">Testing Authority</div>
-            <div className="text-[12px] font-bold text-white flex items-center gap-1.5">
-              <ShieldCheck size={14} className="text-lime" />
-              <span>{testingLabName}</span>
+          <div className="bg-[#1C2C23] border border-[#2D4738] rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-left">
+            <div className="text-[9.5px] sm:text-[10px] uppercase tracking-wider text-[#8EAA97] font-semibold">Testing Authority</div>
+            <div className="text-[11.5px] sm:text-[12px] font-bold text-white flex items-center gap-1.5">
+              <ShieldCheck size={13} className="text-lime shrink-0" />
+              <span className="truncate max-w-[180px] sm:max-w-none">{testingLabName}</span>
             </div>
           </div>
-          <div className="bg-lime text-[#121A16] rounded-xl px-3.5 py-2 font-bold text-[12px] flex items-center gap-1.5 shadow-md">
+          <div className="bg-lime text-[#121A16] rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 font-bold text-[11.5px] sm:text-[12px] flex items-center gap-1.5 shadow-md shrink-0">
             <span>PASS</span>
             <span className="text-[10px] font-mono opacity-80">#{testingReportNo}</span>
           </div>
@@ -234,7 +234,7 @@ export default function SupplyChainMap({
       </div>
 
       {/* Interactive Map Canvas */}
-      <div className="relative w-full h-[280px] sm:h-[360px] bg-[#0E1512] overflow-hidden select-none">
+      <div className="relative w-full h-[220px] xs:h-[260px] sm:h-[360px] bg-[#0E1512] overflow-hidden select-none">
         {/* Subtle Map Background Grid */}
         <div 
           className="absolute inset-0 opacity-15"
@@ -404,7 +404,7 @@ export default function SupplyChainMap({
               e.preventDefault();
               handleApplyDestination(inputVal);
             }}
-            className="flex gap-2 mb-3"
+            className="flex flex-col sm:flex-row gap-2 mb-3"
           >
             <div className="relative flex-1">
               <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5FA47F]" />
@@ -413,13 +413,13 @@ export default function SupplyChainMap({
                 type="text"
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
-                placeholder="Type any city or country (e.g., Germany Hamburg, Berlin, Paris, Rotterdam, London)..."
-                className="w-full bg-[#0E1512] border border-[#273F31] rounded-xl py-2.5 pl-10 pr-3.5 text-[13px] text-white placeholder-[#587262] outline-none focus:border-lime focus:ring-1 focus:ring-lime transition-all"
+                placeholder="Type city or country (e.g. Hamburg, Paris, London)..."
+                className="w-full bg-[#0E1512] border border-[#273F31] rounded-xl py-2.5 pl-10 pr-3.5 text-[12.5px] sm:text-[13px] text-white placeholder-[#587262] outline-none focus:border-lime focus:ring-1 focus:ring-lime transition-all"
               />
             </div>
             <button
               type="submit"
-              className="bg-lime text-[#121A16] hover:bg-lime/90 font-bold text-[12.5px] px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-md flex items-center gap-1.5 shrink-0"
+              className="bg-lime text-[#121A16] hover:bg-lime/90 font-bold text-[12px] sm:text-[12.5px] px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 shrink-0"
             >
               <Navigation size={14} />
               <span>Update Route</span>

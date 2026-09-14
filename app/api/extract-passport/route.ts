@@ -1,18 +1,17 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextRequest, NextResponse } from 'next/server';
-import { normalizePassportData, type PassportData } from '@/lib/passport-data';
-import { EXTRACTED_TCHIBO_PASSPORT } from '@/lib/sample-extracted-data';
+import { normalizeExtractedPassportData, type PassportData } from '@/lib/passport-data';
 
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  let requestedModel = 'gemini-2.5-flash';
+  let requestedModel = 'gemini-3.1-flash-lite';
 
   try {
     const apiKey =
+      process.env.GEMINI_API_KEY ||
       process.env.gemini_apikey ||
-      process.env.GEMINI_APIKEY ||
-      process.env.GEMINI_API_KEY;
+      process.env.GEMINI_APIKEY;
     if (!apiKey) {
       return NextResponse.json(
         {
@@ -84,13 +83,16 @@ export async function POST(req: NextRequest) {
     }
 
     const ALLOWED_MODELS = [
-      'gemini-2.5-flash',
-      'gemini-2.5-flash-lite',
+      'gemini-3.1-flash-lite',
       'gemini-3.8-flash',
-      'gemini-2.5-pro',
+      'gemini-3.1-pro-preview',
     ];
-    if (!ALLOWED_MODELS.includes(requestedModel)) {
-      requestedModel = 'gemini-2.5-flash';
+    if (requestedModel === 'gemini-2.5-flash' || requestedModel === 'gemini-2.5-flash-lite') {
+      requestedModel = 'gemini-3.1-flash-lite';
+    } else if (requestedModel === 'gemini-2.5-pro') {
+      requestedModel = 'gemini-3.1-pro-preview';
+    } else if (!ALLOWED_MODELS.includes(requestedModel)) {
+      requestedModel = 'gemini-3.1-flash-lite';
     }
 
     if (docs.length === 0) {
@@ -109,14 +111,16 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const prompt = `You are an expert Digital Product Passport (DPP) and textile technical compliance extraction system.
-Analyze the attached document(s) (such as a Tchibo FiTS Garment Technical Specification, Bureau Veritas / SGS / Intertek Laboratory Test Report, or apparel tech pack).
+    const prompt = `You are a high-speed, comprehensive Digital Product Passport (DPP) and textile technical compliance extraction system.
+Analyze the attached document(s) (such as a Garment Technical Specification, Laboratory Test Report, or apparel tech pack).
 
-Extract ALL available information and return a single valid JSON object containing:
+Extract ALL available information from the document(s) and return a single valid JSON object containing:
 1. "data": a complete PassportData object matching the full European Digital Product Passport schema.
 2. "extractionSummary": a clear 2-3 sentence overview of the documents analyzed, key findings (e.g. fiber blend, passing test reports, measurement grading, SKUs).
 
-CRITICAL REQUIREMENT: A valid EU Digital Product Passport MUST NOT have empty sections or blank tables. Extract all real values from the PDF. If a secondary field (such as upcycling steps or carbon breakdown) is not printed on the factory sheet, synthesize accurate, realistic DPP attributes appropriate for European apparel standards.
+CRITICAL EXTRACTION MANDATE:
+1. EXTRACT ALL INFO OF THE FORM: Thoroughly extract every specification, measurement, test parameter, fiber percentage, yarn nomination, care instruction, and certification present in the document(s).
+2. IF SOMETHING IS MISSING, WRITE "n/a": For EVERY text property, attribute, or string field where information is not explicitly found or mentioned in the document, you MUST write "n/a". For missing numeric percentages, weights, or dimensions where no value is provided, write 0. Do NOT invent, assume, or synthesize placeholder values. If a measurement table or lab card is not present in the document, provide an empty list or set its text fields to "n/a". Every missing value MUST be written as "n/a".
 
 REQUIRED SCHEMA DETAILS:
 {
@@ -330,24 +334,28 @@ Return ONLY the JSON object.`;
       {
         text: `${prompt}
 
-DOCUMENT SYNTHESIS INSTRUCTIONS:
+DOCUMENT EXTRACTION INSTRUCTIONS:
 You are provided with ${docs.length} document(s): [${docs.map((d) => d.fileName).join(', ')}].
-Cross-reference all ${docs.length} documents together into a single, cohesive, unified Digital Product Passport:
-- Look for style specifications, yarn nominations, graded measurement charts (S–XXL), and article number SKU tables.
-- Look for chemical testing (RSL/SVHC/pH/formaldehyde/heavy metals), actual tested fiber composition (ISO 1833), and colourfastness ratings.
-- Ensure EVERY single section in the JSON schema is fully populated with accurate real or synthesized DPP data.`,
+Cross-reference all ${docs.length} document(s) and extract all technical data:
+- Extract all garment specifications, style info, fiber blends, and tolerances.
+- Extract measurement tables (top/bottom, grading across S, M, L, XL, XXL).
+- Extract SKU/article numbers and GTIN barcodes if present.
+- Extract chemical tests (RSL/SVHC/pH/formaldehyde/heavy metals) and color fastness lab cards.
+- Extract supply chain facilities, locations, and testing laboratory information.
+- Extract care label instructions and symbols.
+- Extract packaging and environmental data if present in the document.
+REMEMBER: If any specific property, field, or table is NOT in the document(s), set it to "n/a" (or 0 for numbers). Do NOT make up or hallucinate missing information.`,
       },
     ];
 
-    // Build fallback candidate chain in case the selected model experiences high demand (503 / UNAVAILABLE) or quota spikes
+    // Always prioritize the fastest, most reliable active models
     const FALLBACK_CHAINS: Record<string, string[]> = {
-      'gemini-2.5-flash': ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3.8-flash'],
-      'gemini-2.5-flash-lite': ['gemini-2.5-flash-lite', 'gemini-2.5-flash'],
-      'gemini-3.8-flash': ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
-      'gemini-2.5-pro': ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
+      'gemini-3.1-flash-lite': ['gemini-3.1-flash-lite', 'gemini-3.8-flash'],
+      'gemini-3.8-flash': ['gemini-3.1-flash-lite', 'gemini-3.8-flash'],
+      'gemini-3.1-pro-preview': ['gemini-3.1-flash-lite', 'gemini-3.8-flash'],
     };
 
-    const candidates = FALLBACK_CHAINS[requestedModel] || [requestedModel, 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+    const candidates = FALLBACK_CHAINS[requestedModel] || ['gemini-3.1-flash-lite', 'gemini-3.8-flash'];
 
     let response: any = null;
     let modelUsed = requestedModel;
@@ -374,16 +382,22 @@ Cross-reference all ${docs.length} documents together into a single, cohesive, u
       } catch (err: any) {
         lastError = err;
         const msg = String(err?.message || err);
-        const isCapacityOrOverloaded =
+        const isRecoverableIssue =
           msg.includes('503') ||
           msg.includes('high demand') ||
           msg.includes('UNAVAILABLE') ||
           msg.includes('temporarily unavailable') ||
           msg.includes('429') ||
-          msg.includes('RESOURCE_EXHAUSTED');
+          msg.includes('404') ||
+          msg.includes('RESOURCE_EXHAUSTED') ||
+          msg.includes('Quota exceeded');
 
-        if (isCapacityOrOverloaded && i < candidates.length - 1) {
-          console.warn(`[AI Extraction] Model ${candidateModel} failed with capacity issue (503/429). Resiliently attempting fallback to ${candidates[i + 1]}...`);
+        if (isRecoverableIssue && i < candidates.length - 1) {
+          console.warn(`[AI Extraction] Model ${candidateModel} hit temporary limit (${msg.slice(0, 120)}). Automatically trying ${candidates[i + 1]}...`);
+          continue;
+        }
+        if (i < candidates.length - 1) {
+          console.warn(`[AI Extraction] Model ${candidateModel} failed. Attempting next model ${candidates[i + 1]}...`);
           continue;
         }
         throw err;
@@ -411,158 +425,23 @@ Cross-reference all ${docs.length} documents together into a single, cohesive, u
 
     // Extract the raw passport data from AI
     const rawExtracted: any = parsedResult.data || parsedResult;
-
-    // Detect if this document corresponds to the Tchibo FiTS #151546 / Bureau Veritas (6825)298-0551 reference dataset
     const fileNamesList = docs.map((d) => d.fileName);
-    const textSignature = (
-      fileNamesList.join(' ') + ' ' +
-      (rawExtracted?.general?.projectId || '') + ' ' +
-      (rawExtracted?.general?.orderNo || '') + ' ' +
-      (rawExtracted?.general?.productName || '') + ' ' +
-      (rawExtracted?.general?.brand || '')
-    ).toLowerCase();
 
-    const isTchibo151546 =
-      textSignature.includes('151546') ||
-      textSignature.includes('4300085070') ||
-      textSignature.includes('6825') ||
-      textSignature.includes('298-0551') ||
-      (textSignature.includes('tchibo') && textSignature.includes('pyjama')) ||
-      (textSignature.includes('modal') && textSignature.includes('shorty'));
-
-    let basePassport: PassportData;
-    if (isTchibo151546) {
-      basePassport = JSON.parse(JSON.stringify(EXTRACTED_TCHIBO_PASSPORT));
-    } else {
-      basePassport = normalizePassportData(rawExtracted);
-    }
-
-    // Deeply synthesize extracted values into the baseline passport so NO section is left missing
-    const synthesized: PassportData = {
-      general: {
-        ...basePassport.general,
-        ...(rawExtracted?.general || {}),
-        projectId: rawExtracted?.general?.projectId || basePassport.general.projectId,
-        orderNo: rawExtracted?.general?.orderNo || basePassport.general.orderNo,
-        productName: rawExtracted?.general?.productName || basePassport.general.productName,
-        brand: rawExtracted?.general?.brand || basePassport.general.brand,
-        season: rawExtracted?.general?.season || basePassport.general.season,
-        originCountry: rawExtracted?.general?.originCountry || basePassport.general.originCountry,
-        articleNumbers: {
-          uni: {
-            S: rawExtracted?.general?.articleNumbers?.uni?.S || rawExtracted?.general?.articleNumbers?.S || basePassport.general.articleNumbers.uni.S,
-            M: rawExtracted?.general?.articleNumbers?.uni?.M || rawExtracted?.general?.articleNumbers?.M || basePassport.general.articleNumbers.uni.M,
-            L: rawExtracted?.general?.articleNumbers?.uni?.L || rawExtracted?.general?.articleNumbers?.L || basePassport.general.articleNumbers.uni.L,
-            XL: rawExtracted?.general?.articleNumbers?.uni?.XL || rawExtracted?.general?.articleNumbers?.XL || basePassport.general.articleNumbers.uni.XL,
-            XXL: rawExtracted?.general?.articleNumbers?.uni?.XXL || rawExtracted?.general?.articleNumbers?.XXL || basePassport.general.articleNumbers.uni.XXL,
-          },
-          aop: {
-            S: rawExtracted?.general?.articleNumbers?.aop?.S || basePassport.general.articleNumbers.aop.S,
-            M: rawExtracted?.general?.articleNumbers?.aop?.M || basePassport.general.articleNumbers.aop.M,
-            L: rawExtracted?.general?.articleNumbers?.aop?.L || basePassport.general.articleNumbers.aop.L,
-            XL: rawExtracted?.general?.articleNumbers?.aop?.XL || basePassport.general.articleNumbers.aop.XL,
-            XXL: rawExtracted?.general?.articleNumbers?.aop?.XXL || basePassport.general.articleNumbers.aop.XXL,
-          }
-        },
-        gtinCodes: basePassport.general.gtinCodes,
-        packagingInfo: {
-          ...basePassport.general.packagingInfo,
-          ...(rawExtracted?.general?.packagingInfo || {})
-        },
-        visuals: {
-          ...basePassport.general.visuals,
-          ...(rawExtracted?.general?.visuals || {})
-        }
-      },
-      materials: {
-        ...basePassport.materials,
-        ...(rawExtracted?.materials || {}),
-        cotton: typeof rawExtracted?.materials?.cotton === 'number' ? rawExtracted.materials.cotton : basePassport.materials.cotton,
-        modal: typeof rawExtracted?.materials?.modal === 'number' ? rawExtracted.materials.modal : basePassport.materials.modal,
-        elastane: typeof rawExtracted?.materials?.elastane === 'number' ? rawExtracted.materials.elastane : basePassport.materials.elastane,
-        fabricWeight: typeof rawExtracted?.materials?.fabricWeight === 'number' ? rawExtracted.materials.fabricWeight : basePassport.materials.fabricWeight,
-        yarnSources: {
-          ...basePassport.materials.yarnSources,
-          ...(rawExtracted?.materials?.yarnSources || {})
-        },
-        labAnalysis: Array.isArray(rawExtracted?.materials?.labAnalysis) && rawExtracted.materials.labAnalysis.length > 0
-          ? rawExtracted.materials.labAnalysis
-          : basePassport.materials.labAnalysis,
-        svhcSubstances: Array.isArray(rawExtracted?.materials?.svhcSubstances) && rawExtracted.materials.svhcSubstances.length > 0
-          ? rawExtracted.materials.svhcSubstances
-          : basePassport.materials.svhcSubstances
-      },
-      measurements: {
-        topFit: rawExtracted?.measurements?.topFit || basePassport.measurements.topFit,
-        bottomFit: rawExtracted?.measurements?.bottomFit || basePassport.measurements.bottomFit,
-        top: Array.isArray(rawExtracted?.measurements?.top) && rawExtracted.measurements.top.length > 0
-          ? rawExtracted.measurements.top
-          : basePassport.measurements.top,
-        bottom: Array.isArray(rawExtracted?.measurements?.bottom) && rawExtracted.measurements.bottom.length > 0
-          ? rawExtracted.measurements.bottom
-          : basePassport.measurements.bottom
-      },
-      traceability: {
-        ...basePassport.traceability,
-        ...(rawExtracted?.traceability || {}),
-        nodes: Array.isArray(rawExtracted?.traceability?.nodes) && rawExtracted.traceability.nodes.length > 0
-          ? rawExtracted.traceability.nodes
-          : basePassport.traceability.nodes
-      },
-      quality: {
-        ...basePassport.quality,
-        ...(rawExtracted?.quality || {}),
-        rslItems: Array.isArray(rawExtracted?.quality?.rslItems) && rawExtracted.quality.rslItems.length > 0
-          ? rawExtracted.quality.rslItems
-          : basePassport.quality.rslItems,
-        labCards: Array.isArray(rawExtracted?.quality?.labCards) && rawExtracted.quality.labCards.length > 0
-          ? rawExtracted.quality.labCards
-          : basePassport.quality.labCards
-      },
-      care: {
-        ...basePassport.care,
-        ...(rawExtracted?.care || {})
-      },
-      circularity: {
-        ...basePassport.circularity,
-        ...(rawExtracted?.circularity || {}),
-        tips: Array.isArray(rawExtracted?.circularity?.tips) && rawExtracted.circularity.tips.length > 0
-          ? rawExtracted.circularity.tips
-          : basePassport.circularity.tips,
-        upcycleSteps: Array.isArray(rawExtracted?.circularity?.upcycleSteps) && rawExtracted.circularity.upcycleSteps.length > 0
-          ? rawExtracted.circularity.upcycleSteps
-          : basePassport.circularity.upcycleSteps,
-        fibreRecyclingFacts: Array.isArray(rawExtracted?.circularity?.fibreRecyclingFacts) && rawExtracted.circularity.fibreRecyclingFacts.length > 0
-          ? rawExtracted.circularity.fibreRecyclingFacts
-          : basePassport.circularity.fibreRecyclingFacts
-      },
-      environmental: {
-        ...basePassport.environmental,
-        ...(rawExtracted?.environmental || {}),
-        carbonBreakdown: Array.isArray(rawExtracted?.environmental?.carbonBreakdown) && rawExtracted.environmental.carbonBreakdown.length > 0
-          ? rawExtracted.environmental.carbonBreakdown
-          : basePassport.environmental.carbonBreakdown
-      },
-      compliance: {
-        ...basePassport.compliance,
-        ...(rawExtracted?.compliance || {}),
-        certifications: Array.isArray(rawExtracted?.compliance?.certifications) && rawExtracted.compliance.certifications.length > 0
-          ? rawExtracted.compliance.certifications
-          : basePassport.compliance.certifications
-      }
-    };
-
-    const finalExtractedData = normalizePassportData(synthesized);
+    // Normalize and strictly enforce "n/a" for any missing document fields
+    const finalExtractedData = normalizeExtractedPassportData(
+      rawExtracted,
+      existingData?.general?.visuals
+    );
 
     // Merge with existing data if needed (keep user's visuals or custom IDs if present)
     if (existingData && existingData.general) {
       if (!finalExtractedData.general.projectId && existingData.general.projectId) {
         finalExtractedData.general.projectId = existingData.general.projectId;
       }
-      if (existingData.general.visuals?.cw1Image && !finalExtractedData.general.visuals.cw1Image) {
+      if (existingData.general.visuals?.cw1Image && (!finalExtractedData.general.visuals.cw1Image || finalExtractedData.general.visuals.cw1Image === 'N/A')) {
         finalExtractedData.general.visuals.cw1Image = existingData.general.visuals.cw1Image;
       }
-      if (existingData.general.visuals?.cw2Image && !finalExtractedData.general.visuals.cw2Image) {
+      if (existingData.general.visuals?.cw2Image && (!finalExtractedData.general.visuals.cw2Image || finalExtractedData.general.visuals.cw2Image === 'N/A')) {
         finalExtractedData.general.visuals.cw2Image = existingData.general.visuals.cw2Image;
       }
     }
@@ -572,7 +451,7 @@ Cross-reference all ${docs.length} documents together into a single, cohesive, u
         ? `[Auto-switched to ${modelUsed} due to high demand on ${requestedModel}] `
         : '') +
       (parsedResult.extractionSummary ||
-        `Successfully extracted and synthesized ${docs.length} document(s) (${fileNamesList.join(', ')}) into a complete Digital Product Passport with full measurement charts, lab tests, traceability tiers, and circularity metadata.`);
+        `Successfully extracted data from ${docs.length} document(s) (${fileNamesList.join(', ')}). All missing fields have been designated as "n/a".`);
 
     return NextResponse.json({
       success: true,
@@ -609,7 +488,7 @@ Cross-reference all ${docs.length} documents together into a single, cohesive, u
 
     let cleanErrorMessage = `AI extraction failed: ${errMessage}`;
     if (isCapacity) {
-      cleanErrorMessage = `Model is currently experiencing temporary high demand from Google. Please select a lower or faster model (such as "Gemini 2.5 Flash" or "Gemini 2.5 Flash Lite") or try again.`;
+      cleanErrorMessage = `Google Gemini is currently experiencing temporary high demand (503/429). Please retry with Gemini 3.1 Flash Lite.`;
     } else if (isLeaked) {
       cleanErrorMessage =
         'Your current Gemini API key was reported as leaked and revoked by Google. Please update or select a new API key in the AI Studio Settings menu.';
