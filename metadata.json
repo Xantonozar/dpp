@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Digital Product Passport - Tchibo",
+  "description": "Product Registry & Digital Product Passport (DPP) Dashboard · Tchibo",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -8,7 +8,7 @@ const mono = IBM_Plex_Mono({ weight: ['400', '500'], subsets: ['latin'], variabl
 
 export const metadata: Metadata = {
   title: "Digital Product Passport - Tchibo",
-  description: "Men's Shorty Pyjamas, Modal · Tchibo",
+  description: "Product Registry & Digital Product Passport (DPP) Dashboard · Tchibo",
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
