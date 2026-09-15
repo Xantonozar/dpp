@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { isCloudinaryConfigured } from '@/lib/cloudinary';
 import { isMongoConfigured, getMongoDb } from '@/lib/mongodb';
+import { getInMemoryPassports } from '@/lib/in-memory-db';
 
 export async function GET() {
   const cloudinaryConfigured = isCloudinaryConfigured();
   const mongoConfigured = isMongoConfigured();
+  const inMemoryPassports = getInMemoryPassports();
 
   let mongoConnected = false;
   let mongoError: string | null = null;
-  let passportCount = 0;
+  let passportCount = inMemoryPassports.length;
 
   if (mongoConfigured) {
     try {
@@ -21,6 +23,7 @@ export async function GET() {
     } catch (err: any) {
       mongoConnected = false;
       mongoError = err?.message || 'Connection test failed';
+      passportCount = inMemoryPassports.length;
     }
   }
 
@@ -41,8 +44,8 @@ export async function GET() {
       message: mongoConnected
         ? `Connected to MongoDB database with ${passportCount} passport document(s).`
         : mongoConfigured
-        ? `MongoDB URI provided but connection failed: ${mongoError}`
-        : 'MONGODB_URI environment variable not set. Using local offline storage.',
+        ? `MongoDB URI provided but connection failed (${mongoError}). Serving ${passportCount} passport(s) from in-memory store.`
+        : `Active in-memory store with ${passportCount} passport(s). Set MONGODB_URI in Settings to connect external MongoDB.`,
     },
   });
 }

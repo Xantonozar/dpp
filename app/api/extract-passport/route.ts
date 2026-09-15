@@ -22,7 +22,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let docs: { fileName: string; mimeType: string; cleanBase64: string }[] = [];
+    interface DocItem {
+      fileName: string;
+      mimeType: string;
+      cleanBase64?: string;
+      extractedText?: string;
+      pageCount?: number;
+      scannedImages?: string[];
+    }
+
+    let docs: DocItem[] = [];
     let existingData: Partial<PassportData> | null = null;
 
     const contentType = req.headers.get('content-type') || '';
@@ -59,21 +68,39 @@ export async function POST(req: NextRequest) {
       }
     } else {
       const body = await req.json();
-      if (Array.isArray(body.files) && body.files.length > 0) {
-        for (const item of body.files.slice(0, 3)) {
-          if (item && item.fileBase64) {
+      // 1. Check for client-side extracted docs (bypasses Vercel 4.5MB limit & Cloudinary limits)
+      if (Array.isArray(body.extractedDocs) && body.extractedDocs.length > 0) {
+        for (const item of body.extractedDocs.slice(0, 3)) {
+          if (item) {
             docs.push({
               fileName: item.fileName || 'document.pdf',
               mimeType: item.mimeType || 'application/pdf',
-              cleanBase64: item.fileBase64.replace(/^data:[^;]+;base64,/, ''),
+              extractedText: item.extractedText || '',
+              pageCount: item.pageCount || 1,
+              scannedImages: Array.isArray(item.scannedImages) ? item.scannedImages : [],
+              cleanBase64: item.fileBase64 ? item.fileBase64.replace(/^data:[^;]+;base64,/, '') : undefined,
             });
           }
         }
-      } else if (body.fileBase64) {
+      } else if (Array.isArray(body.files) && body.files.length > 0) {
+        for (const item of body.files.slice(0, 3)) {
+          if (item) {
+            docs.push({
+              fileName: item.fileName || 'document.pdf',
+              mimeType: item.mimeType || 'application/pdf',
+              extractedText: item.extractedText || '',
+              pageCount: item.pageCount || 1,
+              scannedImages: Array.isArray(item.scannedImages) ? item.scannedImages : [],
+              cleanBase64: item.fileBase64 ? item.fileBase64.replace(/^data:[^;]+;base64,/, '') : undefined,
+            });
+          }
+        }
+      } else if (body.fileBase64 || body.extractedText) {
         docs.push({
           fileName: body.fileName || 'document.pdf',
           mimeType: body.mimeType || 'application/pdf',
-          cleanBase64: body.fileBase64.replace(/^data:[^;]+;base64,/, ''),
+          extractedText: body.extractedText || '',
+          cleanBase64: body.fileBase64 ? body.fileBase64.replace(/^data:[^;]+;base64,/, '') : undefined,
         });
       }
       if (body.model && typeof body.model === 'string') {
@@ -324,15 +351,46 @@ REQUIRED SCHEMA DETAILS:
 
 Return ONLY the JSON object.`;
 
-    const contents = [
-      ...docs.map((doc) => ({
-        inlineData: {
-          mimeType: doc.mimeType,
-          data: doc.cleanBase64,
-        },
-      })),
-      {
-        text: `${prompt}
+    const contents: any[] = [];
+
+    // 1. Add any raw PDF attachments (if provided for small documents)
+    for (const doc of docs) {
+      if (doc.cleanBase64) {
+        contents.push({
+          inlineData: {
+            mimeType: doc.mimeType,
+            data: doc.cleanBase64,
+          },
+        });
+      }
+      // 2. Add any compressed scanned page images (if page was graphical/scanned)
+      if (Array.isArray(doc.scannedImages)) {
+        for (const imgData of doc.scannedImages) {
+          const cleanImg = imgData.replace(/^data:[^;]+;base64,/, '');
+          if (cleanImg) {
+            contents.push({
+              inlineData: {
+                mimeType: 'image/jpeg',
+                data: cleanImg,
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // 3. Assemble document text blocks extracted client-side (bypasses Vercel 4.5MB limit)
+    const documentsTextSection = docs
+      .map((d, idx) => {
+        if (d.extractedText && d.extractedText.trim()) {
+          return `\n\n========================================\nDOCUMENT #${idx + 1}: ${d.fileName} (${d.pageCount || 1} pages)\n========================================\n${d.extractedText.trim()}`;
+        }
+        return `\n\n========================================\nDOCUMENT #${idx + 1}: ${d.fileName} (Binary attachment provided above)\n========================================`;
+      })
+      .join('\n');
+
+    contents.push({
+      text: `${prompt}
 
 DOCUMENT EXTRACTION INSTRUCTIONS:
 You are provided with ${docs.length} document(s): [${docs.map((d) => d.fileName).join(', ')}].
@@ -344,9 +402,10 @@ Cross-reference all ${docs.length} document(s) and extract all technical data:
 - Extract supply chain facilities, locations, and testing laboratory information.
 - Extract care label instructions and symbols.
 - Extract packaging and environmental data if present in the document.
-REMEMBER: If any specific property, field, or table is NOT in the document(s), set it to "n/a" (or 0 for numbers). Do NOT make up or hallucinate missing information.`,
-      },
-    ];
+REMEMBER: If any specific property, field, or table is NOT in the document(s), set it to "n/a" (or 0 for numbers). Do NOT make up or hallucinate missing information.
+
+${documentsTextSection}`,
+    });
 
     // Always prioritize the fastest, most reliable active models
     const FALLBACK_CHAINS: Record<string, string[]> = {

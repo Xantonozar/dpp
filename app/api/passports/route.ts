@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isMongoConfigured, getMongoDb } from '@/lib/mongodb';
 import { DEFAULT_CATALOG, PassportData, normalizePassportData } from '@/lib/passport-data';
+import { getInMemoryPassports, saveInMemoryPassport } from '@/lib/in-memory-db';
 
 export async function GET() {
   try {
     if (!isMongoConfigured()) {
+      const inMemory = getInMemoryPassports();
       return NextResponse.json({
         success: true,
-        source: 'local_catalog',
+        source: 'in_memory',
         connected: false,
-        passports: DEFAULT_CATALOG,
-        message: 'MongoDB not configured. Using default catalog. Add MONGODB_URI in Settings to connect your MongoDB database.',
+        passports: inMemory.length > 0 ? inMemory : DEFAULT_CATALOG,
+        message: 'Running with in-memory store. Set MONGODB_URI in Settings to connect MongoDB.',
       });
     }
 
@@ -49,14 +51,15 @@ export async function GET() {
       passports,
     });
   } catch (error: any) {
-    console.error('MongoDB GET error:', error);
+    console.error('MongoDB GET error, falling back to in-memory store:', error);
+    const inMemory = getInMemoryPassports();
     return NextResponse.json(
       {
-        success: false,
-        source: 'fallback',
+        success: true,
+        source: 'in_memory_fallback',
         connected: false,
         error: error?.message || 'Failed to query MongoDB',
-        passports: DEFAULT_CATALOG,
+        passports: inMemory.length > 0 ? inMemory : DEFAULT_CATALOG,
       },
       { status: 200 } // Return 200 with fallback so client doesn't crash
     );
@@ -76,48 +79,60 @@ export async function POST(req: NextRequest) {
     }
 
     const normalized = normalizePassportData(rawPassport);
+    saveInMemoryPassport(normalized);
 
     if (!isMongoConfigured()) {
       return NextResponse.json({
         success: true,
-        source: 'local',
+        source: 'in_memory',
         connected: false,
         passport: normalized,
-        warning: 'MongoDB is not configured. Saved locally. Set MONGODB_URI to persist to database.',
+        message: 'Saved to in-memory store. Set MONGODB_URI to persist to external database.',
       });
     }
 
-    const db = await getMongoDb();
-    const collection = db.collection('passports');
+    try {
+      const db = await getMongoDb();
+      const collection = db.collection('passports');
 
-    const projectId = normalized.general.projectId;
+      const projectId = normalized.general.projectId;
 
-    await collection.updateOne(
-      { 'general.projectId': projectId },
-      {
-        $set: {
-          ...normalized,
-          updatedAt: new Date(),
+      await collection.updateOne(
+        { 'general.projectId': projectId },
+        {
+          $set: {
+            ...normalized,
+            updatedAt: new Date(),
+          },
+          $setOnInsert: {
+            createdAt: new Date(),
+          },
         },
-        $setOnInsert: {
-          createdAt: new Date(),
-        },
-      },
-      { upsert: true }
-    );
+        { upsert: true }
+      );
 
-    return NextResponse.json({
-      success: true,
-      source: 'mongodb',
-      connected: true,
-      passport: normalized,
-      message: 'Passport saved to MongoDB database successfully.',
-    });
+      return NextResponse.json({
+        success: true,
+        source: 'mongodb',
+        connected: true,
+        passport: normalized,
+        message: 'Passport saved to MongoDB database successfully.',
+      });
+    } catch (dbError: any) {
+      console.warn('MongoDB save failed, saved to in-memory store:', dbError);
+      return NextResponse.json({
+        success: true,
+        source: 'in_memory',
+        connected: false,
+        passport: normalized,
+        warning: 'MongoDB connection failed; saved to in-memory store.',
+      });
+    }
   } catch (error: any) {
-    console.error('MongoDB POST error:', error);
+    console.error('Passports POST error:', error);
     return NextResponse.json(
       {
-        error: error?.message || 'Failed to save passport to MongoDB',
+        error: error?.message || 'Failed to save passport',
       },
       { status: 500 }
     );

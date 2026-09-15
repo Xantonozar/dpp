@@ -24,6 +24,7 @@ import {
 } from '@/lib/passport-data';
 import PassportView from '@/components/PassportView';
 import PdfAutoFillModal from '@/components/PdfAutoFillModal';
+import { compressImageClientSide } from '@/lib/pdf-extractor';
 import {
   Save,
   RotateCcw,
@@ -120,8 +121,19 @@ function EditorInner({
     }
     setUploadingField(fieldKey);
     try {
+      // Direct in-browser image compression to bypass Vercel 4.5MB limit and Cloudinary size limits
+      let fileToUpload = file;
+      if (file.size > 500 * 1024) {
+        try {
+          const compressed = await compressImageClientSide(file, 1400, 0.82);
+          fileToUpload = compressed.file;
+        } catch (compErr) {
+          console.warn('Browser image compression skipped, uploading original:', compErr);
+        }
+      }
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', fileToUpload);
 
       const res = await fetch('/api/upload', {
         method: 'POST',

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { PassportData } from '@/lib/passport-data';
 import { EXTRACTED_TCHIBO_PASSPORT } from '@/lib/sample-extracted-data';
+import { extractPdfClientSide, type ExtractedPdfDocument } from '@/lib/pdf-extractor';
 import {
   Sparkles,
   UploadCloud,
@@ -214,25 +215,65 @@ export default function PdfAutoFillModal({
     setError(null);
     setIsCapacityError(false);
     setFallbackNotice(null);
-    setLoadingStep(`Reading and preparing ${files.length} PDF document(s)...`);
+    setLoadingStep(`Direct in-browser extraction: parsing ${files.length} PDF document(s)...`);
 
     try {
-      const payloadFiles = await Promise.all(
-        files.map(async (file) => ({
+      // ⚡ Direct in-code extraction in the browser before network transmission.
+      // Bypasses Vercel 4.5MB serverless payload limit (FUNCTION_PAYLOAD_TOO_LARGE)
+      // and eliminates Cloudinary storage/size restrictions.
+      const extractedDocs: any[] = [];
+      let totalExtractedChars = 0;
+      let totalPages = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileSizeMb = (file.size / (1024 * 1024)).toFixed(1);
+        setLoadingStep(`Parsing ${file.name} (${fileSizeMb} MB) directly in browser (${i + 1}/${files.length})...`);
+
+        const parsedDoc: ExtractedPdfDocument = await extractPdfClientSide(file);
+        totalExtractedChars += parsedDoc.totalCharacters;
+        totalPages += parsedDoc.pageCount;
+
+        // Gather any scanned page images (rendered as small, high-efficiency JPEGs)
+        const scannedImages = parsedDoc.pages
+          .filter((p) => p.compressedImage)
+          .map((p) => p.compressedImage!);
+
+        // Only attach base64 binary if file is under 1.5MB to ensure request stays under Vercel's limit
+        let fileBase64: string | undefined = undefined;
+        if (file.size < 1.5 * 1024 * 1024 && scannedImages.length === 0) {
+          try {
+            fileBase64 = await convertFileToBase64(file);
+          } catch {
+            // ignore
+          }
+        }
+
+        extractedDocs.push({
           fileName: file.name,
           mimeType: file.type || 'application/pdf',
-          fileBase64: await convertFileToBase64(file),
-        }))
+          originalSize: file.size,
+          pageCount: parsedDoc.pageCount,
+          extractedText: parsedDoc.extractedText,
+          scannedImages,
+          fileBase64,
+          summary: parsedDoc.summary,
+        });
+      }
+
+      setLoadingStep(
+        `Sending synthesized text (${totalExtractedChars.toLocaleString()} chars across ${totalPages} pages, ~${(
+          JSON.stringify(extractedDocs).length / 1024
+        ).toFixed(0)} KB) to ${modelMeta.name}...`
       );
 
-      setLoadingStep(`Sending ${files.length} document(s) to ${modelMeta.name} for synthesis...`);
       const response = await fetch('/api/extract-passport', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          files: payloadFiles,
+          extractedDocs,
           existingData: currentData,
           model: modelToUse,
         }),
@@ -565,13 +606,14 @@ export default function PdfAutoFillModal({
               </div>
 
               {/* Documents Counter & Help */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-1.5">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-[#17201B]">
                     Attached Documents ({files.length}/{MAX_PDF_COUNT})
                   </span>
-                  <span className="text-[10.5px] px-2 py-0.5 rounded-full bg-[#EBF5EE] text-[#24543E] font-semibold border border-[#CFE8D7]">
-                    Multi-PDF Synthesis Enabled
+                  <span className="text-[10.5px] px-2 py-0.5 rounded-full bg-[#EBF5EE] text-[#24543E] font-semibold border border-[#CFE8D7] flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-[#2E6B4F]" />
+                    <span>In-Browser Parser (Bypasses Vercel 4.5MB Limit)</span>
                   </span>
                 </div>
                 {files.length > 0 && files.length < MAX_PDF_COUNT && (
@@ -598,7 +640,7 @@ export default function PdfAutoFillModal({
                           <FileText className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-xs font-bold text-[#17201B] truncate max-w-[280px] sm:max-w-md">
                               {f.name}
                             </span>
@@ -606,9 +648,13 @@ export default function PdfAutoFillModal({
                               Doc {idx + 1}
                             </span>
                           </div>
-                          <p className="text-[10.5px] text-[#6B726C]">
-                            {(f.size / (1024 * 1024)).toFixed(2)} MB · PDF
-                          </p>
+                          <div className="flex items-center gap-2 text-[10.5px] text-[#6B726C] mt-0.5">
+                            <span>{(f.size / (1024 * 1024)).toFixed(2)} MB</span>
+                            <span>•</span>
+                            <span className="text-emerald-700 font-medium">
+                              Direct client-side stream extraction
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <button
