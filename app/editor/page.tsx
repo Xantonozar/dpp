@@ -8,11 +8,16 @@ import type {
   Size,
   StyleType,
   MeasurementRow,
-  TraceabilityNode
+  TraceabilityNode,
+  LabCardItem
 } from '@/lib/passport-data';
 import {
   DEFAULT_PASSPORT_DATA,
   DEFAULT_CATALOG,
+  BABY_WEAR_PASSPORT_PRESET,
+  BABY_WEAR_QUALITY_TESTS,
+  ensureFullSupplyChainNodes,
+  ensureFullQualityLabCards,
   getAllPassports,
   getPassportById,
   savePassport,
@@ -21,11 +26,13 @@ import {
   normalizePassportData,
   normalizeExtractedPassportData,
   fetchPassportsFromApi,
-  savePassportToApi
+  savePassportToApi,
+  deletePassportFromApi
 } from '@/lib/passport-data';
 import PassportView from '@/components/PassportView';
 import PdfAutoFillModal from '@/components/PdfAutoFillModal';
 import { compressImageClientSide } from '@/lib/pdf-extractor';
+import { CARE_SYMBOLS, CareIconRenderer } from '@/lib/care-icons';
 import {
   Save,
   RotateCcw,
@@ -40,6 +47,7 @@ import {
   Layers,
   Sparkles,
   ShieldAlert,
+  ShieldCheck,
   Ruler,
   Navigation,
   HeartHandshake,
@@ -54,7 +62,9 @@ import {
   X,
   Loader2,
   Database,
-  Cloud
+  Cloud,
+  Barcode,
+  Palette
 } from 'lucide-react';
 
 const SIZES: Size[] = ['S', 'M', 'L', 'XL', 'XXL'];
@@ -104,6 +114,8 @@ function EditorInner({
   const cw1FileInputRef = React.useRef<HTMLInputElement | null>(null);
   const cw2FileInputRef = React.useRef<HTMLInputElement | null>(null);
   const upcycleFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const galleryUploadInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [currentGalleryIndex, setCurrentGalleryIndex] = useState<number | null>(null);
 
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [uploadNotice, setUploadNotice] = useState<{ message: string; isCloudinary?: boolean } | null>(null);
@@ -180,14 +192,15 @@ function EditorInner({
     }
   };
 
-  const [productsList, setProductsList] = useState<PassportData[]>(DEFAULT_CATALOG);
+  const [productsList, setProductsList] = useState<PassportData[]>([]);
   const [data, setData] = useState<PassportData>(() => createEmptyPassport(''));
   const [pdfModalOpen, setPdfModalOpen] = useState<boolean>(() => autoFillParam === 'true');
+  const [isDeletingPassport, setIsDeletingPassport] = useState<boolean>(false);
 
   useEffect(() => {
     // Sync with MongoDB API first, falling back to localStorage
     fetchPassportsFromApi().then(res => {
-      if (res.passports && res.passports.length > 0) {
+      if (res.passports && Array.isArray(res.passports)) {
         setProductsList(res.passports);
         if (queryId) {
           const found = res.passports.find(p => p.general?.projectId === queryId);
@@ -206,12 +219,31 @@ function EditorInner({
     }
   }, [queryId, isNewParam]);
 
-  const [activeTab, setActiveTab] = useState<'general' | 'materials' | 'measurements' | 'traceability' | 'care' | 'environmental' | 'compliance'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'materials' | 'measurements' | 'traceability' | 'quality' | 'care' | 'environmental' | 'compliance'>('general');
   const [viewMode, setViewMode] = useState<'editor' | 'split' | 'preview'>('split');
   const [savedStatus, setSavedStatus] = useState<boolean>(false);
   const [jsonModalOpen, setJsonModalOpen] = useState<boolean>(false);
   const [jsonInput, setJsonInput] = useState<string>('');
   const [jsonError, setJsonError] = useState<string | null>(null);
+
+  const handleDeleteThisPassport = async () => {
+    const id = data.general?.projectId;
+    if (!id) return;
+    if (confirm(`Are you sure you want to permanently delete DPP #${id} (${data.general?.productName || 'Unnamed'}) from the database?`)) {
+      setIsDeletingPassport(true);
+      try {
+        await deletePassportFromApi(id);
+        const updated = getAllPassports();
+        setProductsList(updated);
+        router.replace('/');
+      } catch (err) {
+        console.error('Failed to delete passport:', err);
+        alert('Failed to delete passport from database.');
+      } finally {
+        setIsDeletingPassport(false);
+      }
+    }
+  };
 
   const handleApplyPdfData = (extracted: PassportData, mode: 'replace' | 'merge') => {
     const normExtracted = normalizeExtractedPassportData(extracted, data);
@@ -337,9 +369,9 @@ function EditorInner({
           ...data.environmental,
           ...normExtracted.environmental,
           carbonBreakdown:
-            normExtracted.environmental.carbonBreakdown?.length > 0
+            (normExtracted.environmental?.carbonBreakdown && normExtracted.environmental.carbonBreakdown.length > 0)
               ? normExtracted.environmental.carbonBreakdown
-              : data.environmental.carbonBreakdown,
+              : data.environmental?.carbonBreakdown || [],
         },
         compliance: {
           ...data.compliance,
@@ -406,40 +438,12 @@ function EditorInner({
     setTimeout(() => setSavedStatus(false), 2000);
   };
 
-  const handleLoadSample = () => {
-    if (confirm('Load sample demonstration data into this passport?')) {
-      const sample: PassportData = {
-        ...DEFAULT_PASSPORT_DATA,
-        general: {
-          ...DEFAULT_PASSPORT_DATA.general,
-          projectId: data.general.projectId || '160892',
-          updatedDate: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-        }
-      };
-      setData(sample);
-      savePassport(sample);
-      setProductsList(getAllPassports());
-      setSavedStatus(true);
-      setTimeout(() => setSavedStatus(false), 2000);
-    }
-  };
-
   const handleSelectProduct = (id: string) => {
     if (id === 'NEW' || id === '') {
       handleCreateNew();
     } else {
       router.replace(`/editor?id=${id}`);
       setData(getPassportById(id));
-    }
-  };
-
-  const handleReset = () => {
-    if (confirm('Reset entire catalog back to Tchibo default sample passports?')) {
-      resetAllPassports();
-      setData(DEFAULT_PASSPORT_DATA);
-      setProductsList(getAllPassports());
-      setSavedStatus(true);
-      setTimeout(() => setSavedStatus(false), 2000);
     }
   };
 
@@ -586,14 +590,6 @@ function EditorInner({
             </button>
 
             <button
-              onClick={handleLoadSample}
-              className="hidden sm:inline-flex px-2.5 py-1.5 rounded-lg border border-[#BCD8C6] bg-green-soft text-green-dark hover:bg-[#D4ECD9] text-[12px] font-bold items-center gap-1.5 transition-colors cursor-pointer"
-              title="Load demo passport data"
-            >
-              <Sparkles size={13} /> <span className="hidden md:inline">Load Demo</span>
-            </button>
-
-            <button
               onClick={handleOpenJsonModal}
               className="hidden lg:inline-flex px-2.5 py-1.5 rounded-lg border border-[#E3DECF] bg-white hover:bg-surface-2 text-muted hover:text-ink text-[12px] font-semibold items-center gap-1.5 transition-colors cursor-pointer"
               title="View or edit raw JSON"
@@ -620,6 +616,18 @@ function EditorInner({
               <span className="hidden xs:inline">{isSaving ? 'Saving...' : savedStatus ? saveMessage : 'Save'}</span>
               <span className="xs:hidden">{isSaving ? '...' : savedStatus ? 'OK' : 'Save'}</span>
             </button>
+
+            {data.general.projectId ? (
+              <button
+                onClick={handleDeleteThisPassport}
+                disabled={isDeletingPassport}
+                className="hidden sm:inline-flex px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50/70 hover:bg-red-100 text-red-700 text-[12px] font-bold items-center gap-1.5 transition-colors cursor-pointer"
+                title="Delete this passport from database"
+              >
+                {isDeletingPassport ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                <span className="hidden md:inline">Delete DPP</span>
+              </button>
+            ) : null}
 
             {data.general.projectId ? (
               <Link
@@ -675,12 +683,13 @@ function EditorInner({
               <div className="sticky top-0 z-30 bg-surface border-b border-[#E3DECF] px-2 sm:px-6 py-1.5 sm:py-2 flex gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
                 {[
                   { id: 'general', label: '1. General & Visuals', icon: Sparkles },
-                  { id: 'materials', label: '2. Materials & RSL', icon: ShieldAlert },
+                  { id: 'materials', label: '2. Materials & Composition', icon: Layers },
                   { id: 'measurements', label: '3. Measurements', icon: Ruler },
-                  { id: 'traceability', label: '4. Traceability', icon: Navigation },
-                  { id: 'care', label: '5. Care & Circularity', icon: Recycle },
-                  { id: 'environmental', label: '6. Environmental', icon: Leaf },
-                  { id: 'compliance', label: '7. Compliance', icon: FileCheck }
+                  { id: 'traceability', label: '4. Traceability (Tiers 1–4)', icon: Navigation },
+                  { id: 'quality', label: '5. Quality & Lab Testing', icon: ShieldCheck },
+                  { id: 'care', label: '6. Care & Circularity', icon: Recycle },
+                  { id: 'environmental', label: '7. Environmental', icon: Leaf },
+                  { id: 'compliance', label: '8. Compliance', icon: FileCheck }
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -739,13 +748,6 @@ function EditorInner({
                       title="Wipe form fields back to empty"
                     >
                       Clear to Blank
-                    </button>
-                    <button
-                      onClick={handleLoadSample}
-                      className="px-2.5 py-1.5 rounded-lg bg-[#17201B] hover:bg-[#2A3830] text-white text-[11.5px] font-bold transition-colors cursor-pointer shadow-2xs"
-                      title="Populate with Tchibo sample data"
-                    >
-                      Load Demo Data
                     </button>
                   </div>
                 </div>
@@ -1011,308 +1013,358 @@ function EditorInner({
                       </div>
                     </div>
 
-                    {/* Article Numbers for Size Grid */}
+                    {/* 45-Combination GTIN Matrix (9 Colorways × 5 Sizes) */}
                     <div className="border border-line rounded-xl p-5 bg-surface-2">
-                      <h3 className="text-[14px] font-bold text-ink mb-3">SKU / Article Numbers by Style & Size</h3>
-                      <div className="space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                         <div>
-                          <div className="text-[12px] font-bold text-green-dark mb-1.5">Style 1: Uni (Jadeite)</div>
-                          <div className="grid grid-cols-5 gap-2">
-                            {SIZES.map(sz => (
-                              <div key={sz}>
-                                <span className="text-[10px] font-mono text-muted block mb-0.5">Size {sz}</span>
-                                <input
-                                  type="text"
-                                  value={data.general?.articleNumbers?.uni?.[sz] || ''}
-                                  onChange={e => {
-                                    const next = {
-                                      uni: { ...(data.general?.articleNumbers?.uni || {}) },
-                                      aop: { ...(data.general?.articleNumbers?.aop || {}) }
-                                    };
-                                    (next.uni as any)[sz] = e.target.value;
-                                    updateGeneral('articleNumbers', next);
-                                  }}
-                                  className="w-full bg-white border border-line rounded px-2 py-1 text-[12px] font-mono"
-                                />
-                              </div>
-                            ))}
-                          </div>
+                          <h3 className="text-[14px] font-bold text-ink flex items-center gap-2">
+                            <Barcode size={16} className="text-green-dark" />
+                            45 GTIN / EAN-13 Matrix (9 Colorways × 5 Sizes)
+                          </h3>
+                          <p className="text-[12px] text-muted">
+                            Mandatory GS1 standard 13-digit barcodes for all size and colorway combinations.
+                          </p>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const basePrefix = '4061234';
+                              const nextGtin: Record<string, Record<string, string>> = {};
+                              const nextArticles: Record<string, Record<string, string>> = {};
+                              let counter = 730800;
 
-                        <div className="pt-2 border-t border-line">
-                          <div className="text-[12px] font-bold text-green-dark mb-1.5">Style 2: AOP (Dark Green Print)</div>
-                          <div className="grid grid-cols-5 gap-2">
-                            {SIZES.map(sz => (
-                              <div key={sz}>
-                                <span className="text-[10px] font-mono text-muted block mb-0.5">Size {sz}</span>
-                                <input
-                                  type="text"
-                                  value={data.general?.articleNumbers?.aop?.[sz] || ''}
-                                  onChange={e => {
-                                    const next = {
-                                      uni: { ...(data.general?.articleNumbers?.uni || {}) },
-                                      aop: { ...(data.general?.articleNumbers?.aop || {}) }
-                                    };
-                                    (next.aop as any)[sz] = e.target.value;
-                                    updateGeneral('articleNumbers', next);
-                                  }}
-                                  className="w-full bg-white border border-line rounded px-2 py-1 text-[12px] font-mono"
-                                />
-                              </div>
-                            ))}
-                          </div>
+                              for (let i = 1; i <= 9; i++) {
+                                const cwKey = `cw${i}`;
+                                nextGtin[cwKey] = {};
+                                nextArticles[cwKey] = {};
+                                SIZES.forEach((sz, sIdx) => {
+                                  counter += 1;
+                                  nextGtin[cwKey][sz] = `${basePrefix}${counter.toString().padStart(6, '0')}`;
+                                  nextArticles[cwKey][sz] = `ART-${i}0${sIdx + 1}-BV`;
+                                });
+                              }
+
+                              updateGeneral('gtinCodes', nextGtin);
+                              updateGeneral('articleNumbers', nextArticles);
+                            }}
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#2E6B4F] text-white hover:bg-[#24533e] flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <Sparkles size={12} /> Auto-Generate 45 Barcodes
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateGeneral('gtinCodes', {});
+                            }}
+                            className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-white hover:bg-red-50 text-red-600 border border-line transition-colors cursor-pointer"
+                          >
+                            Clear
+                          </button>
                         </div>
+                      </div>
+
+                      <div className="space-y-3 max-h-[440px] overflow-y-auto pr-1">
+                        {Array.from({ length: 9 }).map((_, idx) => {
+                          const cwKey = `cw${idx + 1}`;
+                          const cwMeta = data.general.visuals?.colorways?.[idx];
+                          const cwName = cwMeta?.name || `Colorway ${idx + 1}`;
+                          const hex = cwMeta?.hex || '#666666';
+
+                          return (
+                            <div key={cwKey} className="bg-white border border-line rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="w-3.5 h-3.5 rounded-full border border-black/10 inline-block shadow-2xs"
+                                    style={{ backgroundColor: hex }}
+                                  />
+                                  <span className="text-[12px] font-bold text-ink">
+                                    Slot {idx + 1}: {cwName}
+                                  </span>
+                                  {cwMeta?.pantone && (
+                                    <span className="text-[10px] font-mono text-muted bg-surface-2 px-1.5 py-0.5 rounded">
+                                      {cwMeta.pantone}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10.5px] font-mono text-muted">cw{idx + 1}</span>
+                              </div>
+
+                              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                {SIZES.map((sz) => {
+                                  const gtinVal = data.general?.gtinCodes?.[cwKey]?.[sz] || '';
+                                  return (
+                                    <div key={sz}>
+                                      <label className="text-[10px] font-mono text-muted flex items-center justify-between mb-0.5">
+                                        <span>Size {sz}</span>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        maxLength={14}
+                                        placeholder="13-digit GTIN"
+                                        value={gtinVal}
+                                        onChange={(e) => {
+                                          const next = { ...(data.general?.gtinCodes || {}) };
+                                          if (!next[cwKey]) next[cwKey] = {};
+                                          next[cwKey] = { ...next[cwKey], [sz]: e.target.value };
+                                          updateGeneral('gtinCodes', next);
+                                        }}
+                                        className="w-full bg-surface-2 border border-line rounded px-2 py-1 text-[11px] font-mono focus:bg-white focus:border-green"
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    {/* AI Visuals */}
+                    {/* 9 Dedicated Product Image Upload Slots */}
                     <div className="border border-line rounded-xl p-5 bg-surface-2">
-                      <h3 className="text-[14px] font-bold text-ink mb-3">Product Images & AI Visuals</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                         <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            CW1 Name
-                          </label>
-                          <input
-                            type="text"
-                            value={data.general.visuals.cw1Name || ''}
-                            onChange={e => {
-                              const v = { ...data.general.visuals, cw1Name: e.target.value };
+                          <h3 className="text-[14px] font-bold text-ink flex items-center gap-2">
+                            <Palette size={16} className="text-green-dark" />
+                            9 Dedicated Product Image Upload Slots
+                          </h3>
+                          <p className="text-[12px] text-muted">
+                            High-resolution baby wear angles, colour swatches, prints &amp; detail shots.
+                          </p>
+                        </div>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-green/10 text-green-dark">
+                          9 Slots Available
+                        </span>
+                      </div>
+
+                      {/* Hidden single file input for multi-slot uploading */}
+                      <input
+                        ref={galleryUploadInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file && currentGalleryIndex !== null) {
+                            const idx = currentGalleryIndex;
+                            handleImageFileUpload(file, `gallery_slot_${idx + 1}`, (url) => {
+                              const existingCws = [...(data.general.visuals?.colorways || [])];
+                              while (existingCws.length < 9) {
+                                existingCws.push({
+                                  name: `Colorway ${existingCws.length + 1}`,
+                                  pantone: '',
+                                  hex: '#4A7C59',
+                                  image: '',
+                                  side: 'front',
+                                  angle: 'front'
+                                });
+                              }
+                              existingCws[idx] = {
+                                ...existingCws[idx],
+                                image: url
+                              };
+                              const v = {
+                                ...data.general.visuals,
+                                colorways: existingCws,
+                                ...(idx === 0 ? { cw1Image: url } : {}),
+                                ...(idx === 1 ? { cw2Image: url } : {})
+                              };
                               updateGeneral('visuals', v);
-                            }}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
-                          />
-                        </div>
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <label className="block text-[11px] font-bold text-muted uppercase tracking-wider">
-                              CW1 Image URL / Upload
-                            </label>
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                ref={cw1FileInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={e => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    handleImageFileUpload(file, 'cw1Image', url => {
-                                      const v = { ...data.general.visuals, cw1Image: url };
-                                      updateGeneral('visuals', v);
-                                    });
-                                  }
-                                  e.target.value = '';
-                                }}
-                              />
-                              <button
-                                type="button"
-                                disabled={uploadingField === 'cw1Image'}
-                                onClick={() => cw1FileInputRef.current?.click()}
-                                className="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-[#2E6B4F]/10 hover:bg-[#2E6B4F]/20 text-[#2E6B4F] flex items-center gap-1 transition-colors cursor-pointer"
-                                title="Upload image to Cloudinary"
-                              >
-                                {uploadingField === 'cw1Image' ? (
-                                  <>
-                                    <Loader2 size={11} className="animate-spin" />
-                                    <span>Uploading...</span>
-                                  </>
+                            });
+                          }
+                          e.target.value = '';
+                        }}
+                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                        {Array.from({ length: 9 }).map((_, idx) => {
+                          const existingCws = data.general.visuals?.colorways || [];
+                          const item = existingCws[idx] || {
+                            name: idx === 0 ? (data.general.visuals.cw1Name || 'Jadeite Stripe') : idx === 1 ? (data.general.visuals.cw2Name || 'Forest Leaf AOP') : `Colorway ${idx + 1}`,
+                            pantone: '',
+                            hex: idx === 0 ? '#5B8C71' : idx === 1 ? '#2E4F3E' : '#666666',
+                            image: idx === 0 ? (data.general.visuals.cw1Image || '') : idx === 1 ? (data.general.visuals.cw2Image || '') : '',
+                            side: 'front',
+                            angle: 'front'
+                          };
+
+                          const slotImg = item.image || (idx === 0 ? data.general.visuals.cw1Image : idx === 1 ? data.general.visuals.cw2Image : '') || '';
+
+                          return (
+                            <div
+                              key={idx}
+                              className="bg-white border border-line rounded-xl p-3 flex flex-col justify-between shadow-2xs space-y-2.5"
+                            >
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-[11px] font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                                  <span
+                                    className="w-3 h-3 rounded-full border border-black/10 inline-block"
+                                    style={{ backgroundColor: item.hex || '#5B8C71' }}
+                                  />
+                                  Slot {idx + 1}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    disabled={uploadingField === `gallery_slot_${idx + 1}`}
+                                    onClick={() => {
+                                      setCurrentGalleryIndex(idx);
+                                      galleryUploadInputRef.current?.click();
+                                    }}
+                                    className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#2E6B4F]/10 hover:bg-[#2E6B4F]/20 text-[#2E6B4F] flex items-center gap-1 transition-colors cursor-pointer"
+                                    title="Upload image to Cloudinary"
+                                  >
+                                    {uploadingField === `gallery_slot_${idx + 1}` ? (
+                                      <>
+                                        <Loader2 size={10} className="animate-spin" />
+                                        <span>...</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Upload size={10} />
+                                        <span>Upload</span>
+                                      </>
+                                    )}
+                                  </button>
+                                  {slotImg && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const cws = [...(data.general.visuals?.colorways || [])];
+                                        while (cws.length < 9) {
+                                          cws.push({ name: `Colorway ${cws.length + 1}`, pantone: '', hex: '#4A7C59', image: '' });
+                                        }
+                                        cws[idx] = { ...cws[idx], image: '' };
+                                        const v = {
+                                          ...data.general.visuals,
+                                          colorways: cws,
+                                          ...(idx === 0 ? { cw1Image: '' } : {}),
+                                          ...(idx === 1 ? { cw2Image: '' } : {})
+                                        };
+                                        updateGeneral('visuals', v);
+                                      }}
+                                      className="p-1 rounded text-muted hover:text-red-600 cursor-pointer"
+                                      title="Clear image"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Slot Image Preview */}
+                              <div className="relative w-full h-28 bg-surface-2 rounded-lg border border-line overflow-hidden flex items-center justify-center">
+                                {slotImg ? (
+                                  <img
+                                    src={slotImg}
+                                    alt={`Slot ${idx + 1}`}
+                                    className="w-full h-full object-contain p-1"
+                                  />
                                 ) : (
-                                  <>
-                                    <Upload size={11} />
-                                    <span>Upload</span>
-                                  </>
+                                  <div className="text-center p-2">
+                                    <ImageIcon size={22} className="mx-auto text-muted/50 mb-1" />
+                                    <span className="text-[10px] text-muted">No image uploaded</span>
+                                  </div>
                                 )}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const v = { ...data.general.visuals, cw1Image: '' };
-                                  updateGeneral('visuals', v);
-                                }}
-                                className="px-1.5 py-0.5 rounded text-[10.5px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center gap-0.5 transition-colors cursor-pointer"
-                                title="Set to blank"
-                              >
-                                <X size={11} /> Blank
-                              </button>
-                            </div>
-                          </div>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={data.general.visuals.cw1Image || ''}
-                              placeholder="Paste Cloudinary/image URL, click Upload, or leave blank"
-                              onChange={e => {
-                                const v = { ...data.general.visuals, cw1Image: e.target.value };
-                                updateGeneral('visuals', v);
-                              }}
-                              className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12px] font-mono pr-8"
-                            />
-                            {data.general.visuals.cw1Image && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const v = { ...data.general.visuals, cw1Image: '' };
-                                  updateGeneral('visuals', v);
-                                }}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 cursor-pointer p-0.5"
-                                title="Clear image"
-                              >
-                                <X size={13} />
-                              </button>
-                            )}
-                          </div>
-                          {data.general.visuals.cw1Image ? (
-                            <div className="mt-1.5 flex items-center gap-2">
-                              <span className="w-5 h-5 rounded overflow-hidden bg-gray-100 border border-line shrink-0 inline-block relative">
-                                <img
-                                  src={data.general.visuals.cw1Image}
-                                  alt="Preview"
-                                  className="w-full h-full object-cover"
-                                />
-                              </span>
-                              {data.general.visuals.cw1Image.includes('cloudinary.com') ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">
-                                  <Cloud size={10} /> Cloudinary CDN
-                                </span>
-                              ) : data.general.visuals.cw1Image.startsWith('data:') ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                  <ImageIcon size={10} /> Uploaded Image
-                                </span>
-                              ) : (
-                                <span className="text-[10.5px] text-green-800 font-medium truncate max-w-[200px]">
-                                  Image linked
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-[10.5px] text-muted italic mt-0.5 block">
-                              Blank (shows elegant placeholder in passport)
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            CW2 Name
-                          </label>
-                          <input
-                            type="text"
-                            value={data.general.visuals.cw2Name || ''}
-                            onChange={e => {
-                              const v = { ...data.general.visuals, cw2Name: e.target.value };
-                              updateGeneral('visuals', v);
-                            }}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
-                          />
-                        </div>
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <label className="block text-[11px] font-bold text-muted uppercase tracking-wider">
-                              CW2 Image URL / Upload
-                            </label>
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                ref={cw2FileInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={e => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    handleImageFileUpload(file, 'cw2Image', url => {
-                                      const v = { ...data.general.visuals, cw2Image: url };
+                              </div>
+
+                              {/* Name & Pantone inputs */}
+                              <div className="space-y-1.5 text-[11px]">
+                                <div>
+                                  <input
+                                    type="text"
+                                    placeholder="Colorway / View name"
+                                    value={item.name || ''}
+                                    onChange={(e) => {
+                                      const cws = [...(data.general.visuals?.colorways || [])];
+                                      while (cws.length < 9) {
+                                        cws.push({ name: `Colorway ${cws.length + 1}`, pantone: '', hex: '#4A7C59', image: '' });
+                                      }
+                                      cws[idx] = { ...cws[idx], name: e.target.value };
+                                      const v = {
+                                        ...data.general.visuals,
+                                        colorways: cws,
+                                        ...(idx === 0 ? { cw1Name: e.target.value } : {}),
+                                        ...(idx === 1 ? { cw2Name: e.target.value } : {})
+                                      };
                                       updateGeneral('visuals', v);
-                                    });
-                                  }
-                                  e.target.value = '';
-                                }}
-                              />
-                              <button
-                                type="button"
-                                disabled={uploadingField === 'cw2Image'}
-                                onClick={() => cw2FileInputRef.current?.click()}
-                                className="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-[#2E6B4F]/10 hover:bg-[#2E6B4F]/20 text-[#2E6B4F] flex items-center gap-1 transition-colors cursor-pointer"
-                                title="Upload image to Cloudinary"
-                              >
-                                {uploadingField === 'cw2Image' ? (
-                                  <>
-                                    <Loader2 size={11} className="animate-spin" />
-                                    <span>Uploading...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Upload size={11} />
-                                    <span>Upload</span>
-                                  </>
-                                )}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const v = { ...data.general.visuals, cw2Image: '' };
-                                  updateGeneral('visuals', v);
-                                }}
-                                className="px-1.5 py-0.5 rounded text-[10.5px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center gap-0.5 transition-colors cursor-pointer"
-                                title="Set to blank"
-                              >
-                                <X size={11} /> Blank
-                              </button>
-                            </div>
-                          </div>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={data.general.visuals.cw2Image || ''}
-                              placeholder="Paste Cloudinary/image URL, click Upload, or leave blank"
-                              onChange={e => {
-                                const v = { ...data.general.visuals, cw2Image: e.target.value };
-                                updateGeneral('visuals', v);
-                              }}
-                              className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12px] font-mono pr-8"
-                            />
-                            {data.general.visuals.cw2Image && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const v = { ...data.general.visuals, cw2Image: '' };
-                                  updateGeneral('visuals', v);
-                                }}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 cursor-pointer p-0.5"
-                                title="Clear image"
-                              >
-                                <X size={13} />
-                              </button>
-                            )}
-                          </div>
-                          {data.general.visuals.cw2Image ? (
-                            <div className="mt-1.5 flex items-center gap-2">
-                              <span className="w-5 h-5 rounded overflow-hidden bg-gray-100 border border-line shrink-0 inline-block relative">
-                                <img
-                                  src={data.general.visuals.cw2Image}
-                                  alt="Preview"
-                                  className="w-full h-full object-cover"
+                                    }}
+                                    className="w-full bg-surface-2 border border-line rounded px-2 py-1 text-[11.5px] font-semibold text-ink"
+                                  />
+                                </div>
+                                <div className="grid grid-cols-2 gap-1.5">
+                                  <input
+                                    type="text"
+                                    placeholder="Pantone TCX"
+                                    value={item.pantone || ''}
+                                    onChange={(e) => {
+                                      const cws = [...(data.general.visuals?.colorways || [])];
+                                      while (cws.length < 9) {
+                                        cws.push({ name: `Colorway ${cws.length + 1}`, pantone: '', hex: '#4A7C59', image: '' });
+                                      }
+                                      cws[idx] = { ...cws[idx], pantone: e.target.value };
+                                      updateGeneral('visuals', { ...data.general.visuals, colorways: cws });
+                                    }}
+                                    className="w-full bg-surface-2 border border-line rounded px-1.5 py-1 text-[10.5px] font-mono"
+                                  />
+                                  <div className="flex items-center gap-1 bg-surface-2 border border-line rounded px-1.5 py-0.5">
+                                    <input
+                                      type="color"
+                                      value={item.hex || '#4A7C59'}
+                                      onChange={(e) => {
+                                        const cws = [...(data.general.visuals?.colorways || [])];
+                                        while (cws.length < 9) {
+                                          cws.push({ name: `Colorway ${cws.length + 1}`, pantone: '', hex: '#4A7C59', image: '' });
+                                        }
+                                        cws[idx] = { ...cws[idx], hex: e.target.value };
+                                        updateGeneral('visuals', { ...data.general.visuals, colorways: cws });
+                                      }}
+                                      className="w-5 h-5 rounded cursor-pointer border-0 p-0"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={item.hex || '#4A7C59'}
+                                      onChange={(e) => {
+                                        const cws = [...(data.general.visuals?.colorways || [])];
+                                        while (cws.length < 9) {
+                                          cws.push({ name: `Colorway ${cws.length + 1}`, pantone: '', hex: '#4A7C59', image: '' });
+                                        }
+                                        cws[idx] = { ...cws[idx], hex: e.target.value };
+                                        updateGeneral('visuals', { ...data.general.visuals, colorways: cws });
+                                      }}
+                                      className="w-full text-[10px] font-mono bg-transparent outline-none"
+                                    />
+                                  </div>
+                                </div>
+                                <input
+                                  type="text"
+                                  placeholder="Direct Image URL"
+                                  value={slotImg}
+                                  onChange={(e) => {
+                                    const cws = [...(data.general.visuals?.colorways || [])];
+                                    while (cws.length < 9) {
+                                      cws.push({ name: `Colorway ${cws.length + 1}`, pantone: '', hex: '#4A7C59', image: '' });
+                                    }
+                                    cws[idx] = { ...cws[idx], image: e.target.value };
+                                    const v = {
+                                      ...data.general.visuals,
+                                      colorways: cws,
+                                      ...(idx === 0 ? { cw1Image: e.target.value } : {}),
+                                      ...(idx === 1 ? { cw2Image: e.target.value } : {})
+                                    };
+                                    updateGeneral('visuals', v);
+                                  }}
+                                  className="w-full bg-surface-2 border border-line rounded px-2 py-0.5 text-[10px] font-mono"
                                 />
-                              </span>
-                              {data.general.visuals.cw2Image.includes('cloudinary.com') ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">
-                                  <Cloud size={10} /> Cloudinary CDN
-                                </span>
-                              ) : data.general.visuals.cw2Image.startsWith('data:') ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                  <ImageIcon size={10} /> Uploaded Image
-                                </span>
-                              ) : (
-                                <span className="text-[10.5px] text-green-800 font-medium truncate max-w-[200px]">
-                                  Image linked
-                                </span>
-                              )}
+                              </div>
                             </div>
-                          ) : (
-                            <span className="text-[10.5px] text-muted italic mt-0.5 block">
-                              Blank (shows elegant placeholder in passport)
-                            </span>
-                          )}
-                        </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-line grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="sm:col-span-2">
                           <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                             AI Model / Render Engine Info
@@ -1320,39 +1372,40 @@ function EditorInner({
                           <input
                             type="text"
                             value={data.general.visuals.aiModelInfo || ''}
-                            onChange={e => {
+                            onChange={(e) => {
                               const v = { ...data.general.visuals, aiModelInfo: e.target.value };
                               updateGeneral('visuals', v);
                             }}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
+                            placeholder="e.g., Stable Diffusion XL / Midjourney v6 (Photorealistic Garment Render)"
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12px]"
                           />
                         </div>
-                        <div className="sm:col-span-2">
+                        <div>
                           <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                             Prompt
                           </label>
                           <input
                             type="text"
                             value={data.general.visuals.prompt || ''}
-                            onChange={e => {
+                            onChange={(e) => {
                               const v = { ...data.general.visuals, prompt: e.target.value };
                               updateGeneral('visuals', v);
                             }}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12px]"
                           />
                         </div>
-                        <div className="sm:col-span-2">
+                        <div>
                           <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                             Colour References (Pantone / Coloro)
                           </label>
                           <input
                             type="text"
                             value={data.general.visuals.colors || ''}
-                            onChange={e => {
+                            onChange={(e) => {
                               const v = { ...data.general.visuals, colors: e.target.value };
                               updateGeneral('visuals', v);
                             }}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12px]"
                           />
                         </div>
                       </div>
@@ -1626,240 +1679,471 @@ function EditorInner({
                 {/* 3. MEASUREMENTS TAB */}
                 {activeTab === 'measurements' && (
                   <div className="space-y-6">
-                    <div className="border border-line rounded-xl p-5 bg-surface-2">
-                      <h3 className="text-[15px] font-bold text-ink mb-1 flex items-center gap-2">
-                        <Ruler size={16} className="text-green" /> Top Measurements (S–XXL in cm)
-                      </h3>
-                      <p className="text-[12px] text-muted mb-4">
-                        Define measurement points and exact centimeter values for each garment size.
-                      </p>
+                    {/* Category Selector */}
+                    <div className="border border-line rounded-xl p-4 sm:p-5 bg-white shadow-2xs">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-[14.5px] font-bold text-ink flex items-center gap-2">
+                            <Ruler size={16} className="text-green" /> Garment Construction &amp; Sizing Category
+                          </h3>
+                          <p className="text-[12px] text-muted mt-0.5">
+                            Select whether this product is a 1-piece baby wear / romper or a 2-piece set.
+                          </p>
+                        </div>
+                        <div className="flex bg-surface-2 border border-line rounded-xl p-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setData(prev => ({
+                                ...prev,
+                                measurements: {
+                                  ...prev.measurements,
+                                  categoryType: 'one_piece',
+                                  sizeHeaders: ['50/56', '62/68', '74/80', '86/92', '98/104']
+                                }
+                              }));
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all cursor-pointer ${
+                              data.measurements?.categoryType === 'one_piece'
+                                ? 'bg-ink text-lime shadow-xs'
+                                : 'text-muted hover:text-ink'
+                            }`}
+                          >
+                            One-Piece (Baby Wear)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setData(prev => ({
+                                ...prev,
+                                measurements: {
+                                  ...prev.measurements,
+                                  categoryType: 'two_piece',
+                                  sizeHeaders: ['S', 'M', 'L', 'XL', 'XXL']
+                                }
+                              }));
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all cursor-pointer ${
+                              data.measurements?.categoryType !== 'one_piece'
+                                ? 'bg-ink text-lime shadow-xs'
+                                : 'text-muted hover:text-ink'
+                            }`}
+                          >
+                            Two-Piece (Top + Bottom)
+                          </button>
+                        </div>
+                      </div>
 
-                      <div className="space-y-3">
-                        {(data.measurements?.top || []).map((row, idx) => (
-                          <div key={idx} className="bg-white p-3 rounded-xl border border-line space-y-2">
-                            <div className="flex gap-2 items-center">
-                              <input
-                                type="text"
-                                value={row.k || ''}
-                                onChange={e => {
-                                  const list = [...(data.measurements?.top || [])];
-                                  list[idx].k = e.target.value;
-                                  setData(prev => ({ ...prev, measurements: { ...prev.measurements, top: list } }));
-                                }}
-                                className="w-10 text-center font-mono font-bold text-green bg-surface-2 border border-line rounded py-1 text-[12px]"
-                              />
-                              <input
-                                type="text"
-                                value={row.name || ''}
-                                onChange={e => {
-                                  const list = [...(data.measurements?.top || [])];
-                                  list[idx].name = e.target.value;
-                                  setData(prev => ({ ...prev, measurements: { ...prev.measurements, top: list } }));
-                                }}
-                                className="flex-1 font-bold text-[13px] border-b border-transparent focus:border-green outline-none"
-                              />
-                              <input
-                                type="text"
-                                value={row.how || ''}
-                                onChange={e => {
-                                  const list = [...(data.measurements?.top || [])];
-                                  list[idx].how = e.target.value;
-                                  setData(prev => ({ ...prev, measurements: { ...prev.measurements, top: list } }));
-                                }}
-                                className="flex-1 text-[12px] text-muted border-b border-transparent focus:border-green outline-none"
-                              />
-                              <button
-                                onClick={() => {
-                                  const list = [...(data.measurements?.top || [])];
-                                  list.splice(idx, 1);
-                                  setData(prev => ({ ...prev, measurements: { ...prev.measurements, top: list } }));
-                                }}
-                                className="text-muted hover:text-red p-1"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </div>
+                      {/* Dynamic Size Headers Configuration */}
+                      <div className="mt-4 pt-3 border-t border-line flex items-center justify-between gap-3 flex-wrap">
+                        <span className="text-[11.5px] font-bold uppercase tracking-wider text-muted">
+                          Active Size Range:
+                        </span>
+                        <div className="flex gap-1.5 flex-wrap items-center">
+                          {(data.measurements?.sizeHeaders || (data.measurements?.categoryType === 'one_piece' ? ['50/56', '62/68', '74/80', '86/92', '98/104'] : ['S', 'M', 'L', 'XL', 'XXL'])).map((sz, i) => (
+                            <span
+                              key={i}
+                              className="font-mono text-[11px] font-bold bg-surface-2 border border-line text-ink px-2.5 py-1 rounded-lg"
+                            >
+                              {sz}
+                            </span>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentSizes = data.measurements?.sizeHeaders || (data.measurements?.categoryType === 'one_piece' ? ['50/56', '62/68', '74/80', '86/92', '98/104'] : ['S', 'M', 'L', 'XL', 'XXL']);
+                              const newSz = prompt('Add new size header label (e.g. 110/116 or 3XL):');
+                              if (newSz && newSz.trim()) {
+                                setData(prev => ({
+                                  ...prev,
+                                  measurements: {
+                                    ...prev.measurements,
+                                    sizeHeaders: [...currentSizes, newSz.trim()]
+                                  }
+                                }));
+                              }
+                            }}
+                            className="text-[11px] font-semibold text-green-dark bg-green-soft hover:bg-green-soft/80 border border-[#BCD8C6] px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer"
+                          >
+                            <Plus size={12} /> Add Size
+                          </button>
+                        </div>
+                      </div>
+                    </div>
 
-                            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 pt-1 border-t border-line/60">
-                              {SIZES.map(sz => (
-                                <div key={sz} className="flex items-center gap-1.5 bg-surface-2/60 sm:bg-transparent p-1 sm:p-0 rounded-md">
-                                  <span className="text-[10px] font-mono font-bold text-muted w-6">{sz}:</span>
+                    {/* 1. ONE-PIECE MEASUREMENTS (Shown when categoryType === 'one_piece') */}
+                    {data.measurements?.categoryType === 'one_piece' ? (
+                      <div className="border border-line rounded-xl p-5 bg-surface-2">
+                        <div className="flex justify-between items-center mb-1 flex-wrap gap-2">
+                          <h3 className="text-[15px] font-bold text-ink flex items-center gap-2">
+                            <Ruler size={16} className="text-green" /> One-Piece Measurements (Baby Sleepsuit / Romper in cm)
+                          </h3>
+                          <span className="text-[11px] font-mono text-green-dark bg-green-soft px-2.5 py-0.5 rounded-full border border-[#BCD8C6] font-semibold">
+                            {data.measurements?.onePiece?.length || 0} POMs defined
+                          </span>
+                        </div>
+                        <p className="text-[12px] text-muted mb-4">
+                          All 16 Points of Measurement across baby sizes (50/56 to 98/104) in a single unified table. No top/bottom split.
+                        </p>
+
+                        <div className="space-y-3">
+                          {(data.measurements?.onePiece || []).map((row, idx) => {
+                            const activeSizeKeys = data.measurements?.sizeHeaders || ['50/56', '62/68', '74/80', '86/92', '98/104'];
+                            return (
+                              <div key={idx} className="bg-white p-3.5 rounded-xl border border-line space-y-2.5 shadow-2xs">
+                                <div className="flex gap-2 items-center">
                                   <input
-                                    type="number"
-                                    step="0.5"
-                                    value={row.vals?.[sz] === 0 || row.vals?.[sz] === undefined ? '' : row.vals[sz]}
+                                    type="text"
+                                    value={row.k || ''}
+                                    placeholder="POM"
+                                    onChange={e => {
+                                      const list = [...(data.measurements?.onePiece || [])];
+                                      list[idx].k = e.target.value;
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, onePiece: list } }));
+                                    }}
+                                    className="w-14 text-center font-mono font-bold text-green bg-surface-2 border border-line rounded py-1 text-[12px]"
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Measurement Name (e.g. 1/2 Chest width)"
+                                    value={row.name || ''}
+                                    onChange={e => {
+                                      const list = [...(data.measurements?.onePiece || [])];
+                                      list[idx].name = e.target.value;
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, onePiece: list } }));
+                                    }}
+                                    className="flex-1 font-bold text-[13px] border-b border-transparent focus:border-green outline-none"
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Measurement description / method"
+                                    value={row.how || ''}
+                                    onChange={e => {
+                                      const list = [...(data.measurements?.onePiece || [])];
+                                      list[idx].how = e.target.value;
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, onePiece: list } }));
+                                    }}
+                                    className="flex-1 text-[12px] text-muted border-b border-transparent focus:border-green outline-none hidden sm:block"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const list = [...(data.measurements?.onePiece || [])];
+                                      list.splice(idx, 1);
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, onePiece: list } }));
+                                    }}
+                                    className="text-muted hover:text-red p-1 cursor-pointer"
+                                    title="Delete row"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-2 pt-2 border-t border-line/60">
+                                  {activeSizeKeys.map(sz => (
+                                    <div key={sz} className="flex items-center gap-1.5 bg-surface-2 p-1.5 rounded-lg">
+                                      <span className="text-[10.5px] font-mono font-bold text-muted min-w-[38px]">{sz}:</span>
+                                      <input
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="0"
+                                        value={row.vals?.[sz] === 0 || row.vals?.[sz] === undefined ? '' : row.vals[sz]}
+                                        onChange={e => {
+                                          const list = [...(data.measurements?.onePiece || [])];
+                                          if (!list[idx].vals) list[idx].vals = {};
+                                          list[idx].vals[sz] = e.target.value === '' ? 0 : Number(e.target.value);
+                                          setData(prev => ({ ...prev, measurements: { ...prev.measurements, onePiece: list } }));
+                                        }}
+                                        className="w-full bg-white border border-line rounded px-2 py-0.5 text-[12px] font-mono font-bold text-right"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          <button
+                            onClick={() => {
+                              const current = data.measurements?.onePiece || [];
+                              const activeSizeKeys = data.measurements?.sizeHeaders || ['50/56', '62/68', '74/80', '86/92', '98/104'];
+                              const initialVals: Record<string, number> = {};
+                              activeSizeKeys.forEach(k => { initialVals[k] = 0; });
+                              const newRow: MeasurementRow = {
+                                k: `P${current.length + 1}`,
+                                name: '',
+                                how: '',
+                                vals: initialVals,
+                                tolMinus: 0.5,
+                                tolPlus: 0.5,
+                                g: null
+                              };
+                              setData(prev => ({
+                                ...prev,
+                                measurements: { ...prev.measurements, onePiece: [...(prev.measurements?.onePiece || []), newRow] }
+                              }));
+                            }}
+                            className="w-full py-2.5 border border-dashed border-line-2 rounded-xl text-[12.5px] font-semibold text-muted hover:text-green-dark hover:border-green flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-white"
+                          >
+                            <Plus size={14} /> Add One-Piece Measurement Row
+                          </button>
+                        </div>
+
+                        <div className="mt-4 pt-3 border-t border-line">
+                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                            Fit Guide / One-Piece Silhouette Description
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={data.measurements.onePieceFit || ''}
+                            onChange={e =>
+                              setData(prev => ({
+                                ...prev,
+                                measurements: { ...prev.measurements, onePieceFit: e.target.value }
+                              }))
+                            }
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px]"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      /* 2. TWO-PIECE MEASUREMENTS (Shown when categoryType !== 'one_piece') */
+                      <div className="space-y-6">
+                        <div className="border border-line rounded-xl p-5 bg-surface-2">
+                          <h3 className="text-[15px] font-bold text-ink mb-1 flex items-center gap-2">
+                            <Ruler size={16} className="text-green" /> Top Measurements (S–XXL in cm)
+                          </h3>
+                          <p className="text-[12px] text-muted mb-4">
+                            Define measurement points and exact centimeter values for each garment size.
+                          </p>
+
+                          <div className="space-y-3">
+                            {(data.measurements?.top || []).map((row, idx) => (
+                              <div key={idx} className="bg-white p-3 rounded-xl border border-line space-y-2">
+                                <div className="flex gap-2 items-center">
+                                  <input
+                                    type="text"
+                                    value={row.k || ''}
                                     onChange={e => {
                                       const list = [...(data.measurements?.top || [])];
-                                      if (!list[idx].vals) {
-                                        list[idx].vals = { S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
-                                      }
-                                      list[idx].vals[sz] = e.target.value === '' ? 0 : Number(e.target.value);
+                                      list[idx].k = e.target.value;
                                       setData(prev => ({ ...prev, measurements: { ...prev.measurements, top: list } }));
                                     }}
-                                    className="w-full bg-surface-2 border border-line rounded px-2 py-0.5 text-[12px] font-mono text-right"
+                                    className="w-10 text-center font-mono font-bold text-green bg-surface-2 border border-line rounded py-1 text-[12px]"
                                   />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-
-                        <button
-                          onClick={() => {
-                            const currentTop = data.measurements?.top || [];
-                            const newRow: MeasurementRow = {
-                              k: String.fromCharCode(65 + currentTop.length),
-                              name: '',
-                              how: '',
-                              vals: { S: 0, M: 0, L: 0, XL: 0, XXL: 0 },
-                              g: null
-                            };
-                            setData(prev => ({
-                              ...prev,
-                              measurements: { ...prev.measurements, top: [...(prev.measurements?.top || []), newRow] }
-                            }));
-                          }}
-                          className="w-full py-2 border border-dashed border-line-2 rounded-xl text-[12px] font-semibold text-muted hover:text-green-dark hover:border-green flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                        >
-                          <Plus size={14} /> Add Top Measurement Row
-                        </button>
-                      </div>
-
-                      <div className="mt-4 pt-3 border-t border-line">
-                        <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                          Top Fit Guide Description
-                        </label>
-                        <textarea
-                          rows={2}
-                          value={data.measurements.topFit || ''}
-                          onChange={e =>
-                            setData(prev => ({
-                              ...prev,
-                              measurements: { ...prev.measurements, topFit: e.target.value }
-                            }))
-                          }
-                          className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px]"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Bottom Measurements */}
-                    <div className="border border-line rounded-xl p-5 bg-surface-2">
-                      <h3 className="text-[15px] font-bold text-ink mb-1 flex items-center gap-2">
-                        <Ruler size={16} className="text-green" /> Bottom / Shorts Measurements (S–XXL in cm)
-                      </h3>
-                      <p className="text-[12px] text-muted mb-4">
-                        Points of measurement for the shorts or bottom garment.
-                      </p>
-
-                      <div className="space-y-3">
-                        {(data.measurements?.bottom || []).map((row, idx) => (
-                          <div key={idx} className="bg-white p-3 rounded-xl border border-line space-y-2">
-                            <div className="flex gap-2 items-center">
-                              <input
-                                type="text"
-                                value={row.k || ''}
-                                onChange={e => {
-                                  const list = [...(data.measurements?.bottom || [])];
-                                  list[idx].k = e.target.value;
-                                  setData(prev => ({ ...prev, measurements: { ...prev.measurements, bottom: list } }));
-                                }}
-                                className="w-10 text-center font-mono font-bold text-green bg-surface-2 border border-line rounded py-1 text-[12px]"
-                              />
-                              <input
-                                type="text"
-                                value={row.name || ''}
-                                onChange={e => {
-                                  const list = [...(data.measurements?.bottom || [])];
-                                  list[idx].name = e.target.value;
-                                  setData(prev => ({ ...prev, measurements: { ...prev.measurements, bottom: list } }));
-                                }}
-                                className="flex-1 font-bold text-[13px] border-b border-transparent focus:border-green outline-none"
-                              />
-                              <input
-                                type="text"
-                                value={row.how || ''}
-                                onChange={e => {
-                                  const list = [...(data.measurements?.bottom || [])];
-                                  list[idx].how = e.target.value;
-                                  setData(prev => ({ ...prev, measurements: { ...prev.measurements, bottom: list } }));
-                                }}
-                                className="flex-1 text-[12px] text-muted border-b border-transparent focus:border-green outline-none"
-                              />
-                              <button
-                                onClick={() => {
-                                  const list = [...(data.measurements?.bottom || [])];
-                                  list.splice(idx, 1);
-                                  setData(prev => ({ ...prev, measurements: { ...prev.measurements, bottom: list } }));
-                                }}
-                                className="text-muted hover:text-red p-1"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </div>
-
-                            <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 pt-1 border-t border-line/60">
-                              {SIZES.map(sz => (
-                                <div key={sz} className="flex items-center gap-1.5 bg-surface-2/60 sm:bg-transparent p-1 sm:p-0 rounded-md">
-                                  <span className="text-[10px] font-mono font-bold text-muted w-6">{sz}:</span>
                                   <input
-                                    type="number"
-                                    step="0.5"
-                                    value={row.vals?.[sz] === 0 || row.vals?.[sz] === undefined ? '' : row.vals[sz]}
+                                    type="text"
+                                    value={row.name || ''}
+                                    onChange={e => {
+                                      const list = [...(data.measurements?.top || [])];
+                                      list[idx].name = e.target.value;
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, top: list } }));
+                                    }}
+                                    className="flex-1 font-bold text-[13px] border-b border-transparent focus:border-green outline-none"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={row.how || ''}
+                                    onChange={e => {
+                                      const list = [...(data.measurements?.top || [])];
+                                      list[idx].how = e.target.value;
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, top: list } }));
+                                    }}
+                                    className="flex-1 text-[12px] text-muted border-b border-transparent focus:border-green outline-none"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const list = [...(data.measurements?.top || [])];
+                                      list.splice(idx, 1);
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, top: list } }));
+                                    }}
+                                    className="text-muted hover:text-red p-1"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 pt-1 border-t border-line/60">
+                                  {SIZES.map(sz => (
+                                    <div key={sz} className="flex items-center gap-1.5 bg-surface-2/60 sm:bg-transparent p-1 sm:p-0 rounded-md">
+                                      <span className="text-[10px] font-mono font-bold text-muted w-6">{sz}:</span>
+                                      <input
+                                        type="number"
+                                        step="0.5"
+                                        value={row.vals?.[sz] === 0 || row.vals?.[sz] === undefined ? '' : row.vals[sz]}
+                                        onChange={e => {
+                                          const list = [...(data.measurements?.top || [])];
+                                          if (!list[idx].vals) {
+                                            list[idx].vals = { S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
+                                          }
+                                          list[idx].vals[sz] = e.target.value === '' ? 0 : Number(e.target.value);
+                                          setData(prev => ({ ...prev, measurements: { ...prev.measurements, top: list } }));
+                                        }}
+                                        className="w-full bg-surface-2 border border-line rounded px-2 py-0.5 text-[12px] font-mono text-right"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+
+                            <button
+                              onClick={() => {
+                                const currentTop = data.measurements?.top || [];
+                                const newRow: MeasurementRow = {
+                                  k: String.fromCharCode(65 + currentTop.length),
+                                  name: '',
+                                  how: '',
+                                  vals: { S: 0, M: 0, L: 0, XL: 0, XXL: 0 },
+                                  g: null
+                                };
+                                setData(prev => ({
+                                  ...prev,
+                                  measurements: { ...prev.measurements, top: [...(prev.measurements?.top || []), newRow] }
+                                }));
+                              }}
+                              className="w-full py-2 border border-dashed border-line-2 rounded-xl text-[12px] font-semibold text-muted hover:text-green-dark hover:border-green flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Plus size={14} /> Add Top Measurement Row
+                            </button>
+                          </div>
+
+                          <div className="mt-4 pt-3 border-t border-line">
+                            <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                              Top Fit Guide Description
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={data.measurements.topFit || ''}
+                              onChange={e =>
+                                setData(prev => ({
+                                  ...prev,
+                                  measurements: { ...prev.measurements, topFit: e.target.value }
+                                }))
+                              }
+                              className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Bottom Measurements */}
+                        <div className="border border-line rounded-xl p-5 bg-surface-2">
+                          <h3 className="text-[15px] font-bold text-ink mb-1 flex items-center gap-2">
+                            <Ruler size={16} className="text-green" /> Bottom / Shorts Measurements (S–XXL in cm)
+                          </h3>
+                          <p className="text-[12px] text-muted mb-4">
+                            Points of measurement for the shorts or bottom garment.
+                          </p>
+
+                          <div className="space-y-3">
+                            {(data.measurements?.bottom || []).map((row, idx) => (
+                              <div key={idx} className="bg-white p-3 rounded-xl border border-line space-y-2">
+                                <div className="flex gap-2 items-center">
+                                  <input
+                                    type="text"
+                                    value={row.k || ''}
                                     onChange={e => {
                                       const list = [...(data.measurements?.bottom || [])];
-                                      if (!list[idx].vals) {
-                                        list[idx].vals = { S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
-                                      }
-                                      list[idx].vals[sz] = e.target.value === '' ? 0 : Number(e.target.value);
+                                      list[idx].k = e.target.value;
                                       setData(prev => ({ ...prev, measurements: { ...prev.measurements, bottom: list } }));
                                     }}
-                                    className="w-full bg-surface-2 border border-line rounded px-2 py-0.5 text-[12px] font-mono text-right"
+                                    className="w-10 text-center font-mono font-bold text-green bg-surface-2 border border-line rounded py-1 text-[12px]"
                                   />
+                                  <input
+                                    type="text"
+                                    value={row.name || ''}
+                                    onChange={e => {
+                                      const list = [...(data.measurements?.bottom || [])];
+                                      list[idx].name = e.target.value;
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, bottom: list } }));
+                                    }}
+                                    className="flex-1 font-bold text-[13px] border-b border-transparent focus:border-green outline-none"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={row.how || ''}
+                                    onChange={e => {
+                                      const list = [...(data.measurements?.bottom || [])];
+                                      list[idx].how = e.target.value;
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, bottom: list } }));
+                                    }}
+                                    className="flex-1 text-[12px] text-muted border-b border-transparent focus:border-green outline-none"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const list = [...(data.measurements?.bottom || [])];
+                                      list.splice(idx, 1);
+                                      setData(prev => ({ ...prev, measurements: { ...prev.measurements, bottom: list } }));
+                                    }}
+                                    className="text-muted hover:text-red p-1"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
                                 </div>
-                              ))}
-                            </div>
+
+                                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2 pt-1 border-t border-line/60">
+                                  {SIZES.map(sz => (
+                                    <div key={sz} className="flex items-center gap-1.5 bg-surface-2/60 sm:bg-transparent p-1 sm:p-0 rounded-md">
+                                      <span className="text-[10px] font-mono font-bold text-muted w-6">{sz}:</span>
+                                      <input
+                                        type="number"
+                                        step="0.5"
+                                        value={row.vals?.[sz] === 0 || row.vals?.[sz] === undefined ? '' : row.vals[sz]}
+                                        onChange={e => {
+                                          const list = [...(data.measurements?.bottom || [])];
+                                          if (!list[idx].vals) {
+                                            list[idx].vals = { S: 0, M: 0, L: 0, XL: 0, XXL: 0 };
+                                          }
+                                          list[idx].vals[sz] = e.target.value === '' ? 0 : Number(e.target.value);
+                                          setData(prev => ({ ...prev, measurements: { ...prev.measurements, bottom: list } }));
+                                        }}
+                                        className="w-full bg-surface-2 border border-line rounded px-2 py-0.5 text-[12px] font-mono text-right"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+
+                            <button
+                              onClick={() => {
+                                const currentBottom = data.measurements?.bottom || [];
+                                const newRow: MeasurementRow = {
+                                  k: String.fromCharCode(65 + currentBottom.length),
+                                  name: '',
+                                  how: '',
+                                  vals: { S: 0, M: 0, L: 0, XL: 0, XXL: 0 },
+                                  g: null
+                                };
+                                setData(prev => ({
+                                  ...prev,
+                                  measurements: { ...prev.measurements, bottom: [...(prev.measurements?.bottom || []), newRow] }
+                                }));
+                              }}
+                              className="w-full py-2 border border-dashed border-line-2 rounded-xl text-[12px] font-semibold text-muted hover:text-green-dark hover:border-green flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Plus size={14} /> Add Bottom Measurement Row
+                            </button>
                           </div>
-                        ))}
 
-                        <button
-                          onClick={() => {
-                            const currentBottom = data.measurements?.bottom || [];
-                            const newRow: MeasurementRow = {
-                              k: String.fromCharCode(65 + currentBottom.length),
-                              name: '',
-                              how: '',
-                              vals: { S: 0, M: 0, L: 0, XL: 0, XXL: 0 },
-                              g: null
-                            };
-                            setData(prev => ({
-                              ...prev,
-                              measurements: { ...prev.measurements, bottom: [...(prev.measurements?.bottom || []), newRow] }
-                            }));
-                          }}
-                          className="w-full py-2 border border-dashed border-line-2 rounded-xl text-[12px] font-semibold text-muted hover:text-green-dark hover:border-green flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                        >
-                          <Plus size={14} /> Add Bottom Measurement Row
-                        </button>
+                          <div className="mt-4 pt-3 border-t border-line">
+                            <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                              Bottom Fit Guide Description
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={data.measurements.bottomFit || ''}
+                              onChange={e =>
+                                setData(prev => ({
+                                  ...prev,
+                                  measurements: { ...prev.measurements, bottomFit: e.target.value }
+                                }))
+                              }
+                              className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px]"
+                            />
+                          </div>
+                        </div>
                       </div>
-
-                      <div className="mt-4 pt-3 border-t border-line">
-                        <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                          Bottom Fit Guide Description
-                        </label>
-                        <textarea
-                          rows={2}
-                          value={data.measurements.bottomFit || ''}
-                          onChange={e =>
-                            setData(prev => ({
-                              ...prev,
-                              measurements: { ...prev.measurements, bottomFit: e.target.value }
-                            }))
-                          }
-                          className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px]"
-                        />
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
@@ -1913,28 +2197,131 @@ function EditorInner({
 
                     {/* Nodes list */}
                     <div className="border border-line rounded-xl p-5 bg-surface-2">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-[15px] font-bold text-ink">Supply Chain Tier Nodes</h3>
-                        <button
-                          onClick={() => {
-                            const newNode: TraceabilityNode = {
-                              tier: '',
-                              date: '',
-                              title: '',
-                              subtitle: '',
-                              color: 'green',
-                              items: [{ label: '', val: '' }]
-                            };
-                            setData(prev => ({
-                              ...prev,
-                              traceability: { ...prev.traceability, nodes: [...prev.traceability.nodes, newNode] }
-                            }));
-                          }}
-                          className="text-[11.5px] font-semibold text-green-dark bg-green-soft px-3 py-1.5 rounded-md border border-[#BCD8C6] flex items-center gap-1 cursor-pointer"
-                        >
-                          <Plus size={13} /> Add Node
-                        </button>
+                      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+                        <div>
+                          <h3 className="text-[15px] font-bold text-ink">Supply Chain Tier Nodes (Tiers 1 to 3)</h3>
+                          <p className="text-[12px] text-muted">
+                            Traceability chain from garment assembly (Tier 1), fabric manufacturing (Tier 2), and fiber/yarn (Tier 3).
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const isBaby =
+                                data.measurements?.categoryType === 'one_piece' ||
+                                (data.measurements?.onePiece && data.measurements.onePiece.length > 0) ||
+                                String(data.general?.category || '').toLowerCase().includes('baby') ||
+                                String(data.general?.productName || '').toLowerCase().includes('sleepsuit');
+                              const fullNodes = ensureFullSupplyChainNodes(
+                                undefined,
+                                isBaby,
+                                data.traceability?.origin?.facility || data.general?.originCountry
+                              );
+                              setData(prev => ({
+                                ...prev,
+                                traceability: {
+                                  ...prev.traceability,
+                                  nodes: fullNodes,
+                                  origin: isBaby ? BABY_WEAR_PASSPORT_PRESET.traceability.origin : prev.traceability.origin,
+                                  destination: isBaby ? BABY_WEAR_PASSPORT_PRESET.traceability.destination : prev.traceability.destination,
+                                  testingLab: isBaby ? BABY_WEAR_PASSPORT_PRESET.traceability.testingLab : prev.traceability.testingLab,
+                                  percentage: 100,
+                                  summary: isBaby
+                                    ? 'Verified Tier 1 (Garment), Tier 2 (Fabric) & Tier 3 (Yarn) supply chain with accredited lab testing.'
+                                    : 'Verified Tier 1 to Tier 3 supply chain with accredited testing records.'
+                                }
+                              }));
+                            }}
+                            className="text-[11.5px] font-semibold text-white bg-green hover:bg-green-dark px-3 py-1.5 rounded-md flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
+                          >
+                            <Sparkles size={13} /> Reset Standard 3 Tiers
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setData(prev => ({
+                                ...prev,
+                                traceability: {
+                                  ...prev.traceability,
+                                  nodes: BABY_WEAR_PASSPORT_PRESET.traceability.nodes,
+                                  origin: BABY_WEAR_PASSPORT_PRESET.traceability.origin,
+                                  destination: BABY_WEAR_PASSPORT_PRESET.traceability.destination,
+                                  testingLab: BABY_WEAR_PASSPORT_PRESET.traceability.testingLab,
+                                  percentage: 100,
+                                  summary: 'Verified Tier 1 (Garment), Tier 2 (Fabric) & Tier 3 (Yarn) supply chain.'
+                                }
+                              }));
+                            }}
+                            className="text-[11px] font-semibold text-green-dark bg-green-soft hover:bg-green-soft/80 px-2.5 py-1.5 rounded-md border border-[#BCD8C6] flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            Baby Wear Preset (3 Tiers)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newNode: TraceabilityNode = {
+                                tier: `Tier ${(data.traceability?.nodes?.length || 0) + 1}`,
+                                date: '',
+                                title: '',
+                                subtitle: '',
+                                color: 'green',
+                                items: [{ label: 'Facility', val: '' }]
+                              };
+                              setData(prev => ({
+                                ...prev,
+                                traceability: { ...prev.traceability, nodes: [...(prev.traceability?.nodes || []), newNode] }
+                              }));
+                            }}
+                            className="text-[11.5px] font-semibold text-ink bg-white hover:bg-surface-2 px-3 py-1.5 rounded-md border border-line flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            <Plus size={13} /> Add Node
+                          </button>
+                        </div>
                       </div>
+
+                      {/* Incomplete Tier Warning Banner */}
+                      {(!data.traceability?.nodes || data.traceability.nodes.length < 3) && (
+                        <div className="mb-4 bg-amber-soft border border-amber-line rounded-xl p-3.5 flex items-start gap-3">
+                          <ShieldAlert size={18} className="text-amber shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <h4 className="text-[12.5px] font-bold text-amber">
+                              Supply Chain Incomplete ({data.traceability?.nodes?.length || 0} of 3 Tiers Listed)
+                            </h4>
+                            <p className="text-[11.5px] text-muted mt-0.5">
+                              Supply chain records require Tier 1 (Garment Assembly), Tier 2 (Fabric/Knitting), and Tier 3 (Spinning/Yarn).
+                            </p>
+                            <div className="mt-2 flex gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const isBaby =
+                                    data.measurements?.categoryType === 'one_piece' ||
+                                    (data.measurements?.onePiece && data.measurements.onePiece.length > 0) ||
+                                    String(data.general?.category || '').toLowerCase().includes('baby') ||
+                                    String(data.general?.productName || '').toLowerCase().includes('sleepsuit');
+                                  const fullNodes = ensureFullSupplyChainNodes(
+                                    data.traceability?.nodes,
+                                    isBaby,
+                                    data.traceability?.origin?.facility || data.general?.originCountry
+                                  );
+                                  setData(prev => ({
+                                    ...prev,
+                                    traceability: {
+                                      ...prev.traceability,
+                                      nodes: fullNodes,
+                                      percentage: 100
+                                    }
+                                  }));
+                                }}
+                                className="text-[11.5px] font-bold text-white bg-green hover:bg-green-dark px-3 py-1 rounded-lg flex items-center gap-1 shadow-sm cursor-pointer"
+                              >
+                                <Sparkles size={12} /> Fill Standard Tiers (1–3)
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       <div className="space-y-4">
                         {(data.traceability?.nodes || []).map((node, idx) => (
@@ -2079,7 +2466,436 @@ function EditorInner({
                   </div>
                 )}
 
-                {/* 5. CARE & CIRCULARITY TAB */}
+                {/* 5. QUALITY & LAB TESTING TAB */}
+                {activeTab === 'quality' && (
+                  <div className="space-y-6">
+                    {/* Quick Load Standard Tests Banner */}
+                    <div className="bg-[#FAFDF9] border border-[#BCD8C6] rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                      <div>
+                        <h3 className="text-[14.5px] font-bold text-ink flex items-center gap-2">
+                          <ShieldCheck size={18} className="text-green" />
+                          Official Quality &amp; Laboratory Testing Suite
+                        </h3>
+                        <p className="text-[12px] text-muted mt-0.5">
+                          ISO 105 color fastness, saliva/sweat resistance (DIN 53160), mechanical safety (DIN EN 71-1, ASTM D4846, EN 16732), and chemical compliance.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setData(prev => ({
+                            ...prev,
+                            quality: {
+                              ...prev.quality,
+                              reportNumber: prev.quality.reportNumber || '(9325)295-0371',
+                              overallResult: 'PASS',
+                              testingLab: prev.quality.testingLab || 'Bureau Veritas Consumer Products Services (BD) Ltd.',
+                              rslStandards: 'Tested under EU REACH SVHC, AFIRM Baby RSL Category 1 & German LFGB § 30/31',
+                              universalFastnessKey: 'Tested under DIN EN ISO 105 & DIN 53160:2023-07. Grade 5 = Negligible or no staining / color change (Highest standard).',
+                              reviewedBy: {
+                                name: 'Belal Hossain',
+                                designation: 'Senior Manager – Analytical & Physical Testing, Bureau Veritas BD',
+                                date: '30 Oct 2025'
+                              },
+                              labCards: [...BABY_WEAR_QUALITY_TESTS]
+                            }
+                          }));
+                        }}
+                        className="px-3.5 py-2 rounded-lg bg-green text-white text-[12px] font-bold flex items-center gap-1.5 shadow-sm hover:bg-green-dark cursor-pointer shrink-0 transition-colors"
+                      >
+                        <Sparkles size={14} />
+                        <span>⚡ Load All Baby Wear Test Standards (10 Tests)</span>
+                      </button>
+                    </div>
+
+                    {/* Laboratory & Audit Report Credentials */}
+                    <div className="border border-line rounded-xl p-5 bg-surface-2 space-y-4">
+                      <h3 className="text-[14.5px] font-bold text-ink flex items-center gap-2">
+                        <FileCheck size={16} className="text-green" /> Accredited Testing Facility &amp; Sign-off
+                      </h3>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 text-[13px]">
+                        <div className="sm:col-span-2">
+                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                            Accredited Testing Facility / Lab
+                          </label>
+                          <input
+                            type="text"
+                            value={data.quality?.testingLab || ''}
+                            onChange={e =>
+                              setData(prev => ({
+                                ...prev,
+                                quality: { ...prev.quality, testingLab: e.target.value }
+                              }))
+                            }
+                            placeholder="e.g., Bureau Veritas Consumer Products Services (BD) Ltd."
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px] font-medium"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                            Lab Report Number
+                          </label>
+                          <input
+                            type="text"
+                            value={data.quality?.reportNumber || ''}
+                            onChange={e =>
+                              setData(prev => ({
+                                ...prev,
+                                quality: { ...prev.quality, reportNumber: e.target.value }
+                              }))
+                            }
+                            placeholder="(9325)295-0371"
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px] font-mono font-semibold"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                            Overall Compliance Result
+                          </label>
+                          <select
+                            value={data.quality?.overallResult || 'PASS'}
+                            onChange={e =>
+                              setData(prev => ({
+                                ...prev,
+                                quality: { ...prev.quality, overallResult: e.target.value }
+                              }))
+                            }
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px] font-bold text-green-dark"
+                          >
+                            <option value="PASS">PASS (Certified Compliant)</option>
+                            <option value="VERIFIED">VERIFIED</option>
+                            <option value="FAIL">FAIL (Non-compliant)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                            Reviewed &amp; Approved By (Name)
+                          </label>
+                          <input
+                            type="text"
+                            value={data.quality?.reviewedBy?.name || ''}
+                            onChange={e =>
+                              setData(prev => ({
+                                ...prev,
+                                quality: {
+                                  ...prev.quality,
+                                  reviewedBy: {
+                                    name: e.target.value,
+                                    designation: prev.quality?.reviewedBy?.designation || '',
+                                    date: prev.quality?.reviewedBy?.date || ''
+                                  }
+                                }
+                              }))
+                            }
+                            placeholder="Belal Hossain"
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                            Sign-off Date
+                          </label>
+                          <input
+                            type="text"
+                            value={data.quality?.reviewedBy?.date || ''}
+                            onChange={e =>
+                              setData(prev => ({
+                                ...prev,
+                                quality: {
+                                  ...prev.quality,
+                                  reviewedBy: {
+                                    name: prev.quality?.reviewedBy?.name || '',
+                                    designation: prev.quality?.reviewedBy?.designation || '',
+                                    date: e.target.value
+                                  }
+                                }
+                              }))
+                            }
+                            placeholder="30 Oct 2025"
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px] font-mono"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                            Reviewer Designation / Title
+                          </label>
+                          <input
+                            type="text"
+                            value={data.quality?.reviewedBy?.designation || ''}
+                            onChange={e =>
+                              setData(prev => ({
+                                ...prev,
+                                quality: {
+                                  ...prev.quality,
+                                  reviewedBy: {
+                                    name: prev.quality?.reviewedBy?.name || '',
+                                    designation: e.target.value,
+                                    date: prev.quality?.reviewedBy?.date || ''
+                                  }
+                                }
+                              }))
+                            }
+                            placeholder="Senior Manager – Analytical & Physical Testing, Bureau Veritas BD"
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px]"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
+                            Applicable Quality &amp; RSL Regulatory Scope
+                          </label>
+                          <input
+                            type="text"
+                            value={data.quality?.rslStandards || ''}
+                            onChange={e =>
+                              setData(prev => ({
+                                ...prev,
+                                quality: { ...prev.quality, rslStandards: e.target.value }
+                              }))
+                            }
+                            placeholder="Tested under EU REACH SVHC, AFIRM Baby RSL Category 1 & German LFGB § 30/31"
+                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Physical, Fastness & Mechanical Safety Tests */}
+                    <div className="border border-line rounded-xl p-5 bg-white shadow-2xs space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-line">
+                        <div>
+                          <h3 className="text-[15px] font-bold text-ink flex items-center gap-2">
+                            <span>Physical, Fastness &amp; Mechanical Safety Tests</span>
+                            <span className="text-[11px] font-mono font-semibold bg-green-soft text-green-dark px-2 py-0.5 rounded-full border border-[#BCD8C6]">
+                              {data.quality?.labCards?.length || 0} Registered Tests
+                            </span>
+                          </h3>
+                          <p className="text-[12px] text-muted">
+                            Detailed test standards, quantitative ratings, laboratory methods, and child safety verifications.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const newCard: LabCardItem = {
+                              std: 'DIN EN ISO ...',
+                              title: 'New Quality Test',
+                              val: 'Grade 5 (PASS)',
+                              subVal: 'Complies with Standard',
+                              desc: 'Standard laboratory test procedure details and observations.',
+                              hint: 'Babywear standard certified'
+                            };
+                            setData(prev => ({
+                              ...prev,
+                              quality: {
+                                ...prev.quality,
+                                labCards: [...(prev.quality?.labCards || []), newCard]
+                              }
+                            }));
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-surface-2 border border-line text-ink hover:border-green text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer self-start sm:self-auto transition-colors"
+                        >
+                          <Plus size={13} />
+                          <span>Add Test Standard</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {(data.quality?.labCards || []).map((card, idx) => (
+                          <div
+                            key={idx}
+                            className="border border-[#E3DECF] rounded-xl p-4 bg-[#FAF9F5] space-y-2.5 relative group shadow-2xs"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-mono font-bold text-green-dark bg-green-soft px-2 py-0.5 rounded border border-[#BCD8C6]">
+                                #{idx + 1}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  const list = [...(data.quality?.labCards || [])];
+                                  list.splice(idx, 1);
+                                  setData(prev => ({
+                                    ...prev,
+                                    quality: { ...prev.quality, labCards: list }
+                                  }));
+                                }}
+                                className="text-muted hover:text-red p-1 cursor-pointer transition-colors"
+                                title="Delete test card"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
+                              <div>
+                                <label className="block text-[10.5px] font-bold text-muted uppercase tracking-wider mb-0.5">
+                                  Standard / Method
+                                </label>
+                                <input
+                                  type="text"
+                                  value={card.std || ''}
+                                  onChange={e => {
+                                    const list = [...(data.quality?.labCards || [])];
+                                    list[idx] = { ...list[idx], std: e.target.value };
+                                    setData(prev => ({ ...prev, quality: { ...prev.quality, labCards: list } }));
+                                  }}
+                                  className="w-full bg-white border border-line rounded px-2.5 py-1.5 text-[12px] font-mono font-semibold"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10.5px] font-bold text-muted uppercase tracking-wider mb-0.5">
+                                  Test Title
+                                </label>
+                                <input
+                                  type="text"
+                                  value={card.title || ''}
+                                  onChange={e => {
+                                    const list = [...(data.quality?.labCards || [])];
+                                    list[idx] = { ...list[idx], title: e.target.value };
+                                    setData(prev => ({ ...prev, quality: { ...prev.quality, labCards: list } }));
+                                  }}
+                                  className="w-full bg-white border border-line rounded px-2.5 py-1.5 text-[12px] font-bold"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10.5px] font-bold text-muted uppercase tracking-wider mb-0.5">
+                                  Result Value
+                                </label>
+                                <input
+                                  type="text"
+                                  value={card.val || ''}
+                                  onChange={e => {
+                                    const list = [...(data.quality?.labCards || [])];
+                                    list[idx] = { ...list[idx], val: e.target.value };
+                                    setData(prev => ({ ...prev, quality: { ...prev.quality, labCards: list } }));
+                                  }}
+                                  className="w-full bg-white border border-line rounded px-2.5 py-1.5 text-[12px] font-bold text-green-dark"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10.5px] font-bold text-muted uppercase tracking-wider mb-0.5">
+                                  Sub-Value / Parameter
+                                </label>
+                                <input
+                                  type="text"
+                                  value={card.subVal || ''}
+                                  onChange={e => {
+                                    const list = [...(data.quality?.labCards || [])];
+                                    list[idx] = { ...list[idx], subVal: e.target.value };
+                                    setData(prev => ({ ...prev, quality: { ...prev.quality, labCards: list } }));
+                                  }}
+                                  className="w-full bg-white border border-line rounded px-2.5 py-1.5 text-[12px]"
+                                />
+                              </div>
+
+                              <div className="sm:col-span-2">
+                                <label className="block text-[10.5px] font-bold text-muted uppercase tracking-wider mb-0.5">
+                                  Method Details &amp; Observations
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={card.desc || ''}
+                                  onChange={e => {
+                                    const list = [...(data.quality?.labCards || [])];
+                                    list[idx] = { ...list[idx], desc: e.target.value };
+                                    setData(prev => ({ ...prev, quality: { ...prev.quality, labCards: list } }));
+                                  }}
+                                  className="w-full bg-white border border-line rounded px-2.5 py-1.5 text-[11.5px]"
+                                />
+                              </div>
+
+                              <div className="sm:col-span-2">
+                                <label className="block text-[10.5px] font-bold text-muted uppercase tracking-wider mb-0.5">
+                                  Technical Compliance Badge / Hint
+                                </label>
+                                <input
+                                  type="text"
+                                  value={card.hint || ''}
+                                  onChange={e => {
+                                    const list = [...(data.quality?.labCards || [])];
+                                    list[idx] = { ...list[idx], hint: e.target.value };
+                                    setData(prev => ({ ...prev, quality: { ...prev.quality, labCards: list } }));
+                                  }}
+                                  className="w-full bg-white border border-line rounded px-2.5 py-1.5 text-[11.5px] text-green-dark font-medium"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Restricted Substances (RSL Category 1) */}
+                    <div className="border border-line rounded-xl p-5 bg-surface-2 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="text-[14.5px] font-bold text-ink">Restricted Substances (AFIRM RSL Cat 1 &amp; SVHC)</h3>
+                          <p className="text-[12px] text-muted">Chemical toxicology testing parameters and detection limits.</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const newRsl = { name: '', result: 'PASS — ND' };
+                            setData(prev => ({
+                              ...prev,
+                              quality: { ...prev.quality, rslItems: [...(prev.quality?.rslItems || []), newRsl] }
+                            }));
+                          }}
+                          className="text-[11.5px] font-semibold text-green-dark bg-green-soft px-3 py-1.5 rounded-lg border border-[#BCD8C6] flex items-center gap-1 cursor-pointer"
+                        >
+                          <Plus size={13} /> Add Chemical Parameter
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {(data.quality?.rslItems || []).map((item, idx) => (
+                          <div key={idx} className="flex gap-2 items-center bg-white p-2.5 rounded-lg border border-line">
+                            <input
+                              type="text"
+                              value={item.name || ''}
+                              onChange={e => {
+                                const list = [...(data.quality?.rslItems || [])];
+                                list[idx].name = e.target.value;
+                                setData(prev => ({ ...prev, quality: { ...prev.quality, rslItems: list } }));
+                              }}
+                              placeholder="Substance Name / Standard"
+                              className="flex-1 bg-transparent text-[12px] font-medium border-b border-transparent focus:border-green outline-none"
+                            />
+                            <input
+                              type="text"
+                              value={item.result || ''}
+                              onChange={e => {
+                                const list = [...(data.quality?.rslItems || [])];
+                                list[idx].result = e.target.value;
+                                setData(prev => ({ ...prev, quality: { ...prev.quality, rslItems: list } }));
+                              }}
+                              placeholder="PASS — ND"
+                              className="flex-1 bg-transparent text-[11.5px] font-mono text-green-dark font-semibold border-b border-transparent focus:border-green outline-none"
+                            />
+                            <button
+                              onClick={() => {
+                                const list = [...(data.quality?.rslItems || [])];
+                                list.splice(idx, 1);
+                                setData(prev => ({ ...prev, quality: { ...prev.quality, rslItems: list } }));
+                              }}
+                              className="text-muted hover:text-red p-1 cursor-pointer"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. CARE & CIRCULARITY TAB */}
                 {activeTab === 'care' && (
                   <div className="space-y-6">
                     <div className="border border-line rounded-xl p-5 bg-surface-2">
@@ -2091,61 +2907,201 @@ function EditorInner({
                       </p>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[13px]">
-                        <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Washing
-                          </label>
+                        {/* Washing */}
+                        <div className="bg-white p-3 rounded-lg border border-line space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-muted uppercase tracking-wider">
+                              Washing Symbol
+                            </label>
+                            <div className="w-7 h-7 flex items-center justify-center bg-surface-2 rounded border border-line">
+                              <CareIconRenderer
+                                category="wash"
+                                symbolId={data.care.washIcon || 'wash-60'}
+                                className="w-5 h-5 text-ink"
+                              />
+                            </div>
+                          </div>
+                          <select
+                            value={data.care.washIcon || 'wash_60'}
+                            onChange={(e) => {
+                              const iconId = e.target.value;
+                              const match = CARE_SYMBOLS.wash.find((s) => s.id === iconId);
+                              updateCare('washIcon', iconId);
+                              if (match) updateCare('wash', match.name);
+                            }}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1.5 text-[11.5px] font-semibold"
+                          >
+                            {CARE_SYMBOLS.wash.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.name} ({s.code})
+                              </option>
+                            ))}
+                          </select>
                           <input
                             type="text"
+                            placeholder="Custom text description"
                             value={data.care.wash || ''}
-                            onChange={e => updateCare('wash', e.target.value)}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
+                            onChange={(e) => updateCare('wash', e.target.value)}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1 text-[11px]"
                           />
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Bleaching
-                          </label>
+
+                        {/* Bleaching */}
+                        <div className="bg-white p-3 rounded-lg border border-line space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-muted uppercase tracking-wider">
+                              Bleaching Symbol
+                            </label>
+                            <div className="w-7 h-7 flex items-center justify-center bg-surface-2 rounded border border-line">
+                              <CareIconRenderer
+                                category="bleach"
+                                symbolId={data.care.bleachIcon || 'bleach_do_not'}
+                                className="w-5 h-5 text-ink"
+                              />
+                            </div>
+                          </div>
+                          <select
+                            value={data.care.bleachIcon || 'bleach_do_not'}
+                            onChange={(e) => {
+                              const iconId = e.target.value;
+                              const match = CARE_SYMBOLS.bleach.find((s) => s.id === iconId);
+                              updateCare('bleachIcon', iconId);
+                              if (match) updateCare('bleach', match.name);
+                            }}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1.5 text-[11.5px] font-semibold"
+                          >
+                            {CARE_SYMBOLS.bleach.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.name} ({s.code})
+                              </option>
+                            ))}
+                          </select>
                           <input
                             type="text"
+                            placeholder="Custom text description"
                             value={data.care.bleach || ''}
-                            onChange={e => updateCare('bleach', e.target.value)}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
+                            onChange={(e) => updateCare('bleach', e.target.value)}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1 text-[11px]"
                           />
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Drying
-                          </label>
+
+                        {/* Drying */}
+                        <div className="bg-white p-3 rounded-lg border border-line space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-muted uppercase tracking-wider">
+                              Tumble Drying
+                            </label>
+                            <div className="w-7 h-7 flex items-center justify-center bg-surface-2 rounded border border-line">
+                              <CareIconRenderer
+                                category="dry"
+                                symbolId={data.care.dryIcon || 'dry_tumble_low'}
+                                className="w-5 h-5 text-ink"
+                              />
+                            </div>
+                          </div>
+                          <select
+                            value={data.care.dryIcon || 'dry_tumble_low'}
+                            onChange={(e) => {
+                              const iconId = e.target.value;
+                              const match = CARE_SYMBOLS.dry.find((s) => s.id === iconId);
+                              updateCare('dryIcon', iconId);
+                              if (match) updateCare('dry', match.name);
+                            }}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1.5 text-[11.5px] font-semibold"
+                          >
+                            {CARE_SYMBOLS.dry.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.name} ({s.code})
+                              </option>
+                            ))}
+                          </select>
                           <input
                             type="text"
+                            placeholder="Custom text description"
                             value={data.care.dry || ''}
-                            onChange={e => updateCare('dry', e.target.value)}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
+                            onChange={(e) => updateCare('dry', e.target.value)}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1 text-[11px]"
                           />
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Ironing
-                          </label>
+
+                        {/* Ironing */}
+                        <div className="bg-white p-3 rounded-lg border border-line space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-muted uppercase tracking-wider">
+                              Ironing Symbol
+                            </label>
+                            <div className="w-7 h-7 flex items-center justify-center bg-surface-2 rounded border border-line">
+                              <CareIconRenderer
+                                category="iron"
+                                symbolId={data.care.ironIcon || 'iron_medium'}
+                                className="w-5 h-5 text-ink"
+                              />
+                            </div>
+                          </div>
+                          <select
+                            value={data.care.ironIcon || 'iron_medium'}
+                            onChange={(e) => {
+                              const iconId = e.target.value;
+                              const match = CARE_SYMBOLS.iron.find((s) => s.id === iconId);
+                              updateCare('ironIcon', iconId);
+                              if (match) updateCare('iron', match.name);
+                            }}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1.5 text-[11.5px] font-semibold"
+                          >
+                            {CARE_SYMBOLS.iron.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.name} ({s.code})
+                              </option>
+                            ))}
+                          </select>
                           <input
                             type="text"
+                            placeholder="Custom text description"
                             value={data.care.iron || ''}
-                            onChange={e => updateCare('iron', e.target.value)}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
+                            onChange={(e) => updateCare('iron', e.target.value)}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1 text-[11px]"
                           />
                         </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Dry Cleaning
-                          </label>
+
+                        {/* Professional / Dry Cleaning */}
+                        <div className="bg-white p-3 rounded-lg border border-line space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-[11px] font-bold text-muted uppercase tracking-wider">
+                              Professional Care / Dry Clean
+                            </label>
+                            <div className="w-7 h-7 flex items-center justify-center bg-surface-2 rounded border border-line">
+                              <CareIconRenderer
+                                category="dryClean"
+                                symbolId={data.care.dryCleanIcon || 'dryclean_do_not'}
+                                className="w-5 h-5 text-ink"
+                              />
+                            </div>
+                          </div>
+                          <select
+                            value={data.care.dryCleanIcon || 'dryclean_do_not'}
+                            onChange={(e) => {
+                              const iconId = e.target.value;
+                              const match = CARE_SYMBOLS.dryClean.find((s) => s.id === iconId);
+                              updateCare('dryCleanIcon', iconId);
+                              if (match) updateCare('dryClean', match.name);
+                            }}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1.5 text-[11.5px] font-semibold"
+                          >
+                            {CARE_SYMBOLS.dryClean.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.name} ({s.code})
+                              </option>
+                            ))}
+                          </select>
                           <input
                             type="text"
+                            placeholder="Custom text description"
                             value={data.care.dryClean || ''}
-                            onChange={e => updateCare('dryClean', e.target.value)}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px]"
+                            onChange={(e) => updateCare('dryClean', e.target.value)}
+                            className="w-full bg-surface-2 border border-line rounded px-2 py-1 text-[11px]"
                           />
                         </div>
+
                         <div className="sm:col-span-2">
                           <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
                             Care Label Wording / Full Description
@@ -2153,7 +3109,7 @@ function EditorInner({
                           <textarea
                             rows={3}
                             value={data.care.labelWording || ''}
-                            onChange={e => updateCare('labelWording', e.target.value)}
+                            onChange={(e) => updateCare('labelWording', e.target.value)}
                             className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12.5px]"
                           />
                         </div>
@@ -2435,10 +3391,11 @@ function EditorInner({
                           </label>
                           <input
                             type="number"
-                            value={data.environmental.waterUsage.value === 0 ? '' : data.environmental.waterUsage.value}
+                            value={data.environmental.waterUsage?.value === 0 ? '' : (data.environmental.waterUsage?.value ?? '')}
                             onChange={e =>
                               updateEnvironmental('waterUsage', {
-                                ...data.environmental.waterUsage,
+                                max: data.environmental.waterUsage?.max ?? 1500,
+                                sub: data.environmental.waterUsage?.sub ?? '',
                                 value: e.target.value === '' ? 0 : Number(e.target.value)
                               })
                             }
@@ -2446,10 +3403,11 @@ function EditorInner({
                           />
                           <input
                             type="text"
-                            value={data.environmental.waterUsage.sub || ''}
+                            value={data.environmental.waterUsage?.sub || ''}
                             onChange={e =>
                               updateEnvironmental('waterUsage', {
-                                ...data.environmental.waterUsage,
+                                max: data.environmental.waterUsage?.max ?? 1500,
+                                value: data.environmental.waterUsage?.value ?? 0,
                                 sub: e.target.value
                               })
                             }
@@ -2463,10 +3421,11 @@ function EditorInner({
                           </label>
                           <input
                             type="number"
-                            value={data.environmental.renewableEnergy.value === 0 ? '' : data.environmental.renewableEnergy.value}
+                            value={data.environmental.renewableEnergy?.value === 0 ? '' : (data.environmental.renewableEnergy?.value ?? '')}
                             onChange={e =>
                               updateEnvironmental('renewableEnergy', {
-                                ...data.environmental.renewableEnergy,
+                                max: data.environmental.renewableEnergy?.max ?? 100,
+                                sub: data.environmental.renewableEnergy?.sub ?? '',
                                 value: e.target.value === '' ? 0 : Number(e.target.value)
                               })
                             }
@@ -2474,10 +3433,11 @@ function EditorInner({
                           />
                           <input
                             type="text"
-                            value={data.environmental.renewableEnergy.sub || ''}
+                            value={data.environmental.renewableEnergy?.sub || ''}
                             onChange={e =>
                               updateEnvironmental('renewableEnergy', {
-                                ...data.environmental.renewableEnergy,
+                                max: data.environmental.renewableEnergy?.max ?? 100,
+                                value: data.environmental.renewableEnergy?.value ?? 0,
                                 sub: e.target.value
                               })
                             }
@@ -2491,10 +3451,11 @@ function EditorInner({
                           </label>
                           <input
                             type="number"
-                            value={data.environmental.recycledPackaging.value === 0 ? '' : data.environmental.recycledPackaging.value}
+                            value={data.environmental.recycledPackaging?.value === 0 ? '' : (data.environmental.recycledPackaging?.value ?? '')}
                             onChange={e =>
                               updateEnvironmental('recycledPackaging', {
-                                ...data.environmental.recycledPackaging,
+                                max: data.environmental.recycledPackaging?.max ?? 100,
+                                sub: data.environmental.recycledPackaging?.sub ?? '',
                                 value: e.target.value === '' ? 0 : Number(e.target.value)
                               })
                             }
@@ -2502,10 +3463,11 @@ function EditorInner({
                           />
                           <input
                             type="text"
-                            value={data.environmental.recycledPackaging.sub || ''}
+                            value={data.environmental.recycledPackaging?.sub || ''}
                             onChange={e =>
                               updateEnvironmental('recycledPackaging', {
-                                ...data.environmental.recycledPackaging,
+                                max: data.environmental.recycledPackaging?.max ?? 100,
+                                value: data.environmental.recycledPackaging?.value ?? 0,
                                 sub: e.target.value
                               })
                             }
@@ -2525,7 +3487,7 @@ function EditorInner({
                           </label>
                           <input
                             type="number"
-                            value={data.environmental.packagingRecyclability === 0 ? '' : data.environmental.packagingRecyclability}
+                            value={data.environmental.packagingRecyclability === 0 ? '' : (data.environmental.packagingRecyclability ?? '')}
                             onChange={e => updateEnvironmental('packagingRecyclability', e.target.value === '' ? 0 : Number(e.target.value))}
                             className="w-32 bg-white border border-line rounded-lg px-3 py-2 font-mono font-bold"
                           />

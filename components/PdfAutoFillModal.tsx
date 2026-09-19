@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import type { PassportData } from '@/lib/passport-data';
-import { EXTRACTED_TCHIBO_PASSPORT, EXTRACTED_BABY_SLEEPSUIT_PASSPORT } from '@/lib/sample-extracted-data';
 import { extractPdfClientSide, type ExtractedPdfDocument } from '@/lib/pdf-extractor';
 import {
   Sparkles,
@@ -328,7 +327,7 @@ export default function PdfAutoFillModal({
         message.includes('403')
       ) {
         setError(
-          'API_KEY_LEAKED: Google detected your current Gemini API key as leaked on the web and revoked access. Please select or add a new Gemini API key in the AI Studio Settings menu. In the meantime, you can test with the verified sample documents below.'
+          'API_KEY_LEAKED: Google detected your current Gemini API key as leaked on the web and revoked access. Please select or add a new Gemini API key in the AI Studio Settings menu.'
         );
       } else if (
         message.includes('gemini_apikey') ||
@@ -336,7 +335,7 @@ export default function PdfAutoFillModal({
         message.includes('GEMINI_API_KEY')
       ) {
         setError(
-          'Gemini API key is required on the server. Please check your AI Studio Settings menu or use the sample documents below.'
+          'Gemini API key is required on the server. Please check your AI Studio Settings menu.'
         );
       } else if (
         message.includes('503') ||
@@ -354,42 +353,6 @@ export default function PdfAutoFillModal({
       setIsLoading(false);
       setLoadingStep('');
     }
-  };
-
-  const handleLoadSample = (sampleMode: 'both' | 'fits' | 'bureau-veritas' | 'baby-sleepsuit') => {
-    setError(null);
-    if (sampleMode === 'baby-sleepsuit') {
-      setExtractedData(EXTRACTED_BABY_SLEEPSUIT_PASSPORT);
-      setAnalyzedFileNames([
-        'Tchibo_Baby_Romper_Sleepsuit_152890_Spec.pdf',
-        'SGS_Infant_Safety_Lab_Report.pdf'
-      ]);
-      setExtractionSummary(
-        'Synthesized One-Piece Baby Romper Sleepsuit: 100% GOTS organic cotton, 8 Point-of-Measure rows with ± tolerances, dynamic baby sizing (50/56 to 98/104), and zero hallucinations.'
-      );
-    } else {
-      setExtractedData(EXTRACTED_TCHIBO_PASSPORT);
-      if (sampleMode === 'both') {
-        setAnalyzedFileNames([
-          'Tchibo_FiTS_151546_Technical_Specification.pdf',
-          'Bureau_Veritas_6825_298_0551_Test_Report.pdf'
-        ]);
-        setExtractionSummary(
-          'Synthesized 2 multi-source documents: Technical Specification #151546 (measurements with tolerances, SKUs, yarn nominations) + Bureau Veritas Lab Report (ISO 1833 blend analysis, RSL compliance, and wash colourfastness).'
-        );
-      } else if (sampleMode === 'fits') {
-        setAnalyzedFileNames(['Tchibo_FiTS_151546_Spec.pdf']);
-        setExtractionSummary(
-          'Loaded data from Tchibo FiTS Spec #151546: 48/47/5 blend, S–XXL measurement grading with tolerances, 10 article SKUs, CmiA cotton & Birla modal.'
-        );
-      } else {
-        setAnalyzedFileNames(['Bureau_Veritas_Test_Report.pdf']);
-        setExtractionSummary(
-          'Loaded data from Bureau Veritas Report ((6825)298-0551): ISO 1833 fibre composition, RSL parameter tests, and 5 colourfastness lab cards.'
-        );
-      }
-    }
-    setActiveTab('preview');
   };
 
   const handleApply = (mode: 'replace' | 'merge') => {
@@ -484,16 +447,6 @@ export default function PdfAutoFillModal({
                         <li>Select or generate a fresh <strong>Gemini API Key</strong>.</li>
                       </ol>
                     </div>
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => handleLoadSample('both')}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2E6B4F] text-white font-bold text-[11px] hover:bg-[#24543E] transition-colors shadow-xs cursor-pointer"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-[#A2E2BD]" />
-                        <span>Continue with Sample Documents Demo &rarr;</span>
-                      </button>
-                    </div>
                   </>
                 ) : isCapacityError || error.includes('503') || error.includes('high demand') || error.includes('UNAVAILABLE') ? (
                   <>
@@ -529,14 +482,6 @@ export default function PdfAutoFillModal({
                         <RefreshCw className="w-3.5 h-3.5 text-amber-700" />
                         <span>Switch to Gemini 3.8 Flash &amp; Retry</span>
                       </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleLoadSample('both')}
-                        className="px-2.5 py-1.5 text-[11px] font-bold text-amber-900 hover:underline cursor-pointer"
-                      >
-                        Or test with sample data &rarr;
-                      </button>
                     </div>
                   </>
                 ) : (
@@ -549,13 +494,6 @@ export default function PdfAutoFillModal({
                         className="inline-flex items-center gap-1 text-[11px] font-bold text-[#2E6B4F] hover:underline cursor-pointer"
                       >
                         <RefreshCw className="w-3 h-3" /> Retry Extraction
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleLoadSample('both')}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[#2E6B4F] underline hover:text-[#17201B] cursor-pointer"
-                      >
-                        Load verified 2-document sample &rarr;
                       </button>
                     </div>
                   </>
@@ -769,89 +707,6 @@ export default function PdfAutoFillModal({
                   </div>
                 </div>
               )}
-
-              {/* Quick Sample Loaders */}
-              <div className="pt-3 border-t border-[#EAE5D8] space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase font-bold tracking-wider text-[#6B726C]">
-                    Or test immediately with project sample documents:
-                  </span>
-                </div>
-
-                {/* Combined 2-PDF Test */}
-                <button
-                  type="button"
-                  onClick={() => handleLoadSample('both')}
-                  className="w-full text-left p-3 rounded-xl border border-[#2E6B4F]/40 bg-[#FAF8F3] hover:border-[#2E6B4F] hover:bg-[#F2ECE0] transition-all group cursor-pointer"
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-[#17201B] flex items-center gap-1.5">
-                      <FileCheck2 className="w-4 h-4 text-[#2E6B4F]" />
-                      Combine 2 Documents: FiTS Specification + Bureau Veritas Test Report
-                      <span className="text-[9.5px] uppercase font-bold px-1.5 py-0.2 rounded-full bg-[#2E6B4F] text-white">
-                        Recommended
-                      </span>
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#6B726C] group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                  <p className="text-[11px] text-[#6B726C]">
-                    Simulates cross-referencing spec measurements & article numbers with certified lab fiber tests (ISO 1833) and RSL test results.
-                  </p>
-                </button>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleLoadSample('fits')}
-                    className="text-left p-2.5 rounded-xl border border-[#D5CFBF] bg-white hover:border-[#2E6B4F] hover:bg-[#FAF8F3] transition-all group cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-[#17201B] flex items-center gap-1.5">
-                        <FileText className="w-3.5 h-3.5 text-[#2E6B4F]" />
-                        FiTS Spec #151546
-                      </span>
-                      <ArrowRight className="w-3 h-3 text-[#6B726C] group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                    <p className="text-[10.5px] text-[#6B726C] line-clamp-1">
-                      Measurements S–XXL, 10 SKUs, CmiA/Modal.
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleLoadSample('baby-sleepsuit')}
-                    className="text-left p-2.5 rounded-xl border border-[#D5CFBF] bg-white hover:border-[#2E6B4F] hover:bg-[#FAF8F3] transition-all group cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-[#17201B] flex items-center gap-1.5">
-                        <Layers className="w-3.5 h-3.5 text-[#2E6B4F]" />
-                        Baby Romper (1-Piece)
-                      </span>
-                      <ArrowRight className="w-3 h-3 text-[#6B726C] group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                    <p className="text-[10.5px] text-[#6B726C] line-clamp-1">
-                      100% GOTS cotton, 50/56–98/104, 8 POMs.
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleLoadSample('bureau-veritas')}
-                    className="text-left p-2.5 rounded-xl border border-[#D5CFBF] bg-white hover:border-[#2E6B4F] hover:bg-[#FAF8F3] transition-all group cursor-pointer sm:col-span-2"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-[#17201B] flex items-center gap-1.5">
-                        <FlaskConical className="w-3.5 h-3.5 text-[#2E6B4F]" />
-                        Bureau Veritas Lab Report ((6825)298-0551)
-                      </span>
-                      <ArrowRight className="w-3 h-3 text-[#6B726C] group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                    <p className="text-[10.5px] text-[#6B726C] line-clamp-1">
-                      ISO 1833 certified fibre blend, RSL parameter tests & colourfastness cards.
-                    </p>
-                  </button>
-                </div>
-              </div>
             </>
           )}
 

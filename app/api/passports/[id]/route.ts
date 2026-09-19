@@ -8,7 +8,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = decodeURIComponent(rawId);
 
     if (!isMongoConfigured()) {
       const inMemory = getInMemoryPassportById(id);
@@ -28,7 +29,12 @@ export async function GET(
     try {
       const doc = await withMongoDb(async (db) => {
         const collection = db.collection('passports');
-        return await collection.findOne({ 'general.projectId': id });
+        return await collection.findOne({
+          $or: [
+            { 'general.projectId': id },
+            { 'general.projectId': String(id).trim() }
+          ]
+        });
       });
 
       if (!doc) {
@@ -81,7 +87,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = decodeURIComponent(rawId);
     const deletedInMemory = deleteInMemoryPassport(id);
 
     if (!isMongoConfigured()) {
@@ -96,7 +103,12 @@ export async function DELETE(
     try {
       const result = await withMongoDb(async (db) => {
         const collection = db.collection('passports');
-        return await collection.deleteOne({ 'general.projectId': id });
+        return await collection.deleteOne({
+          $or: [
+            { 'general.projectId': id },
+            { 'general.projectId': String(id).trim() }
+          ]
+        });
       });
 
       return NextResponse.json({

@@ -183,17 +183,18 @@ CRITICAL EXTRACTION MANDATE:
    - Under no circumstances should circularity tips, upcycle steps, stain removal hacks, environmental stats, or compliance fields be returned as 'n/a'. Create an authentic, fully populated European Digital Product Passport.
 
 3. MEASUREMENT EXTRACTION & MAPPING:
+   - Exhaustive POM Extraction: You MUST extract EVERY SINGLE ROW and Point of Measure (POM) from the measurement chart in the document. NEVER truncate or omit measurement rows (e.g. if the document has 16 POMs, you must extract all 16 rows).
    - Identify whether the garment is a one-piece (baby pyjamas, rompers, bodysuits, sleepsuits, overalls) or two-piece (top + shorts/trousers).
-   - If one-piece, set "categoryType": "one_piece", extract all POMs into "onePiece", and extract "onePieceFit".
+   - If one-piece, set "categoryType": "one_piece", extract all POM rows into "onePiece", set "pomCount" to the total number of POMs (e.g., 16), and extract "onePieceFit".
    - If two-piece, set "categoryType": "two_piece", extract top POMs into "top", bottom POMs into "bottom", and extract "topFit" and "bottomFit".
    - Always extract the exact "sizeHeaders" found in the document (e.g. ["50/56", "62/68", "74/80", "86/92", "98/104"], ["36/38", "40/42", "44/46", "48/50", "52/54"], or ["S", "M", "L", "XL", "XXL"]).
    - For every measurement row, capture:
-     * "k": Point of measure code (e.g. "1", "2", "A", "C", "STS")
-     * "name": Description / POM name
+     * "k": Point of measure code (e.g. "C", "H", "STS", "SL", "AS", "UAW", "NO", "NDF", "T", "TH", "LO", "CUH", "CUW", "SCUH", "IL", "CBL")
+     * "name": Description / POM name (e.g. "1/2 Chest width", "Sleeve length incl. cuff", "Inseam length", "Total length")
      * "how": Measuring method instruction
-     * "tolMinus": Negative tolerance (e.g. -1.0 or -0.5)
-     * "tolPlus": Positive tolerance (e.g. 1.0 or 0.5)
-     * "vals": An object with numeric values for each size header
+     * "tolMinus": Negative tolerance (e.g. 1.0, 0.5, 0.8)
+     * "tolPlus": Positive tolerance (e.g. 1.0, 0.5, 0.8)
+     * "vals": An object with numeric values for each size header (e.g. { "50/56": 23.0, "62/68": 25.0, "74/80": 27.0, "86/92": 29.0, "98/104": 31.0 })
      * "g": Category grouping (e.g. "Length", "Chest", "Waist", "Neck", "Sleeve")
    - Extract "allowedShrinkage" (e.g. "Allowed dimensional change after wash: 6.0%").
 
@@ -298,12 +299,14 @@ REQUIRED SCHEMA DETAILS:
   },
   "traceability": {
     "percentage": 100,
-    "summary": "Complete Tier 1 to Tier 4 verified supply chain audit (or 'n/a')",
-    "origin": { "country": "Bangladesh", "city": "Chittagong", "facility": "AKH Knitting & Dyeing Ltd.", "lat": 22.3569, "lng": 91.7832 },
-    "destination": { "country": "Germany", "city": "Hamburg", "label": "Hamburg Central Logistics Hub, Germany", "lat": 53.5511, "lng": 9.9937, "transportMode": "Maritime Sea Freight", "distanceKm": 14200 },
-    "testingLab": { "name": "Bureau Veritas Consumer Products (BD) Ltd.", "reportNo": "(6825)298-0551", "location": "Dhaka, Bangladesh", "result": "PASS" },
+    "summary": "Verified Tier 1 to Tier 3 supply chain audit",
+    "origin": { "country": "Bangladesh", "city": "Gazipur / Dhaka", "facility": "Fakir Fashion Ltd. (Garment Assembly)", "lat": 23.9999, "lng": 90.4203 },
+    "destination": { "country": "Germany", "city": "Hamburg", "label": "Destination Market Hub, Hamburg, Germany", "lat": 53.5511, "lng": 9.9937 },
+    "testingLab": { "name": "Bureau Veritas Consumer Products (BD) Ltd.", "reportNo": "(9325)295-0371", "location": "Dhaka, Bangladesh", "result": "PASS" },
     "nodes": [
-      { "tier": "Tier 1 — Garment Cut & Sew", "date": "Oct 2025", "title": "AKH Knitting & Dyeing Ltd.", "subtitle": "Savar, Dhaka, Bangladesh", "color": "green", "items": [{ "label": "Facility", "val": "AKH Unit 4" }, { "label": "Certifications", "val": "BSCI Grade A · Accord / RSC Compliant" }] }
+      { "tier": "Tier 1 (Garment Assembly)", "date": "", "title": "Fakir Fashion Ltd.", "subtitle": "Gazipur, Dhaka, Bangladesh", "color": "green", "items": [{ "label": "Role", "val": "Garment Assembly (Cut, Make & Trim)" }, { "label": "Certifications", "val": "BSCI Grade A / SA8000 · GOTS Scope" }] },
+      { "tier": "Tier 2 (Fabric Manufacturing)", "date": "", "title": "Fakir Knitwear & Textile Processing Ltd.", "subtitle": "Narayanganj, Bangladesh", "color": "green", "items": [{ "label": "Knitting & Printing", "val": "Water-based baby-safe reactive printing" }, { "label": "Standard", "val": "OEKO-TEX STeP & GOTS" }] },
+      { "tier": "Tier 3 (Fiber / Yarn)", "date": "", "title": "Square Spinning Mills Ltd.", "subtitle": "Hobiganj, Bangladesh", "color": "green", "items": [{ "label": "Yarn Count", "val": "30s/1 Combed 100% Organic Cotton" }, { "label": "Standard", "val": "GOTS CU812345 / Cotton made in Africa" }] }
     ]
   },
   "quality": {

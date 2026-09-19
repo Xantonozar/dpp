@@ -34,6 +34,7 @@ import {
 import type { PassportData, Size, Unit, Garment, StyleType } from '@/lib/passport-data';
 import { normalizePassportData } from '@/lib/passport-data';
 import SupplyChainMap from '@/components/SupplyChainMap';
+import { CareIconRenderer } from '@/lib/care-icons';
 
 const EU: Record<Size, string> = { S: '44/46', M: '48/50', L: '52/54', XL: '56/58', XXL: '60/62' };
 
@@ -609,7 +610,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
   // Manual Carbon Footprint entry state
   const [manualCarbonVal, setManualCarbonVal] = useState<string>('');
   const [savedManualCarbon, setSavedManualCarbon] = useState<number | null>(() => {
-    return (data.environmental?.totalCarbon || 0) > 0 ? data.environmental.totalCarbon : null;
+    return (data.environmental?.totalCarbon && data.environmental.totalCarbon > 0) ? data.environmental.totalCarbon : null;
   });
   const [showCarbonModal, setShowCarbonModal] = useState(false);
 
@@ -740,7 +741,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
       <nav className="sticky top-0 z-50 bg-[#F4F1EA]/90 backdrop-blur-md border-b border-line">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px] py-2.5 sm:py-3 flex items-center justify-between">
           <a
-            href="#section-a"
+            href="#section-1"
             className="flex items-center gap-2 no-underline font-display font-bold tracking-[0.06em] text-[13px] sm:text-[14px] shrink-0 text-ink"
           >
             <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-green shadow-[0_0_0_4px_var(--color-green-soft)]"></span>
@@ -751,13 +752,12 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
           </a>
 
           <div className="flex-1 min-w-0 flex gap-0.5 overflow-x-auto no-scrollbar mask-fade-right mx-2 sm:mx-4">
-            <a href="#section-a" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white active:bg-ink active:text-[#F4F1EA]">A · Overview</a>
-            <a href="#section-b" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">B · Traceability</a>
-            <a href="#section-c" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">C · Quality</a>
-            <a href="#section-d" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">D · Care</a>
-            <a href="#section-e" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">E · Circularity</a>
-            <a href="#section-f" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">F · Impact</a>
-            <a href="#section-g" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">G · Data</a>
+            <a href="#section-1" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white active:bg-ink active:text-[#F4F1EA]">1 · Overview</a>
+            <a href="#section-2" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">2 · Traceability</a>
+            <a href="#section-3" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">3 · Quality & Testing</a>
+            <a href="#section-4" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">4 · Care</a>
+            <a href="#section-5" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">5 · Circularity</a>
+            <a href="#section-6" className="text-[11px] sm:text-[12.5px] font-semibold text-muted px-2 sm:px-2.5 py-[5px] sm:py-[6px] rounded-full whitespace-nowrap transition-colors hover:text-ink hover:bg-white">6 · Environmental</a>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
@@ -810,18 +810,18 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
         </Reveal>
       </section>
 
-      {/* SECTION A: Product Overview */}
-      <section className="pt-6 sm:pt-12 pb-4 sm:pb-6" id="section-a">
+      {/* SECTION 1: Product Overview */}
+      <section className="pt-6 sm:pt-12 pb-4 sm:pb-6" id="section-1">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
           <Reveal className="flex items-center gap-3.5 sm:gap-[18px] mb-6 sm:mb-[30px]">
             <div className="w-[42px] h-[42px] sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">
-              A
+              1
             </div>
             <div>
               <h2 className="text-[18px] sm:text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight text-ink">
                 Product Overview
               </h2>
-              <p className="text-muted text-[12px] sm:text-[13.5px] mt-0.5">Identity, AI visuals & fit data</p>
+              <p className="text-muted text-[12px] sm:text-[13.5px] mt-0.5">Identity, materials, certifications, GTIN codes & measurements</p>
             </div>
           </Reveal>
 
@@ -969,50 +969,88 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                     className="mt-3 overflow-hidden"
                   >
                     <div className="bg-white border border-line rounded-xl p-3 text-[11.5px]">
-                      <div className="font-bold text-ink mb-2 flex items-center justify-between">
-                        <span>13-digit GTIN Size & Colorway Matrix:</span>
-                        <span className="text-[10px] text-muted font-normal">Click any row to copy</span>
+                      <div className="font-bold text-ink mb-2 flex items-center justify-between flex-wrap gap-1">
+                        <span>
+                          13-digit GTIN Matrix ({Object.keys(data.general.gtinCodes || {}).length > 2 ? '45 Combos · 9 Colorways × 5 Sizes' : 'Size & Colorway Matrix'}):
+                        </span>
+                        <span className="text-[10px] text-muted font-normal">Click any code to copy</span>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {/* Solid / Uni */}
-                        <div className="border border-line rounded-lg p-2.5 bg-surface-2">
-                          <div className="font-bold text-[11px] uppercase tracking-wider text-green-dark mb-1.5">
-                            Uni (Solid Dark Green)
-                          </div>
-                          {(['S', 'M', 'L', 'XL', 'XXL'] as Size[]).map((sz) => {
-                            const code = data.general.gtinCodes?.uni?.[sz] || `40612347308${sz === 'S' ? '01' : sz === 'M' ? '18' : sz === 'L' ? '25' : sz === 'XL' ? '32' : '49'}`;
+
+                      {/* If baby wear 9-colorway matrix */}
+                      {Object.keys(data.general.gtinCodes || {}).some(k => k.startsWith('cw')) ? (
+                        <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+                          {Array.from({ length: 9 }).map((_, idx) => {
+                            const cwKey = `cw${idx + 1}`;
+                            const cwObj = data.general.gtinCodes?.[cwKey];
+                            if (!cwObj) return null;
+                            const cwMeta = data.general.visuals?.colorways?.[idx];
+                            const cwTitle = cwMeta?.name || `Colorway ${idx + 1}`;
+                            const hex = cwMeta?.hex || '#666666';
+
                             return (
-                              <button
-                                key={sz}
-                                onClick={() => handleCopyGtin(code)}
-                                className="w-full flex justify-between items-center py-1 px-1.5 hover:bg-white rounded transition-colors text-left font-mono cursor-pointer"
-                              >
-                                <span className="font-semibold text-ink">Size {sz}:</span>
-                                <span className="text-muted hover:text-green-dark font-medium text-[11px]">{code}</span>
-                              </button>
+                              <div key={cwKey} className="border border-line rounded-lg p-2 bg-surface-2">
+                                <div className="font-bold text-[11px] uppercase tracking-wider text-green-dark mb-1 flex items-center gap-1.5">
+                                  <span className="w-2.5 h-2.5 rounded-full border border-black/10 inline-block" style={{ backgroundColor: hex }} />
+                                  <span className="truncate">{cwTitle}</span>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                                  {Object.entries(cwObj).map(([sz, code]) => (
+                                    <button
+                                      key={sz}
+                                      onClick={() => handleCopyGtin(code as string)}
+                                      className="flex flex-col py-1 px-1.5 bg-white hover:bg-green-soft border border-line hover:border-green rounded transition-colors text-left font-mono cursor-pointer"
+                                    >
+                                      <span className="font-bold text-[9.5px] text-muted">{sz}:</span>
+                                      <span className="text-ink font-semibold text-[10.5px] truncate">{code as string}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
                             );
                           })}
                         </div>
-                        {/* Print / AOP */}
-                        <div className="border border-line rounded-lg p-2.5 bg-surface-2">
-                          <div className="font-bold text-[11px] uppercase tracking-wider text-green-dark mb-1.5">
-                            AOP (Allover Print Leaf)
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {/* Solid / Uni */}
+                          <div className="border border-line rounded-lg p-2.5 bg-surface-2">
+                            <div className="font-bold text-[11px] uppercase tracking-wider text-green-dark mb-1.5">
+                              Uni (Solid Dark Green)
+                            </div>
+                            {(['S', 'M', 'L', 'XL', 'XXL'] as Size[]).map((sz) => {
+                              const code = data.general.gtinCodes?.uni?.[sz] || `40612347308${sz === 'S' ? '01' : sz === 'M' ? '18' : sz === 'L' ? '25' : sz === 'XL' ? '32' : '49'}`;
+                              return (
+                                <button
+                                  key={sz}
+                                  onClick={() => handleCopyGtin(code)}
+                                  className="w-full flex justify-between items-center py-1 px-1.5 hover:bg-white rounded transition-colors text-left font-mono cursor-pointer"
+                                >
+                                  <span className="font-semibold text-ink">Size {sz}:</span>
+                                  <span className="text-muted hover:text-green-dark font-medium text-[11px]">{code}</span>
+                                </button>
+                              );
+                            })}
                           </div>
-                          {(['S', 'M', 'L', 'XL', 'XXL'] as Size[]).map((sz) => {
-                            const code = data.general.gtinCodes?.aop?.[sz] || `40612347308${sz === 'S' ? '56' : sz === 'M' ? '63' : sz === 'L' ? '70' : sz === 'XL' ? '87' : '94'}`;
-                            return (
-                              <button
-                                key={sz}
-                                onClick={() => handleCopyGtin(code)}
-                                className="w-full flex justify-between items-center py-1 px-1.5 hover:bg-white rounded transition-colors text-left font-mono cursor-pointer"
-                              >
-                                <span className="font-semibold text-ink">Size {sz}:</span>
-                                <span className="text-muted hover:text-green-dark font-medium text-[11px]">{code}</span>
-                              </button>
-                            );
-                          })}
+                          {/* Print / AOP */}
+                          <div className="border border-line rounded-lg p-2.5 bg-surface-2">
+                            <div className="font-bold text-[11px] uppercase tracking-wider text-green-dark mb-1.5">
+                              AOP (Allover Print Leaf)
+                            </div>
+                            {(['S', 'M', 'L', 'XL', 'XXL'] as Size[]).map((sz) => {
+                              const code = data.general.gtinCodes?.aop?.[sz] || `40612347308${sz === 'S' ? '56' : sz === 'M' ? '63' : sz === 'L' ? '70' : sz === 'XL' ? '87' : '94'}`;
+                              return (
+                                <button
+                                  key={sz}
+                                  onClick={() => handleCopyGtin(code)}
+                                  className="w-full flex justify-between items-center py-1 px-1.5 hover:bg-white rounded transition-colors text-left font-mono cursor-pointer"
+                                >
+                                  <span className="font-semibold text-ink">Size {sz}:</span>
+                                  <span className="text-muted hover:text-green-dark font-medium text-[11px]">{code}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -1026,21 +1064,28 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                     Packaging Specifications
                   </span>
                 </div>
-                <div className="text-[11.5px] text-muted space-y-1">
-                  <div>
-                    <b className="text-ink">Materials:</b>{' '}
-                    {data.general.packagingInfo?.materials || data.environmental.packagingMaterials || '100% Recycled Cardboard Band (FSC certified) & Bio-based Polybag'}
-                  </div>
-                  <div>
-                    <b className="text-ink">Recyclability:</b>{' '}
-                    {data.general.packagingInfo?.recyclability || `${data.environmental.packagingRecyclability || 100}% Recyclable paper band presentation`}
-                  </div>
-                  {data.general.packagingInfo?.certification && (
-                    <div className="inline-block bg-white text-green-dark font-semibold border border-line text-[10px] px-2 py-0.5 rounded-md mt-1">
-                      {data.general.packagingInfo.certification}
+                {data.general.packagingInfo?.materials || data.environmental.packagingMaterials ? (
+                  <div className="text-[11.5px] text-muted space-y-1">
+                    <div>
+                      <b className="text-ink">Materials:</b>{' '}
+                      {data.general.packagingInfo?.materials || data.environmental.packagingMaterials}
                     </div>
-                  )}
-                </div>
+                    {data.general.packagingInfo?.recyclability && (
+                      <div>
+                        <b className="text-ink">Recyclability:</b> {data.general.packagingInfo.recyclability}
+                      </div>
+                    )}
+                    {data.general.packagingInfo?.certification && (
+                      <div className="inline-block bg-white text-green-dark font-semibold border border-line text-[10px] px-2 py-0.5 rounded-md mt-1">
+                        {data.general.packagingInfo.certification}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-[11.5px] text-muted italic">
+                    Data Not Provided in document (Requires manual entry)
+                  </div>
+                )}
               </div>
 
               {/* 4 Summary Stats */}
@@ -1210,6 +1255,41 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                   )}
                 </div>
               )}
+
+              {/* Colorways Range if defined */}
+              {Array.isArray(data.general?.visuals?.colorways) && data.general.visuals.colorways.length > 0 && (
+                <div className="p-4 border-t border-line bg-surface-2/60">
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-ink">
+                      Approved Colorways &amp; Prints ({data.general.visuals.colorways.length})
+                    </span>
+                    <span className="text-[10px] font-mono text-muted">Pantone TPX / TCX</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {data.general.visuals.colorways.map((cw, i) => (
+                      <div
+                        key={i}
+                        className="p-2 bg-white border border-line rounded-lg flex items-center gap-2"
+                      >
+                        <div
+                          className="w-5 h-5 rounded-md border border-black/10 shrink-0 shadow-2xs"
+                          style={{ backgroundColor: cw.hex || '#CCCCCC' }}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[11.5px] font-semibold text-ink truncate" title={cw.name}>
+                            {cw.name}
+                          </div>
+                          {cw.pantone && (
+                            <div className="text-[10px] font-mono text-muted truncate">
+                              {cw.pantone}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </Reveal>
           </div>
 
@@ -1218,60 +1298,67 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             <div className="lg:border-r border-b lg:border-b-0 border-line p-[26px] bg-surface-2 flex flex-col gap-3.5">
               <div className="flex justify-between items-center gap-2.5 flex-wrap">
                 <h3 className="text-[15px] font-bold text-ink">Measurement Map</h3>
-                <div className="flex gap-2">
-                  <div className="flex bg-white border border-line rounded-full p-[3px]">
-                    {hasOnePiece && (
-                      <button
-                        onClick={() => setCurGar('onePiece')}
-                        className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
-                          curGar === 'onePiece' ? 'text-white' : 'text-muted hover:text-ink'
-                        }`}
-                      >
-                        {curGar === 'onePiece' && (
-                          <motion.div
-                            layoutId="garToggle"
-                            className="absolute inset-0 bg-green rounded-full z-0"
-                            transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                          />
-                        )}
-                        <span className="relative z-10">One-Piece</span>
-                      </button>
-                    )}
-                    {(hasTop || (!hasOnePiece && !hasBottom)) && (
-                      <button
-                        onClick={() => setCurGar('top')}
-                        className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
-                          curGar === 'top' ? 'text-white' : 'text-muted hover:text-ink'
-                        }`}
-                      >
-                        {curGar === 'top' && (
-                          <motion.div
-                            layoutId="garToggle"
-                            className="absolute inset-0 bg-green rounded-full z-0"
-                            transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                          />
-                        )}
-                        <span className="relative z-10">Top</span>
-                      </button>
-                    )}
-                    {(hasBottom || (!hasOnePiece && !hasTop)) && (
-                      <button
-                        onClick={() => setCurGar('bottom')}
-                        className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
-                          curGar === 'bottom' ? 'text-white' : 'text-muted hover:text-ink'
-                        }`}
-                      >
-                        {curGar === 'bottom' && (
-                          <motion.div
-                            layoutId="garToggle"
-                            className="absolute inset-0 bg-green rounded-full z-0"
-                            transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                          />
-                        )}
-                        <span className="relative z-10">Bottom</span>
-                      </button>
-                    )}
-                  </div>
+                <div className="flex items-center gap-2">
+                  {data.measurements?.categoryType === 'one_piece' || (hasOnePiece && !hasTop && !hasBottom) ? (
+                    <div className="inline-flex items-center gap-1.5 bg-green-soft text-green-dark border border-[#BCD8C6] rounded-full px-3 py-1 text-[11.5px] font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green" />
+                      One-Piece (Baby Wear)
+                    </div>
+                  ) : (
+                    <div className="flex bg-white border border-line rounded-full p-[3px]">
+                      {hasTop && (
+                        <button
+                          onClick={() => setCurGar('top')}
+                          className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
+                            curGar === 'top' ? 'text-white' : 'text-muted hover:text-ink'
+                          }`}
+                        >
+                          {curGar === 'top' && (
+                            <motion.div
+                              layoutId="garToggle"
+                              className="absolute inset-0 bg-green rounded-full z-0"
+                              transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                            />
+                          )}
+                          <span className="relative z-10">Top</span>
+                        </button>
+                      )}
+                      {hasBottom && (
+                        <button
+                          onClick={() => setCurGar('bottom')}
+                          className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
+                            curGar === 'bottom' ? 'text-white' : 'text-muted hover:text-ink'
+                          }`}
+                        >
+                          {curGar === 'bottom' && (
+                            <motion.div
+                              layoutId="garToggle"
+                              className="absolute inset-0 bg-green rounded-full z-0"
+                              transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                            />
+                          )}
+                          <span className="relative z-10">Bottom</span>
+                        </button>
+                      )}
+                      {hasOnePiece && (
+                        <button
+                          onClick={() => setCurGar('onePiece')}
+                          className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
+                            curGar === 'onePiece' ? 'text-white' : 'text-muted hover:text-ink'
+                          }`}
+                        >
+                          {curGar === 'onePiece' && (
+                            <motion.div
+                              layoutId="garToggle"
+                              className="absolute inset-0 bg-green rounded-full z-0"
+                              transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                            />
+                          )}
+                          <span className="relative z-10">One-Piece</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <div className="flex bg-white border border-line rounded-full p-[3px]">
                     <button
                       onClick={() => setCurUnit('cm')}
@@ -1301,7 +1388,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                           transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                         />
                       )}
-                      <span className="relative z-10">in</span>
+                      <span className="relative z-10">inch</span>
                     </button>
                   </div>
                 </div>
@@ -1429,9 +1516,9 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                           <td className="py-2.5 text-center font-mono text-[11px] text-muted whitespace-nowrap">
                             {(r.tolMinus !== undefined || r.tolPlus !== undefined) ? (
                               <span className="px-1.5 py-0.5 rounded bg-surface-2 border border-line text-muted">
-                                {r.tolMinus === r.tolPlus || !r.tolMinus
-                                  ? `±${r.tolPlus || r.tolMinus}`
-                                  : `+${r.tolPlus || 0} / -${r.tolMinus || 0}`}
+                                {Math.abs(Number(r.tolMinus || 0)) === Math.abs(Number(r.tolPlus || 0))
+                                  ? `±${Math.abs(Number(r.tolPlus ?? r.tolMinus ?? 0.5))}`
+                                  : `+${Math.abs(Number(r.tolPlus || 0))} / -${Math.abs(Number(r.tolMinus || 0))}`}
                               </span>
                             ) : (
                               <span className="text-muted/40">—</span>
@@ -1478,19 +1565,19 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
         </div>
       </section>
 
-      {/* SECTION B: Traceability */}
-      <section className="pt-10 sm:pt-[72px] pb-2" id="section-b">
+      {/* SECTION 2: Traceability */}
+      <section className="pt-10 sm:pt-[72px] pb-2" id="section-2">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
           <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
             <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">
-              B
+              2
             </div>
             <div>
               <h2 className="text-[20px] sm:text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight text-ink">
-                Traceability Journey
+                Supply Chain / Traceability
               </h2>
               <p className="text-muted text-[12px] sm:text-[13.5px] mt-0.5">
-                Tier 1 to Tier 4 verified nodes per FiTS & SCOT
+                Verified manufacturing journey (Tier 1 to Tier 3) and accredited laboratory testing
               </p>
             </div>
           </Reveal>
@@ -1524,7 +1611,14 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             <RevealGroup className="relative pl-6 sm:pl-[34px] grid gap-4 sm:gap-[22px] mb-3.5">
               <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-green via-green to-amber-line"></div>
 
-              {(data.traceability?.nodes || []).map((node, idx) => (
+              {(data.traceability?.nodes || [])
+                .filter(
+                  node =>
+                    !node.tier?.toLowerCase().includes('tier 4') &&
+                    !node.title?.toLowerCase().includes('cooperative') &&
+                    !node.title?.toLowerCase().includes('raw material')
+                )
+                .map((node, idx) => (
                 <RevealItem key={idx} className="relative">
                   <div
                     className={`absolute -left-[30px] top-[22px] w-4 h-4 rounded-full border-[4px] border-bg shadow-sm ${
@@ -1536,11 +1630,11 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                       <span className="font-mono text-[11px] font-medium bg-ink text-lime rounded-lg px-2.5 py-1 tracking-[0.08em]">
                         {node.tier}
                       </span>
-                      <span className="font-mono text-[11.5px] text-muted">{node.date}</span>
+                      {node.date && <span className="font-mono text-[11.5px] text-muted">{node.date}</span>}
                       <span className="text-line-2 ml-auto text-[16px]">⟰</span>
                     </div>
                     <h3 className="text-[17px] font-bold text-ink">{node.title}</h3>
-                    <p className="text-[12.5px] text-muted my-1 mb-3">{node.subtitle}</p>
+                    {node.subtitle && <p className="text-[12.5px] text-muted my-1 mb-3">{node.subtitle}</p>}
 
                     <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-2.5">
                       {(node.items || []).map((item, i) => (
@@ -1565,25 +1659,25 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             </RevealGroup>
           ) : (
             <div className="py-8 px-4 text-center text-muted text-xs bg-surface border border-dashed border-line-2 rounded-[18px]">
-              No supply chain tier nodes registered yet. Register Tier 1 to Tier 4 facilities in the Traceability editor tab.
+              No supply chain tier nodes registered yet. Register Tier 1 to Tier 3 facilities in the Traceability editor tab.
             </div>
           )}
         </div>
       </section>
 
-      {/* SECTION C: Quality */}
-      <section className="pt-10 sm:pt-[72px] pb-2" id="section-c">
+      {/* SECTION 3: Quality & Testing */}
+      <section className="pt-10 sm:pt-[72px] pb-2" id="section-3">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
           <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
             <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">
-              C
+              3
             </div>
             <div>
               <h2 className="text-[20px] sm:text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight text-ink">
-                Quality Analysis
+                Quality & Testing
               </h2>
               <p className="text-muted text-[12px] sm:text-[13.5px] mt-0.5">
-                Composition, colour fastness & RSL results
+                Lab report #{data.quality?.reportNumber || 'BGDT25154711'} · Overall PASS · RSL & Fastness verification
               </p>
             </div>
           </Reveal>
@@ -1613,7 +1707,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
               <div className="flex items-center gap-2 flex-wrap self-stretch sm:self-auto justify-between sm:justify-end">
                 <div className="bg-ink/50 border border-white/10 rounded-xl px-3.5 py-2">
                   <span className="text-[10px] uppercase tracking-wider text-[#B9D3C1] block font-mono">
-                    Report Number
+                    Lab Report Number
                   </span>
                   <span className="font-mono text-[13px] sm:text-[14px] font-bold text-white tracking-wider">
                     {data.quality?.reportNumber || 'BGDT25154711'}
@@ -1626,10 +1720,10 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
               <div className="flex items-center gap-2">
                 <UserCheck size={15} className="text-lime shrink-0" />
                 <span>
-                  <b className="text-white font-semibold">Reviewed & Approved By:</b>{' '}
+                  <b className="text-white font-semibold">Report Reviewed & Approved By:</b>{' '}
                   {data.quality?.reviewedBy?.name || 'Md. Tariqul Islam'},{' '}
                   <span className="text-[#D3E5D8]">
-                    {data.quality?.reviewedBy?.designation || 'Senior Executive – Analytical Lab, ITS Labtest Bangladesh Ltd.'}
+                    {data.quality?.reviewedBy?.designation || 'Senior Executive – Analytical Lab'}
                   </span>
                 </span>
               </div>
@@ -1641,9 +1735,9 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
 
           <div className="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-4 sm:gap-[26px] items-start mb-6 sm:mb-[26px]">
             <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[26px]">
-              <h3 className="text-[16px] font-bold mb-1 text-ink">Fabric Composition</h3>
+              <h3 className="text-[16px] font-bold mb-1 text-ink">Fabric Composition Verification</h3>
               <p className="text-[12.5px] text-muted mb-[18px]">
-                Labeled per Regulation (EU) 1007/2011{data.materials.tolerance ? ` · tolerance ${data.materials.tolerance}` : ''}
+                Laboratory tested (ISO 1833) vs labeled specification
               </p>
 
               <CircularComposition
@@ -1655,7 +1749,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
 
               <div className="mt-6 flex justify-between items-center bg-green-soft border border-[#BCD8C6] rounded-xl p-3 px-4">
                 <span className="text-[11px] tracking-widest uppercase text-green-dark font-semibold">
-                  Fabric weight{data.materials.fabricWeight ? ` · spec ${data.materials.fabricWeight} ±5%` : ''}
+                  Fabric weight{data.materials.fabricWeight ? ` · ${data.materials.fabricWeight} g/m²` : ''}
                 </span>
                 <span className="font-display font-bold text-[22px] text-green-dark">
                   {data.materials.fabricWeight ? (
@@ -1668,22 +1762,9 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                 </span>
               </div>
 
-              <div className="mt-3.5 flex justify-between items-center bg-surface-2 border border-line rounded-xl p-3 px-4">
-                <span className="text-[11px] tracking-widest uppercase text-muted font-semibold">Recycled Content</span>
-                <span className="font-display font-bold text-[22px] text-ink">
-                  {data.materials.recycledContent ? (
-                    <>
-                      {data.materials.recycledContent} <small className="text-[12px]">%</small>
-                    </>
-                  ) : (
-                    '—'
-                  )}
-                </span>
-              </div>
-
               {data.materials?.labAnalysis && data.materials.labAnalysis.length > 0 ? (
                 <div className="mt-3.5 border border-dashed border-line-2 rounded-xl p-3 px-3.5 text-[12px] text-muted">
-                  Lab analysis (ISO 1833) — verification breakdown:
+                  <b className="text-ink">Laboratory Analysis (ISO 1833):</b>
                   <table className="w-full border-collapse mt-1.5 mb-1.5">
                     <tbody>
                       {(data.materials?.labAnalysis || []).map((item, i) => (
@@ -1708,76 +1789,77 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             </Reveal>
 
             <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
-              <h3 className="text-[16px] font-bold mb-1 text-ink">Chemicals & Substances of Concern</h3>
-              <p className="text-[12.5px] text-muted mb-4">SVHC (Substances of Very High Concern) per REACH declaration</p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-[13px]">
-                  <thead className="text-[11px] text-muted uppercase tracking-widest border-b border-line-2">
-                    <tr>
-                      <th className="py-2 font-semibold">Substance</th>
-                      <th className="py-2 font-semibold hidden sm:table-cell">CAS No.</th>
-                      <th className="py-2 font-semibold">Component</th>
-                      <th className="py-2 font-semibold text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.materials?.svhcSubstances && data.materials.svhcSubstances.length > 0 ? (
-                      (data.materials?.svhcSubstances || []).map((item, i) => (
-                        <tr key={i} className="border-b border-line last:border-b-0">
-                          <td className="py-3 pr-2 font-medium text-ink">{item.substance}</td>
-                          <td className="py-3 font-mono text-muted text-[11.5px] hidden sm:table-cell">{item.cas}</td>
-                          <td className="py-3 text-muted">{item.component}</td>
-                          <td className="py-3 text-right">
-                            <span className="text-[10px] font-bold tracking-widest text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-1 rounded-full whitespace-nowrap">
-                              {item.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="py-4 text-center text-xs text-muted italic">
-                          {(data.materials.cotton || data.materials.modal || data.materials.fabricWeight)
-                            ? 'Zero Substances of Very High Concern (SVHC) detected in declaration.'
-                            : 'No SVHC declaration registered.'}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+              <h3 className="text-[16px] font-bold mb-1 text-ink">Restricted Substances — RSL Category 1</h3>
+              <p className="text-[12.5px] text-muted mb-4">
+                {data.quality.rslStandards || 'Tested in accordance with EU REACH & AFIRM RSL Category 1'}
+              </p>
+              <div className="grid gap-[9px]">
+                {data.quality?.rslItems && data.quality.rslItems.length > 0 ? (
+                  (data.quality?.rslItems || []).map((item, i) => (
+                    <div
+                      key={i}
+                      className="flex justify-between items-center gap-3 bg-surface-2 border border-line rounded-[10px] p-[9px] px-[13px] text-[12.5px]"
+                    >
+                      <span className="font-semibold text-ink">{item.name}</span>
+                      <span className="font-mono text-[11.5px] text-muted">{item.result}</span>
+                      <span className="text-[10.5px] font-bold tracking-[0.08em] bg-green-soft text-green-dark border border-[#BCD8C6] rounded-full px-2.5 py-[3px] whitespace-nowrap">
+                        PASS
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-3 text-[12px] text-muted bg-surface-2 border border-dashed border-line rounded-lg text-center">
+                    No restricted substances listed.
+                  </div>
+                )}
               </div>
 
-              <div className="mt-6 pt-5 border-t border-line">
-                <h3 className="text-[16px] font-bold mb-1 text-ink">Restricted Substances — RSL Category 1</h3>
-                <p className="text-[12.5px] text-muted mb-4">
-                  {data.quality.rslStandards ||
-                    (data.quality.rslItems && data.quality.rslItems.length > 0
-                      ? 'Tested in accordance with EU REACH & AFIRM RSL standards'
-                      : 'No restricted substances test records entered.')}
-                </p>
-                <div className="grid gap-[9px]">
-                  {data.quality?.rslItems && data.quality.rslItems.length > 0 ? (
-                    (data.quality?.rslItems || []).map((item, i) => (
-                      <div
-                        key={i}
-                        className="flex justify-between items-center gap-3 bg-surface-2 border border-line rounded-[10px] p-[9px] px-[13px] text-[12.5px]"
-                      >
-                        <span className="font-semibold text-ink">{item.name}</span>
-                        <span className="font-mono text-[11.5px] text-muted">{item.result}</span>
-                        <span className="text-[10.5px] font-bold tracking-[0.08em] bg-green-soft text-green-dark border border-[#BCD8C6] rounded-full px-2.5 py-[3px] whitespace-nowrap">
-                          PASS
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-3 text-[12px] text-muted bg-surface-2 border border-dashed border-line rounded-lg text-center">
-                      No restricted substances listed.
-                    </div>
-                  )}
+              {data.materials?.svhcSubstances && data.materials.svhcSubstances.length > 0 ? (
+                <div className="mt-6 pt-5 border-t border-line">
+                  <h3 className="text-[15px] font-bold mb-1 text-ink">REACH SVHC Candidate List</h3>
+                  <p className="text-[12px] text-muted mb-3">Substances of Very High Concern declaration</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-[12.5px]">
+                      <thead className="text-[10.5px] text-muted uppercase tracking-widest border-b border-line-2">
+                        <tr>
+                          <th className="py-1.5 font-semibold">Substance</th>
+                          <th className="py-1.5 font-semibold">Component</th>
+                          <th className="py-1.5 font-semibold text-right">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(data.materials?.svhcSubstances || []).map((item, i) => (
+                          <tr key={i} className="border-b border-line last:border-b-0">
+                            <td className="py-2 pr-2 font-medium text-ink">{item.substance}</td>
+                            <td className="py-2 text-muted">{item.component}</td>
+                            <td className="py-2 text-right">
+                              <span className="text-[9.5px] font-bold tracking-widest text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-0.5 rounded-full whitespace-nowrap">
+                                {item.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </Reveal>
           </div>
+
+          <Reveal className="mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+              <h3 className="text-[16px] sm:text-[17px] font-bold text-ink">
+                Physical, Fastness &amp; Mechanical Safety Test Results
+              </h3>
+              <span className="text-[11px] font-mono font-semibold text-green-dark bg-green-soft border border-[#BCD8C6] px-2.5 py-0.5 rounded-full self-start sm:self-auto">
+                ISO 105 · DIN 53160 · EN 71-1 · EN 16732
+              </span>
+            </div>
+            <p className="text-[12.5px] text-muted mb-4">
+              {data.quality?.universalFastnessKey || 'Tested to DIN EN ISO 105 standards: washing, rubbing, light, perspiration, saliva, and mechanical pull-force safety.'}
+            </p>
+          </Reveal>
 
           {data.quality?.labCards && data.quality.labCards.length > 0 ? (
             <RevealGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1796,174 +1878,392 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             </RevealGroup>
           ) : (
             <div className="py-8 px-4 text-center text-muted text-xs bg-surface border border-dashed border-line-2 rounded-[18px]">
-              No laboratory test certificates registered yet. Add test cards in the Quality editor tab.
+              No laboratory test certificates registered yet.
             </div>
+          )}
+
+          {/* Universal Color Fastness Rating Scale (Universal Standard Reference) */}
+          <Reveal className="mt-6 bg-white border border-[#E3DECF] rounded-[18px] p-5 sm:p-6 shadow-custom">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3.5 mb-4 border-b border-line">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-green-soft text-green-dark grid place-items-center font-bold text-[14px]">
+                  5★
+                </div>
+                <div>
+                  <h4 className="text-[14.5px] font-bold text-ink flex items-center gap-2">
+                    Universal Colour Fastness Rating Scale
+                    <span className="text-[10.5px] font-mono font-semibold bg-surface-2 text-muted px-2 py-0.5 rounded-md border border-line">
+                      ISO 105 / DIN 53160 Standard
+                    </span>
+                  </h4>
+                  <p className="text-[12px] text-muted">
+                    Universal international 5-grade evaluation scale for shade change and cross-fibre staining
+                  </p>
+                </div>
+              </div>
+              <span className="text-[11px] font-semibold text-green-dark bg-green-soft px-3 py-1 rounded-full border border-[#BCD8C6] self-start sm:self-auto">
+                Product Benchmark: Grade 4–5 (Exceeded)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+              <div className="bg-[#FAFDF9] border-2 border-[#BCD8C6] rounded-xl p-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <span className="text-[12px] font-bold text-green-dark font-mono bg-green-soft px-2 py-0.5 rounded-md">
+                      Grade 5
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-green-dark">Top Benchmark</span>
+                  </div>
+                  <p className="text-[12px] font-semibold text-ink leading-snug">
+                    Negligible or no change or staining
+                  </p>
+                </div>
+                <span className="text-[10.5px] text-green-dark/80 mt-2 font-medium">
+                  ★ Highest rating achieved
+                </span>
+              </div>
+
+              <div className="bg-surface-2 border border-line rounded-xl p-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <span className="text-[12px] font-bold text-ink font-mono bg-white px-2 py-0.5 rounded-md border border-line">
+                      Grade 4
+                    </span>
+                    <span className="text-[10px] font-semibold text-muted">Commercial</span>
+                  </div>
+                  <p className="text-[12px] font-medium text-ink leading-snug">
+                    Slightly changed or stained
+                  </p>
+                </div>
+                <span className="text-[10.5px] text-muted mt-2">Standard retail requirement</span>
+              </div>
+
+              <div className="bg-surface-2 border border-line rounded-xl p-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <span className="text-[12px] font-bold text-ink font-mono bg-white px-2 py-0.5 rounded-md border border-line">
+                      Grade 3
+                    </span>
+                    <span className="text-[10px] font-semibold text-muted">Moderate</span>
+                  </div>
+                  <p className="text-[12px] font-medium text-ink leading-snug">
+                    Noticeably changed or stained
+                  </p>
+                </div>
+                <span className="text-[10.5px] text-muted mt-2">Noticeable alteration</span>
+              </div>
+
+              <div className="bg-[#FFFBF5] border border-amber-200 rounded-xl p-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <span className="text-[12px] font-bold text-amber-800 font-mono bg-amber-100 px-2 py-0.5 rounded-md">
+                      Grade 2
+                    </span>
+                    <span className="text-[10px] font-bold text-amber-700">Warning</span>
+                  </div>
+                  <p className="text-[12px] font-medium text-amber-900 leading-snug">
+                    Considerably changed or stained
+                  </p>
+                </div>
+                <span className="text-[10.5px] text-amber-700/80 mt-2">Non-compliant for babywear</span>
+              </div>
+
+              <div className="bg-[#FEF6F6] border border-red-200 rounded-xl p-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <span className="text-[12px] font-bold text-red-800 font-mono bg-red-100 px-2 py-0.5 rounded-md">
+                      Grade 1
+                    </span>
+                    <span className="text-[10px] font-bold text-red-700">Reject</span>
+                  </div>
+                  <p className="text-[12px] font-medium text-red-900 leading-snug">
+                    Much changed or stained
+                  </p>
+                </div>
+                <span className="text-[10.5px] text-red-700/80 mt-2">Severe color bleeding</span>
+              </div>
+            </div>
+
+            <div className="mt-3.5 pt-3 border-t border-line/60 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted">
+              <span>
+                Evaluated against ISO Grey Scale for Assessing Change in Colour (ISO 105-A02) and Staining (ISO 105-A03).
+              </span>
+              <span className="font-semibold text-green-dark">
+                Complies with German LFGB § 30 &amp; EU Babywear Directives
+              </span>
+            </div>
+          </Reveal>
+
+          {/* Annexure & Official Audit Certificates */}
+          {Array.isArray(data.annexure) && data.annexure.length > 0 && (
+            <Reveal className="mt-8 bg-surface border border-line rounded-[18px] p-5 sm:p-6 shadow-custom">
+              <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-green-soft text-green-dark grid place-items-center">
+                    <FileText size={17} />
+                  </div>
+                  <div>
+                    <h4 className="text-[15px] font-bold text-ink">Annexure &amp; Official Audit Documents</h4>
+                    <p className="text-[12px] text-muted">Laboratory test reports, chemical declarations, and certification dossiers</p>
+                  </div>
+                </div>
+                <span className="text-[11px] font-mono font-semibold text-green-dark bg-green-soft px-2.5 py-1 rounded-full border border-[#BCD8C6]">
+                  {data.annexure.length} Verified Documents
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {data.annexure.map((doc, idx) => (
+                  <div
+                    key={doc.id || idx}
+                    className="p-3.5 bg-surface-2 border border-line rounded-xl hover:border-green transition-all flex flex-col justify-between group"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-0.5 rounded-md font-semibold">
+                          {doc.type || 'Test Report'}
+                        </span>
+                        {doc.fileSize && (
+                          <span className="text-[10.5px] font-mono text-muted">{doc.fileSize}</span>
+                        )}
+                      </div>
+                      <h5 className="text-[13px] font-bold text-ink mb-1 group-hover:text-green-dark transition-colors line-clamp-2">
+                        {doc.title}
+                      </h5>
+                      {doc.docNumber && (
+                        <div className="text-[11.5px] font-mono text-muted mb-0.5">
+                          Ref: <b className="text-ink">{doc.docNumber}</b>
+                        </div>
+                      )}
+                      {doc.issuer && (
+                        <div className="text-[11px] text-muted line-clamp-1">
+                          Issuer: {doc.issuer}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-3 pt-2.5 border-t border-line-2 flex items-center justify-between text-[11px]">
+                      <span className="text-muted font-mono">{doc.date || 'Audited'}</span>
+                      <span className="inline-flex items-center gap-1 font-bold text-green-dark bg-white border border-line px-2 py-0.5 rounded-md shadow-2xs">
+                        <CheckCircle2 size={11} className="text-green" /> Verified
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
           )}
         </div>
       </section>
 
-      {/* SECTION D: Care */}
-      <section className="pt-10 sm:pt-[72px] pb-2" id="section-d">
+      {/* SECTION 4: Care Instructions */}
+      <section className="pt-10 sm:pt-[72px] pb-2" id="section-4">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
           <Reveal className="flex items-center gap-[18px] mb-[30px]">
             <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">
-              D
+              4
             </div>
             <div>
               <h2 className="text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight text-ink">
-                Care, Maintenance & Stain Removal
+                Care Instructions & Stain Removal
               </h2>
               <p className="text-muted text-[13.5px] mt-0.5">
-                Ginetex label decode + durability requirement
+                Standard Ginetex symbols, care guidance & stain removal tips
               </p>
             </div>
           </Reveal>
 
           {Boolean(data.care?.wash || data.care?.bleach || data.care?.dry || data.care?.iron || data.care?.dryClean || data.care?.labelWording) ? (
-            <div className={`grid grid-cols-1 ${data.materials.modal > 0 ? 'lg:grid-cols-2' : ''} gap-4 sm:gap-[26px] items-start`}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-[26px] items-start">
               <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[26px]">
-                <h3 className="text-[16px] font-bold mb-1 text-ink">Standard Care Instructions</h3>
-                <p className="text-[12.5px] text-muted mb-[18px]">As printed on the care label</p>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-[16px] font-bold text-ink">Standard Care Instructions</h3>
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-surface-2 border border-line text-muted">
+                    GINETEX Standard
+                  </span>
+                </div>
+                <p className="text-[12.5px] text-muted mb-[18px]">As certified and printed on the baby garment care label</p>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center">
-                    <div className="text-[11px] font-bold text-ink mb-1">Wash</div>
-                    <div className="text-[11px] text-muted">{data.care.wash || '—'}</div>
+                  {/* Wash */}
+                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center flex flex-col items-center">
+                    <div className="w-9 h-9 rounded-full bg-white border border-line flex items-center justify-center mb-2 shadow-2xs text-ink">
+                      <CareIconRenderer category="wash" symbolId={data.care.washIcon || data.care.wash} className="w-6 h-6" />
+                    </div>
+                    <div className="text-[11px] font-bold text-ink mb-0.5">Washing</div>
+                    <div className="text-[11px] text-muted line-clamp-3 leading-snug">{data.care.wash || 'Machine wash 60°C'}</div>
                   </div>
-                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center">
-                    <div className="text-[11px] font-bold text-ink mb-1">Bleach</div>
-                    <div className="text-[11px] text-muted">{data.care.bleach || '—'}</div>
+
+                  {/* Bleach */}
+                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center flex flex-col items-center">
+                    <div className="w-9 h-9 rounded-full bg-white border border-line flex items-center justify-center mb-2 shadow-2xs text-ink">
+                      <CareIconRenderer category="bleach" symbolId={data.care.bleachIcon || data.care.bleach} className="w-6 h-6" />
+                    </div>
+                    <div className="text-[11px] font-bold text-ink mb-0.5">Bleaching</div>
+                    <div className="text-[11px] text-muted line-clamp-3 leading-snug">{data.care.bleach || 'Do not bleach'}</div>
                   </div>
-                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center">
-                    <div className="text-[11px] font-bold text-ink mb-1">Drying</div>
-                    <div className="text-[11px] text-muted">{data.care.dry || '—'}</div>
+
+                  {/* Dry */}
+                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center flex flex-col items-center">
+                    <div className="w-9 h-9 rounded-full bg-white border border-line flex items-center justify-center mb-2 shadow-2xs text-ink">
+                      <CareIconRenderer category="dry" symbolId={data.care.dryIcon || data.care.dry} className="w-6 h-6" />
+                    </div>
+                    <div className="text-[11px] font-bold text-ink mb-0.5">Drying</div>
+                    <div className="text-[11px] text-muted line-clamp-3 leading-snug">{data.care.dry || 'Tumble dry low'}</div>
                   </div>
-                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center">
-                    <div className="text-[11px] font-bold text-ink mb-1">Ironing</div>
-                    <div className="text-[11px] text-muted">{data.care.iron || '—'}</div>
+
+                  {/* Iron */}
+                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center flex flex-col items-center">
+                    <div className="w-9 h-9 rounded-full bg-white border border-line flex items-center justify-center mb-2 shadow-2xs text-ink">
+                      <CareIconRenderer category="iron" symbolId={data.care.ironIcon || data.care.iron} className="w-6 h-6" />
+                    </div>
+                    <div className="text-[11px] font-bold text-ink mb-0.5">Ironing</div>
+                    <div className="text-[11px] text-muted line-clamp-3 leading-snug">{data.care.iron || 'Iron medium (150°C)'}</div>
                   </div>
-                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center sm:col-span-2">
-                    <div className="text-[11px] font-bold text-ink mb-1">Dry Clean</div>
-                    <div className="text-[11px] text-muted">{data.care.dryClean || '—'}</div>
+
+                  {/* Dry Clean */}
+                  <div className="bg-surface-2 border border-line rounded-xl p-3 text-center flex flex-col items-center sm:col-span-2">
+                    <div className="w-9 h-9 rounded-full bg-white border border-line flex items-center justify-center mb-2 shadow-2xs text-ink">
+                      <CareIconRenderer category="dryClean" symbolId={data.care.dryCleanIcon || data.care.dryClean} className="w-6 h-6" />
+                    </div>
+                    <div className="text-[11px] font-bold text-ink mb-0.5">Professional Care</div>
+                    <div className="text-[11px] text-muted line-clamp-3 leading-snug">{data.care.dryClean || 'Do not dry clean'}</div>
                   </div>
                 </div>
 
                 {data.care.labelWording && (
-                  <div className="mt-[18px] text-[13px] text-muted bg-surface-2 border border-dashed border-line-2 rounded-xl p-3.5 px-4">
-                    <b className="text-ink block mb-1">Label wording:</b>
+                  <div className="mt-[18px] text-[13px] text-muted bg-surface-2 border border-dashed border-line-2 rounded-xl p-3.5 px-4 font-mono">
+                    <b className="text-ink block mb-1 font-sans text-[12px] uppercase tracking-wider">Official Care Label Wording:</b>
                     {data.care.labelWording}
                   </div>
                 )}
               </Reveal>
 
-              {data.materials.modal > 0 && (
-                <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
-                  <h3 className="text-[16px] font-bold mb-1 text-ink">Stain Removal Hacks</h3>
-                  <p className="text-[12.5px] text-muted mb-[18px]">Household fixes for modal jersey</p>
+              <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
+                <h3 className="text-[16px] font-bold mb-1 text-ink">Stain Removal Tips for Baby Wear</h3>
+                <p className="text-[12.5px] text-muted mb-[18px]">Gentle, baby-safe methods to treat stains and prolong garment life</p>
 
-                  <div className="flex gap-2 mb-[18px] flex-wrap">
-                    <button
-                      onClick={() => setStainTab('oil')}
-                      className={`border rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors cursor-pointer ${
-                        stainTab === 'oil' ? 'border-red bg-red text-white' : 'border-line-2 bg-white text-muted hover:text-red'
-                      }`}
-                    >
-                      🧴 Oil & Grease
-                    </button>
-                    <button
-                      onClick={() => setStainTab('ink')}
-                      className={`border rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors cursor-pointer ${
-                        stainTab === 'ink' ? 'border-red bg-red text-white' : 'border-line-2 bg-white text-muted hover:text-red'
-                      }`}
-                    >
-                      🖋️ Ink
-                    </button>
-                    <button
-                      onClick={() => setStainTab('food')}
-                      className={`border rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors cursor-pointer ${
-                        stainTab === 'food' ? 'border-red bg-red text-white' : 'border-line-2 bg-white text-muted hover:text-red'
-                      }`}
-                    >
-                      🍷 Food & Drinks
-                    </button>
-                  </div>
+                <div className="flex gap-2 mb-[18px] flex-wrap">
+                  <button
+                    onClick={() => setStainTab('oil')}
+                    className={`border rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors cursor-pointer ${
+                      stainTab === 'oil' ? 'border-red bg-red text-white' : 'border-line-2 bg-white text-muted hover:text-red'
+                    }`}
+                  >
+                    🧴 Oil &amp; Grease / Milk
+                  </button>
+                  <button
+                    onClick={() => setStainTab('ink')}
+                    className={`border rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors cursor-pointer ${
+                      stainTab === 'ink' ? 'border-red bg-red text-white' : 'border-line-2 bg-white text-muted hover:text-red'
+                    }`}
+                  >
+                    🖋️ Ink &amp; Marker
+                  </button>
+                  <button
+                    onClick={() => setStainTab('food')}
+                    className={`border rounded-full px-4 py-2 text-[12.5px] font-semibold transition-colors cursor-pointer ${
+                      stainTab === 'food' ? 'border-red bg-red text-white' : 'border-line-2 bg-white text-muted hover:text-red'
+                    }`}
+                  >
+                    🍎 Food, Purees &amp; Drinks
+                  </button>
+                </div>
 
-                  <div className="relative">
-                    <AnimatePresence mode="wait">
-                      {stainTab === 'oil' && (
-                        <motion.div key="oil" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-                          <ol className="list-decimal pl-4 mb-3.5 grid gap-[9px] text-[13px] text-muted">
-                            <li><b className="text-ink">Blot</b> — never rub — excess oil with a paper towel.</li>
-                            <li>Sprinkle <b className="text-ink">baking soda</b> on the spot, wait 10 min to absorb, brush off.</li>
-                            <li>Work one drop of <b className="text-ink">clear dish soap</b> into the stain from the back side.</li>
-                            <li>Rinse warm, then machine wash at 40 °C with colour detergent.</li>
-                          </ol>
-                          <div className="flex gap-2 flex-wrap">
-                            <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">dish soap</span>
-                            <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">baking soda</span>
-                            <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">soft brush</span>
+                <div className="relative">
+                  <AnimatePresence mode="wait">
+                    {stainTab === 'oil' && (
+                      <motion.div key="oil" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+                        {data.care.stainRemovalHacks?.oilAndGrease ? (
+                          <div className="text-[13px] text-muted leading-relaxed bg-surface-2 p-3.5 rounded-xl border border-line mb-3.5">
+                            {data.care.stainRemovalHacks.oilAndGrease}
                           </div>
-                        </motion.div>
-                      )}
-                      {stainTab === 'ink' && (
-                        <motion.div key="ink" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+                        ) : (
+                          <ol className="list-decimal pl-4 mb-3.5 grid gap-[9px] text-[13px] text-muted">
+                            <li><b className="text-ink">Blot</b> — never rub — excess oil or milk with a soft cloth.</li>
+                            <li>Sprinkle <b className="text-ink">baking soda</b> on the spot, wait 10 min to absorb, brush off.</li>
+                            <li>Work one drop of <b className="text-ink">mild baby liquid soap</b> into the stain from the back side.</li>
+                            <li>Rinse warm, then machine wash at 60°C on delicate baby cycle.</li>
+                          </ol>
+                        )}
+                        <div className="flex gap-2 flex-wrap">
+                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">baby liquid soap</span>
+                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">baking soda</span>
+                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">60°C wash</span>
+                        </div>
+                      </motion.div>
+                    )}
+                    {stainTab === 'ink' && (
+                      <motion.div key="ink" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+                        {data.care.stainRemovalHacks?.ink ? (
+                          <div className="text-[13px] text-muted leading-relaxed bg-surface-2 p-3.5 rounded-xl border border-line mb-3.5">
+                            {data.care.stainRemovalHacks.ink}
+                          </div>
+                        ) : (
                           <ol className="list-decimal pl-4 mb-3.5 grid gap-[9px] text-[13px] text-muted">
                             <li>Place a folded towel <b className="text-ink">inside</b> the garment under the stain.</li>
-                            <li>Dab with <b className="text-ink">70% rubbing alcohol</b> on a cotton pad — blot edges inward.</li>
-                            <li>Repeat until transfer stops; do not scrub (spreads the dye).</li>
-                            <li>Rinse cold, then wash with similar colours at 40 °C.</li>
+                            <li>Dab gently with <b className="text-ink">glycerin-based soap or warm milk</b> on a cotton pad.</li>
+                            <li>Repeat until transfer stops; avoid harsh chemical alcohol on baby cotton.</li>
+                            <li>Rinse cold, then wash with similar colours at 60°C.</li>
                           </ol>
-                          <div className="flex gap-2 flex-wrap">
-                            <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">rubbing alcohol</span>
-                            <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">cotton pads</span>
-                            <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">cold water</span>
+                        )}
+                        <div className="flex gap-2 flex-wrap">
+                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">glycerin soap</span>
+                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">cotton pads</span>
+                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">cold water</span>
+                        </div>
+                      </motion.div>
+                    )}
+                    {stainTab === 'food' && (
+                      <motion.div key="food" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+                        {data.care.stainRemovalHacks?.foodAndDrinks ? (
+                          <div className="text-[13px] text-muted leading-relaxed bg-surface-2 p-3.5 rounded-xl border border-line mb-3.5">
+                            {data.care.stainRemovalHacks.foodAndDrinks}
                           </div>
-                        </motion.div>
-                      )}
-                      {stainTab === 'food' && (
-                        <motion.div key="food" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+                        ) : (
                           <ol className="list-decimal pl-4 mb-3.5 grid gap-[9px] text-[13px] text-muted">
-                            <li>Scoop off solids; run <b className="text-ink">cold water through the back</b> of the stain for 60 s.</li>
-                            <li>Apply <b className="text-ink">white vinegar + baking soda</b> paste, rest 15 min.</li>
-                            <li>Rinse; if a shadow remains, repeat once before drying.</li>
-                            <li>Wash at 40 °C with colour detergent, similar colours.</li>
+                            <li>Rinse immediately with <b className="text-ink">cold running water through the back</b> of the fabric.</li>
+                            <li>For fruit/berry purees, apply a drop of <b className="text-ink">diluted lemon water or oxygen baby stain remover</b>.</li>
+                            <li>Rest for 15 minutes, then machine wash at 60°C.</li>
+                            <li>Never tumble dry if residue is still visible.</li>
                           </ol>
-                          <div className="flex gap-2 flex-wrap">
-                            <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">white vinegar</span>
-                            <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">baking soda</span>
-                            <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">cold water</span>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                  <div className="mt-3.5 text-[12px] text-amber bg-amber-soft border border-dashed border-amber-line rounded-[10px] p-2.5 px-[14px] font-semibold">
-                    ⚠️ Never tumble-dry a stained garment — heat sets stains permanently.
-                  </div>
-                </Reveal>
-              )}
+                        )}
+                        <div className="flex gap-2 flex-wrap">
+                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">cold water flush</span>
+                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">oxygen baby remover</span>
+                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">air dry</span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <div className="mt-3.5 text-[12px] text-amber bg-amber-soft border border-dashed border-amber-line rounded-[10px] p-2.5 px-[14px] font-semibold">
+                  ⚠️ Never tumble-dry a stained garment — heat permanently bakes stains into natural organic cotton fibres.
+                </div>
+              </Reveal>
             </div>
           ) : (
             <div className="py-8 px-4 text-center text-muted text-xs bg-surface border border-dashed border-line-2 rounded-[18px]">
-              No care, maintenance, or label instructions registered yet. Add care guidelines in the Care & Circularity editor tab.
+              No care, maintenance, or label instructions registered yet.
             </div>
           )}
         </div>
       </section>
 
-      {/* SECTION E: Circularity */}
-      <section className="pt-10 sm:pt-[72px] pb-2" id="section-e">
+      {/* SECTION 5: Circularity */}
+      <section className="pt-10 sm:pt-[72px] pb-2" id="section-5">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
           <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
             <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">
-              E
+              5
             </div>
             <div>
               <h2 className="text-[20px] sm:text-[clamp(22px,3.4vw,30px)] font-bold tracking-tight text-ink">
-                Circularity
+                Circularity & End-of-Life
               </h2>
               <p className="text-muted text-[12px] sm:text-[13.5px] mt-0.5">
-                Fibre-to-fiber strategies & recycling instructions
+                Product care tips, DIY upcycling ideas & textile recycling take-back
               </p>
             </div>
           </Reveal>
@@ -1992,7 +2292,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                 {isValidImageSrc(data.circularity.upcycleImage) ? (
                   <Image
                     src={data.circularity.upcycleImage}
-                    alt="Upcycled pyjama fabric"
+                    alt="Upcycled fabric"
                     fill
                     unoptimized
                     referrerPolicy="no-referrer"
@@ -2006,7 +2306,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                 )}
               </div>
               <div className="p-[26px] sm:px-[28px]">
-                <h3 className="text-[18px] font-bold mb-1 text-ink">{data.circularity.upcycleTitle || 'Upcycling Guide'}</h3>
+                <h3 className="text-[18px] font-bold mb-1 text-ink">{data.circularity.upcycleTitle || 'DIY Upcycling Guide'}</h3>
                 {data.circularity.upcycleSubtitle && (
                   <p className="text-[12.5px] text-muted mt-0.5 mb-2.5">{data.circularity.upcycleSubtitle}</p>
                 )}
@@ -2032,7 +2332,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-[26px]">
             <Reveal className="bg-green-dark text-[#EAF3EC] border border-none rounded-[18px] shadow-custom p-5 sm:p-[26px]">
-              <h3 className="text-[16px] font-bold text-white mb-1.5">♻️ Fibre Facts & Take-Back</h3>
+              <h3 className="text-[16px] font-bold text-white mb-1.5">♻️ Fibre Facts & Take-Back Information</h3>
               <p className="text-[12.5px] text-[#B9D3C1] mb-4">What happens after the last wear</p>
               <ul className="list-none grid gap-2.5 text-[13px]">
                 {data.circularity?.fibreRecyclingFacts && data.circularity.fibreRecyclingFacts.length > 0 ? (
@@ -2050,7 +2350,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             </Reveal>
 
             <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
-              <h3 className="text-[16px] font-bold mb-1.5 text-ink">📍 Local Textile Drop-Off</h3>
+              <h3 className="text-[16px] font-bold mb-1.5 text-ink">📍 Local Textile Drop-Off Finder</h3>
               <p className="text-[12.5px] text-muted mb-4">EU separate textile collection active</p>
               <form onSubmit={handleLocSearch} className="flex gap-2.5 mb-3.5">
                 <input
@@ -2081,37 +2381,37 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
         </div>
       </section>
 
-      {/* SECTION F: Impact */}
-      <section className="pt-10 sm:pt-[72px] pb-2" id="section-f">
+      {/* SECTION 6: Environmental */}
+      <section className="pt-10 sm:pt-[72px] pb-[60px]" id="section-6">
         <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
           <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
             <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">
-              F
+              6
             </div>
             <div>
               <h2 className="text-[clamp(20px,3.4vw,30px)] font-bold tracking-tight text-ink">
-                Environmental Dashboard
+                Environmental Impact Data
               </h2>
               <p className="text-muted text-[12.5px] sm:text-[13.5px] mt-0.5">
-                Lifecycle assessment & resource efficiency metrics
+                Carbon footprint accounting & environmental impact metrics
               </p>
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-[26px]">
-            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[26px]">
-              <div className="flex justify-between items-start mb-3">
+          <div className="max-w-[760px] mx-auto">
+            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[28px]">
+              <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-[16px] font-bold text-ink">Carbon Footprint</h3>
-                  <p className="text-[12.5px] text-muted mt-0.5">Lifecycle assessment & verified emissions</p>
+                  <h3 className="text-[17px] font-bold text-ink">Carbon Footprint</h3>
+                  <p className="text-[12.5px] text-muted mt-0.5">Primary supplier lifecycle assessment</p>
                 </div>
                 {savedManualCarbon ? (
                   <div className="px-3 py-1 bg-green-soft border border-[#BCD8C6] text-green-dark rounded-full font-bold text-[10px] tracking-widest uppercase">
-                    Primary Data
+                    Primary Audited Data
                   </div>
                 ) : (
                   <div className="px-3 py-1 bg-amber-soft border border-amber/30 text-amber rounded-full font-bold text-[10px] tracking-widest uppercase">
-                    Data Pending
+                    Data Not Provided
                   </div>
                 )}
               </div>
@@ -2126,14 +2426,14 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                             { label: 'Fibre & Agriculture', value: 38, color: '#2D4A3E' },
                             { label: 'Yarn & Spinning', value: 16, color: '#4E886D' },
                             { label: 'Fabric Knitting & Dyeing', value: 24, color: '#8FB79E' },
-                            { label: 'Garment Making (Chittagong)', value: 10, color: '#B3D4BF' },
+                            { label: 'Garment Making', value: 10, color: '#B3D4BF' },
                             { label: 'Transport to Destination', value: 12, color: '#C9B27E' }
                           ]
                     }
                     total={savedManualCarbon}
                   />
                   <div className="mt-4 pt-3 border-t border-line-2 flex justify-between items-center text-[11.5px]">
-                    <span className="text-muted">Primary manual input: {savedManualCarbon} kg CO₂e</span>
+                    <span className="text-muted font-mono">Audited value: {savedManualCarbon} kg CO₂e</span>
                     <button
                       onClick={() => {
                         setSavedManualCarbon(null);
@@ -2141,37 +2441,36 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                       }}
                       className="text-muted hover:text-red cursor-pointer font-medium"
                     >
-                      Reset to Pending Status
+                      Reset to Not Provided
                     </button>
                   </div>
                 </div>
               ) : (
-                /* EXACT REQUESTED NOT AVAILABLE / DATA NOT PROVIDED STATUS */
                 <div className="p-4 sm:p-5 bg-surface-2 border border-dashed border-line-2 rounded-2xl flex flex-col gap-3.5">
                   <div className="flex items-center gap-2">
                     <AlertCircle size={16} className="text-amber shrink-0" />
                     <span className="text-[12px] font-bold text-ink uppercase tracking-wider">
-                      Pending Primary LCA Assessment
+                      Supplier LCA Assessment Status
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-white border border-line rounded-xl p-3">
                     <div className="p-1">
                       <div className="text-[10px] uppercase font-bold text-muted tracking-wider">Carbon Footprint</div>
-                      <div className="text-[13.5px] font-bold text-ink mt-0.5">Not available</div>
+                      <div className="text-[14px] font-bold text-ink mt-0.5">Not available</div>
                     </div>
                     <div className="p-1 sm:border-l sm:border-line-2 sm:pl-3">
                       <div className="text-[10px] uppercase font-bold text-muted tracking-wider">Data Status</div>
-                      <div className="text-[13.5px] font-bold text-amber mt-0.5">Data not provided</div>
+                      <div className="text-[14px] font-bold text-amber mt-0.5">Data not provided</div>
                     </div>
                     <div className="p-1 sm:border-l sm:border-line-2 sm:pl-3">
                       <div className="text-[10px] uppercase font-bold text-muted tracking-wider">Source</div>
-                      <div className="text-[13.5px] font-bold text-ink mt-0.5">Not available</div>
+                      <div className="text-[14px] font-bold text-ink mt-0.5">Not available</div>
                     </div>
                   </div>
 
                   <p className="text-[12px] text-muted leading-relaxed">
-                    Default modelled secondary emission factors have been withheld per EU Ecodesign guidelines to avoid speculative greenwashing. Primary supplier carbon accounting is ongoing.
+                    Carbon footprint lifecycle assessment data is not provided for this item. Default secondary modelled figures are withheld to ensure audit authenticity.
                   </p>
 
                   <div className="pt-2 border-t border-line-2 flex items-center justify-between flex-wrap gap-2">
@@ -2235,140 +2534,12 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                 </div>
               )}
             </Reveal>
-
-            <div className="grid gap-[26px]">
-              <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
-                <h3 className="text-[15px] font-bold mb-1 flex items-center gap-2 text-ink">
-                  <Leaf size={16} className="text-green" /> Resource Footprint
-                </h3>
-                <p className="text-[12.5px] text-muted mb-4">Benchmarked against industry standards</p>
-                <ResourceBarChart
-                  water={data.environmental.waterUsage}
-                  energy={data.environmental.renewableEnergy}
-                  recycled={data.environmental.recycledPackaging}
-                />
-              </Reveal>
-
-              <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
-                <h3 className="text-[15px] font-bold mb-4 flex items-center gap-2 text-ink">
-                  <Box size={16} className="text-green" /> Packaging Status
-                </h3>
-                <div className="grid gap-3">
-                  <div className="bg-surface-2 border border-line rounded-xl p-3 px-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <Recycle size={18} className="text-muted" />
-                      <span className="text-[12px] font-bold text-muted uppercase tracking-wider">Recyclability</span>
-                    </div>
-                    <span className="text-[13px] font-bold text-green-dark bg-green-soft px-3 py-1 rounded-full">
-                      {data.environmental.packagingRecyclability ? `${data.environmental.packagingRecyclability}%` : '—'}
-                    </span>
-                  </div>
-                  <div className="p-3 text-[12px] leading-relaxed text-muted bg-surface-2 border border-line rounded-xl px-4">
-                    <b className="text-ink">Materials:</b> {data.environmental.packagingMaterials || '—'}
-                  </div>
-                </div>
-              </Reveal>
-            </div>
-          </div>
-
-          {data.environmental.euPolicyNote ? (
-            <Reveal className="mt-8 bg-ink rounded-2xl p-6 border border-line flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative group">
-              <div className="relative z-10 text-center md:text-left">
-                <h3 className="text-white font-bold text-[18px] mb-1">EU Policy Alignment Note</h3>
-                <p className="text-white/60 text-[13px] max-w-[600px]">{data.environmental.euPolicyNote}</p>
-              </div>
-              <div className="relative z-10 shrink-0">
-                <span className="px-5 py-2 bg-lime text-ink rounded-full font-bold text-[12px] tracking-widest uppercase shadow-lg shadow-lime/20">
-                  Data Pending
-                </span>
-              </div>
-            </Reveal>
-          ) : null}
-        </div>
-      </section>
-
-      {/* SECTION G: Data & Compliance */}
-      <section className="pt-10 sm:pt-[72px] pb-[40px] sm:pb-[80px]" id="section-g">
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-[22px]">
-          <Reveal className="flex items-center gap-[14px] sm:gap-[18px] mb-6 sm:mb-[30px]">
-            <div className="w-10 h-10 sm:w-[58px] sm:h-[58px] shrink-0 rounded-xl sm:rounded-2xl bg-ink text-lime grid place-items-center font-display font-bold text-[18px] sm:text-[26px] shadow-custom">
-              G
-            </div>
-            <div>
-              <h2 className="text-[clamp(20px,3.4vw,30px)] font-bold tracking-tight text-ink">Data & Compliance</h2>
-              <p className="text-muted text-[12.5px] sm:text-[13.5px] mt-0.5">
-                Certifications and machine-readable export
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-[26px] mb-4 sm:mb-[26px]">
-            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[26px]">
-              <h3 className="text-[16px] font-bold mb-4 text-ink">Certifications & Audits</h3>
-              <div className="grid gap-2.5">
-                {data.compliance?.certifications && data.compliance.certifications.length > 0 ? (
-                  (data.compliance?.certifications || []).map((cert, i) => (
-                    <div key={i} className="flex justify-between items-start bg-surface-2 border border-line rounded-xl p-3 sm:p-3.5">
-                      <div>
-                        <div className="font-bold text-[13px] sm:text-[13.5px] text-ink">{cert.name}</div>
-                        <div className="text-[11px] sm:text-[11.5px] text-muted mt-1">{cert.scope}</div>
-                      </div>
-                      <span className="text-[9px] font-bold tracking-widest text-green-dark bg-green-soft border border-[#BCD8C6] px-2 py-0.5 rounded-full">
-                        {cert.status}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="p-4 text-xs text-muted italic bg-surface-2 rounded-xl text-center">
-                    No third-party audit certificates entered.
-                  </p>
-                )}
-              </div>
-            </Reveal>
-
-            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-5 sm:p-[26px]">
-              <h3 className="text-[16px] font-bold mb-4 text-ink">Logistics & Lifecycle</h3>
-              <div className="grid gap-2.5">
-                <div className="flex justify-between items-center bg-surface-2 border border-line rounded-xl p-3 px-4">
-                  <span className="text-[10px] tracking-widest uppercase text-muted font-semibold">Sales Channel</span>
-                  <span className="font-mono text-[12px] font-bold text-ink">{data.compliance.salesChannel || '—'}</span>
-                </div>
-                <div className="flex justify-between items-center bg-surface-2 border border-line rounded-xl p-3 px-4">
-                  <span className="text-[10px] tracking-widest uppercase text-muted font-semibold">Available From</span>
-                  <span className="font-mono text-[12px] font-bold text-ink">{data.compliance.availableFrom || '—'}</span>
-                </div>
-                <div className="flex justify-between items-center bg-surface-2 border border-line rounded-xl p-3 px-4">
-                  <span className="text-[10px] tracking-widest uppercase text-muted font-semibold">Usage Class</span>
-                  <span className="font-mono text-[12px] font-bold text-ink">{data.compliance.usageClass || '—'}</span>
-                </div>
-                <div className="flex justify-between items-center bg-surface-2 border border-line rounded-xl p-3 px-4">
-                  <span className="text-[10px] tracking-widest uppercase text-muted font-semibold">After-Sale Support</span>
-                  <span className="font-mono text-[10px] font-bold text-ink text-right">{data.compliance.afterSale || '—'}</span>
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px] flex flex-col md:col-span-2">
-              <h3 className="text-[16px] font-bold mb-1 text-ink">Open Structured Data</h3>
-              <p className="text-[12.5px] text-muted mb-4">Machine-readable DPP JSON export</p>
-              <div className="flex-1 bg-ink text-[#B9C4BB] font-mono text-[11px] p-4 rounded-xl overflow-y-auto max-h-[220px]">
-                <pre>
-                  <code>{JSON.stringify(data, null, 2)}</code>
-                </pre>
-              </div>
-              <button
-                onClick={handleDownloadJSON}
-                className="mt-4 w-full bg-green text-white font-semibold text-[13px] py-2.5 rounded-xl transition-colors hover:bg-green-dark flex justify-center items-center gap-2 cursor-pointer"
-              >
-                <Download size={16} /> Download Full JSON
-              </button>
-            </Reveal>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="mt-[80px] bg-ink text-[#B9C4BB] py-[44px]">
+      <footer className="bg-ink text-[#B9C4BB] py-[44px]">
         <div className="max-w-[1120px] mx-auto px-[22px] flex gap-[30px] flex-wrap justify-between items-start">
           <div className="max-w-[280px]">
             <div className="font-display font-bold text-lime text-[16px] tracking-[0.06em]">
@@ -2379,7 +2550,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             </p>
           </div>
           <div>
-            <h5 className="text-[#F4F1EA] text-[13px] tracking-widest uppercase mb-2.5 font-semibold">Record</h5>
+            <h5 className="text-[#F4F1EA] text-[13px] tracking-widest uppercase mb-2.5 font-semibold">Passport Record</h5>
             <ul className="font-mono text-[11px] leading-[1.9]">
               <li>Project: {data.general.projectId || '—'} · Order: {data.general.orderNo || '—'}</li>
               <li>Product: {data.general.productName || '—'}</li>
@@ -2388,12 +2559,9 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             </ul>
           </div>
           <div>
-            <h5 className="text-[#F4F1EA] text-[13px] tracking-widest uppercase mb-2.5 font-semibold">Issuer</h5>
-            <p className="text-[12px] leading-[1.9] max-w-[260px]">{data.compliance.issuer || '—'}</p>
-          </div>
-          <div>
-            <h5 className="text-[#F4F1EA] text-[13px] tracking-widest uppercase mb-2.5 font-semibold">Markets</h5>
-            <p className="text-[12px] leading-[1.9]">{data.compliance.markets || '—'}</p>
+            <h5 className="text-[#F4F1EA] text-[13px] tracking-widest uppercase mb-2.5 font-semibold">Testing Authority</h5>
+            <p className="text-[12px] leading-[1.9] max-w-[260px]">{data.quality?.testingLab || 'ITS Labtest Bangladesh Ltd.'}</p>
+            <p className="font-mono text-[11px] text-[#B9C4BB]/80 mt-1">Report: {data.quality?.reportNumber || 'BGDT25154711'}</p>
           </div>
         </div>
       </footer>

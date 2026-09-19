@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isMongoConfigured, getMongoDb, withMongoDb } from '@/lib/mongodb';
-import { DEFAULT_CATALOG, PassportData, normalizePassportData } from '@/lib/passport-data';
-import { getInMemoryPassports, saveInMemoryPassport } from '@/lib/in-memory-db';
+import { PassportData, normalizePassportData } from '@/lib/passport-data';
+import { getInMemoryPassports, saveInMemoryPassport, clearInMemoryPassports } from '@/lib/in-memory-db';
 
 export async function GET() {
   try {
@@ -11,40 +11,26 @@ export async function GET() {
         success: true,
         source: 'in_memory',
         connected: false,
-        passports: inMemory.length > 0 ? inMemory : DEFAULT_CATALOG,
+        passports: inMemory,
         message: 'Running with in-memory store. Set MONGODB_URI in Settings to connect MongoDB.',
       });
     }
 
-    const { passports, seeded } = await withMongoDb(async (db) => {
+    const { passports } = await withMongoDb(async (db) => {
       const collection = db.collection<PassportData>('passports');
-
-      const count = await collection.countDocuments();
-      if (count === 0) {
-        // Seed default catalog to MongoDB
-        const docsToInsert = DEFAULT_CATALOG.map((item) => ({
-          ...item,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }));
-        await collection.insertMany(docsToInsert as any[]);
-        return { passports: DEFAULT_CATALOG, seeded: true };
-      }
-
       const docs = await collection.find({}).sort({ updatedAt: -1 }).toArray();
       const list = docs.map((doc) => {
         const { _id, ...rest } = doc as any;
         return normalizePassportData(rest);
       });
 
-      return { passports: list, seeded: false };
+      return { passports: list };
     });
 
     return NextResponse.json({
       success: true,
       source: 'mongodb',
       connected: true,
-      seeded,
       passports,
     });
   } catch (error: any) {
@@ -56,9 +42,50 @@ export async function GET() {
         source: 'in_memory_fallback',
         connected: false,
         error: error?.message || 'Failed to query MongoDB',
-        passports: inMemory.length > 0 ? inMemory : DEFAULT_CATALOG,
+        passports: inMemory,
       },
-      { status: 200 } // Return 200 with fallback so client doesn't crash
+      { status: 200 }
+    );
+  }
+}
+
+export async function DELETE() {
+  try {
+    clearInMemoryPassports();
+
+    if (!isMongoConfigured()) {
+      return NextResponse.json({
+        success: true,
+        source: 'in_memory',
+        message: 'All passports cleared from in-memory store.',
+      });
+    }
+
+    try {
+      const result = await withMongoDb(async (db) => {
+        const collection = db.collection('passports');
+        return await collection.deleteMany({});
+      });
+
+      return NextResponse.json({
+        success: true,
+        source: 'mongodb',
+        deletedCount: result.deletedCount,
+        message: 'All passports cleared from database.',
+      });
+    } catch (dbErr: any) {
+      console.warn('MongoDB DELETE ALL error:', dbErr);
+      return NextResponse.json({
+        success: true,
+        source: 'in_memory_fallback',
+        message: 'Cleared from in-memory store (MongoDB unreachable).',
+      });
+    }
+  } catch (error: any) {
+    console.error('Passports DELETE ALL error:', error);
+    return NextResponse.json(
+      { error: error?.message || 'Failed to delete passports' },
+      { status: 500 }
     );
   }
 }

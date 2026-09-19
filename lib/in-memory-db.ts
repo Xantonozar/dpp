@@ -1,4 +1,4 @@
-import { DEFAULT_CATALOG, PassportData, normalizePassportData } from './passport-data';
+import { PassportData, normalizePassportData, DEFAULT_PASSPORT_DATA, BABY_WEAR_PASSPORT_PRESET } from './passport-data';
 
 // Server-side in-memory store for AI Studio container environment
 declare global {
@@ -6,8 +6,11 @@ declare global {
 }
 
 function initStore(): PassportData[] {
-  if (!global._inMemoryPassports) {
-    global._inMemoryPassports = DEFAULT_CATALOG.map((p) => normalizePassportData(p));
+  if (!global._inMemoryPassports || global._inMemoryPassports.length === 0) {
+    global._inMemoryPassports = [
+      normalizePassportData(DEFAULT_PASSPORT_DATA),
+      normalizePassportData(BABY_WEAR_PASSPORT_PRESET)
+    ];
   }
   return global._inMemoryPassports;
 }
@@ -43,7 +46,12 @@ export function deleteInMemoryPassport(id: string): boolean {
   return global._inMemoryPassports.length < initialLength;
 }
 
+export function clearInMemoryPassports(): boolean {
+  global._inMemoryPassports = [];
+  return true;
+}
+
 export function resetInMemoryPassports(): PassportData[] {
-  global._inMemoryPassports = DEFAULT_CATALOG.map((p) => normalizePassportData(p));
+  global._inMemoryPassports = [];
   return [...global._inMemoryPassports];
 }

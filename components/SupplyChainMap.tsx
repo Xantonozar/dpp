@@ -205,7 +205,7 @@ export default function SupplyChainMap({
         <div>
           <div className="flex items-center gap-2 text-lime text-[10.5px] sm:text-[11px] font-bold tracking-[0.12em] uppercase mb-1">
             <Globe size={13} className="animate-spin text-lime shrink-0" style={{ animationDuration: '12s' }} />
-            <span className="truncate">Supply Chain & Maritime Journey</span>
+            <span className="truncate">Supply Chain Traceability</span>
           </div>
           <h3 className="text-[17px] sm:text-[22px] font-bold text-white tracking-tight flex items-center flex-wrap gap-2 sm:gap-2.5">
             <span>Bangladesh 🇧🇩</span>
@@ -213,7 +213,7 @@ export default function SupplyChainMap({
             <span className="text-lime">{destination.city}, {destination.country}</span>
           </h3>
           <p className="text-[11.5px] sm:text-[12.5px] text-[#8EAA97] mt-0.5">
-            Traceability route from manufacturing in Bangladesh to European retail distribution
+            Supply chain route from factory origin to destination market
           </p>
         </div>
 
@@ -305,12 +305,6 @@ export default function SupplyChainMap({
             className="animate-pulse"
           />
 
-          {/* Animated Vessel Icon on Midpoint of Journey */}
-          <g transform={`translate(${(originCoord.x + destCoord.x) / 2 - 12}, ${(originCoord.y + destCoord.y) / 2 + 15})`}>
-            <circle cx="12" cy="12" r="14" fill="#121A16" stroke="#8CE85D" strokeWidth="1.5" />
-            <Ship x="4" y="4" width="16" height="16" className="text-lime" />
-          </g>
-
           {/* Origin: Bangladesh (Dhaka/Chittagong) */}
           <g transform={`translate(${originCoord.x}, ${originCoord.y})`} filter="url(#glow)">
             {/* Pulse rings */}
@@ -343,7 +337,7 @@ export default function SupplyChainMap({
             <div className="text-[10px] font-bold text-lime flex items-center justify-center gap-1">
               <span>🇧🇩 ORIGIN</span>
             </div>
-            <div className="text-[11px] font-semibold text-white">Chittagong / Savar, BD</div>
+            <div className="text-[11px] font-semibold text-white">Bangladesh</div>
             <div className="text-[9.5px] text-[#A0B8A8]">{origin.facility}</div>
           </div>
         </div>
@@ -361,7 +355,7 @@ export default function SupplyChainMap({
               <span>📍 DESTINATION</span>
             </div>
             <div className="text-[11px] font-semibold text-white">{destination.city}, {destination.country}</div>
-            <div className="text-[9.5px] text-[#A0B8A8]">{destination.transportMode || 'Maritime Logistics'}</div>
+            <div className="text-[9.5px] text-[#A0B8A8]">Shipment Market</div>
           </div>
         </div>
 
@@ -369,16 +363,11 @@ export default function SupplyChainMap({
         <div className="absolute bottom-3 left-3 right-3 sm:right-auto z-10 flex flex-wrap gap-2">
           <div className="bg-[#121A16]/90 border border-[#203328] backdrop-blur-md rounded-xl px-3.5 py-2 flex items-center gap-3 text-[11.5px]">
             <div className="flex items-center gap-1.5 text-lime font-mono font-bold">
-              <Ship size={14} />
-              <span>~{distanceKm.toLocaleString()} KM</span>
+              <span>Origin: {origin.country}</span>
             </div>
             <span className="text-[#364F3E]">|</span>
             <div className="text-[#8EAA97]">
-              Transit: <strong className="text-white">~28 Days Sea Freight</strong>
-            </div>
-            <span className="text-[#364F3E] hidden sm:inline">|</span>
-            <div className="text-[#8EAA97] hidden sm:block">
-              Origin Port: <strong className="text-white">Port of Chittagong (BD)</strong>
+              Destination: <strong className="text-white">{destination.city}, {destination.country}</strong>
             </div>
           </div>
         </div>
@@ -390,7 +379,7 @@ export default function SupplyChainMap({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
             <div className="text-[12.5px] font-semibold text-white flex items-center gap-2">
               <MapPin size={15} className="text-lime" />
-              <span>Manually Change Destination (BD ➔ Your Location):</span>
+              <span>Destination Market (Shipment address / location):</span>
             </div>
             {searchFeedback && (
               <span className="text-[11.5px] text-lime font-medium bg-[#1C2C23] px-2.5 py-1 rounded-full border border-lime/30">
@@ -413,7 +402,7 @@ export default function SupplyChainMap({
                 type="text"
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
-                placeholder="Type city or country (e.g. Hamburg, Paris, London)..."
+                placeholder="Type destination city or country (e.g. Hamburg, Berlin, Paris)..."
                 className="w-full bg-[#0E1512] border border-[#273F31] rounded-xl py-2.5 pl-10 pr-3.5 text-[12.5px] sm:text-[13px] text-white placeholder-[#587262] outline-none focus:border-lime focus:ring-1 focus:ring-lime transition-all"
               />
             </div>
@@ -422,13 +411,13 @@ export default function SupplyChainMap({
               className="bg-lime text-[#121A16] hover:bg-lime/90 font-bold text-[12px] sm:text-[12.5px] px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-md flex items-center justify-center gap-1.5 shrink-0"
             >
               <Navigation size={14} />
-              <span>Update Route</span>
+              <span>Update Destination</span>
             </button>
           </form>
 
           {/* Quick Click Chips */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] text-[#718F7B] font-medium">Popular destinations:</span>
+            <span className="text-[11px] text-[#718F7B] font-medium">Quick markets:</span>
             {quickPresets.map((preset, idx) => (
               <button
                 key={idx}
@@ -447,41 +436,41 @@ export default function SupplyChainMap({
         </div>
       )}
 
-      {/* 4 Tiers Grid Overview directly under the Map */}
+      {/* 4 Traceability Blocks directly matching PDF requirements */}
       <div className="p-4 sm:p-5 bg-[#101713] border-t border-[#203328] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Tier 3 */}
+        {/* Tier 1 */}
         <div className="p-3.5 rounded-xl bg-[#15201A] border border-[#203328]">
-          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Tier 3 · Fibre & Yarn</div>
-          <div className="text-[13px] font-bold text-white mb-0.5">Yarn Sourcing</div>
+          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Tier 1 · Garment Assembly</div>
+          <div className="text-[13px] font-bold text-white mb-0.5">Fakir Fashion Ltd.</div>
           <p className="text-[11.5px] text-[#8EAA97] leading-relaxed">
-            Cotton made in Africa, Birla Viscose (India), creora® elastane (Hyosung).
+            Gazipur, Dhaka, Bangladesh. Garment assembly, cutting &amp; sewing.
           </p>
         </div>
 
         {/* Tier 2 */}
         <div className="p-3.5 rounded-xl bg-[#15201A] border border-[#203328]">
-          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Tier 2 · Fabric Mill</div>
-          <div className="text-[13px] font-bold text-white mb-0.5">Knitting & Dyeing</div>
+          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Tier 2 · Fabric Manufacturing</div>
+          <div className="text-[13px] font-bold text-white mb-0.5">Fakir Knitwear &amp; Processing</div>
           <p className="text-[11.5px] text-[#8EAA97] leading-relaxed">
-            AKH Knitting & Dyeing Ltd., Narayanganj, Bangladesh. 180 g/m² single jersey.
+            *Knitting *Dyeing / Printing *Finishing. Narayanganj, Bangladesh.
           </p>
         </div>
 
-        {/* Tier 1 */}
+        {/* Tier 3 */}
         <div className="p-3.5 rounded-xl bg-[#15201A] border border-[#203328]">
-          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Tier 1 · Assembly</div>
-          <div className="text-[13px] font-bold text-white mb-0.5">Garment Assembly (CMT)</div>
+          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Tier 3 · Fiber / Yarn</div>
+          <div className="text-[13px] font-bold text-white mb-0.5">Square Spinning Mills Ltd.</div>
           <p className="text-[11.5px] text-[#8EAA97] leading-relaxed">
-            AKH Knitting & Dyeing Ltd., Savar, Dhaka, Bangladesh. Cut, Make & Trim.
+            Hobiganj, Bangladesh. Ring spun organic cotton yarn spinning.
           </p>
         </div>
 
-        {/* Quality Lab */}
+        {/* Testing Facility */}
         <div className="p-3.5 rounded-xl bg-[#15201A] border border-lime/30 bg-gradient-to-br from-[#15201A] to-[#1C2C23]">
-          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Testing Authority</div>
+          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Testing Facility</div>
           <div className="text-[13px] font-bold text-white mb-0.5">{testingLabName}</div>
           <p className="text-[11.5px] text-[#8EAA97] leading-relaxed">
-            Report <strong>#{testingReportNo}</strong> · Overall Result: <strong className="text-lime">PASS</strong>.
+            Location: Dhaka, Bangladesh · Report <strong>#{testingReportNo}</strong> (PASS)
           </p>
         </div>
       </div>
