@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import type { PassportData } from '@/lib/passport-data';
-import { EXTRACTED_TCHIBO_PASSPORT } from '@/lib/sample-extracted-data';
+import { EXTRACTED_TCHIBO_PASSPORT, EXTRACTED_BABY_SLEEPSUIT_PASSPORT } from '@/lib/sample-extracted-data';
 import { extractPdfClientSide, type ExtractedPdfDocument } from '@/lib/pdf-extractor';
 import {
   Sparkles,
@@ -262,21 +262,27 @@ export default function PdfAutoFillModal({
       }
 
       setLoadingStep(
-        `Sending synthesized text (${totalExtractedChars.toLocaleString()} chars across ${totalPages} pages, ~${(
-          JSON.stringify(extractedDocs).length / 1024
-        ).toFixed(0)} KB) to ${modelMeta.name}...`
+        `Uploading ${files.length} document(s) with pre-extracted text (${totalExtractedChars.toLocaleString()} chars) to ${modelMeta.name}...`
       );
+
+      // Send via FormData so full PDF binaries are transferred natively alongside extracted text
+      const formData = new FormData();
+      for (const file of files) {
+        formData.append('files', file);
+      }
+      formData.append('model', modelToUse);
+      if (currentData) {
+        formData.append('existingData', JSON.stringify(currentData));
+      }
+      formData.append('clientExtractedText', JSON.stringify(extractedDocs.map((d) => ({
+        fileName: d.fileName,
+        pageCount: d.pageCount,
+        extractedText: d.extractedText,
+      }))));
 
       const response = await fetch('/api/extract-passport', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          extractedDocs,
-          existingData: currentData,
-          model: modelToUse,
-        }),
+        body: formData,
       });
 
       setLoadingStep('Synthesizing specs, lab test cards, measurements, and circularity data...');
@@ -349,27 +355,38 @@ export default function PdfAutoFillModal({
     }
   };
 
-  const handleLoadSample = (sampleMode: 'both' | 'fits' | 'bureau-veritas') => {
+  const handleLoadSample = (sampleMode: 'both' | 'fits' | 'bureau-veritas' | 'baby-sleepsuit') => {
     setError(null);
-    setExtractedData(EXTRACTED_TCHIBO_PASSPORT);
-    if (sampleMode === 'both') {
+    if (sampleMode === 'baby-sleepsuit') {
+      setExtractedData(EXTRACTED_BABY_SLEEPSUIT_PASSPORT);
       setAnalyzedFileNames([
-        'Tchibo_FiTS_151546_Technical_Specification.pdf',
-        'Bureau_Veritas_6825_298_0551_Test_Report.pdf'
+        'Tchibo_Baby_Romper_Sleepsuit_152890_Spec.pdf',
+        'SGS_Infant_Safety_Lab_Report.pdf'
       ]);
       setExtractionSummary(
-        'Synthesized 2 multi-source documents: Technical Specification #151546 (measurements, SKUs, yarn nominations) + Bureau Veritas Lab Report (ISO 1833 blend analysis, RSL compliance, and wash colourfastness).'
-      );
-    } else if (sampleMode === 'fits') {
-      setAnalyzedFileNames(['Tchibo_FiTS_151546_Spec.pdf']);
-      setExtractionSummary(
-        'Loaded data from Tchibo FiTS Spec #151546: 48/47/5 blend, S–XXL measurement grading, 10 article SKUs, CmiA cotton & Birla modal.'
+        'Synthesized One-Piece Baby Romper Sleepsuit: 100% GOTS organic cotton, 8 Point-of-Measure rows with ± tolerances, dynamic baby sizing (50/56 to 98/104), and zero hallucinations.'
       );
     } else {
-      setAnalyzedFileNames(['Bureau_Veritas_Test_Report.pdf']);
-      setExtractionSummary(
-        'Loaded data from Bureau Veritas Report ((6825)298-0551): ISO 1833 fibre composition, RSL parameter tests, and 5 colourfastness lab cards.'
-      );
+      setExtractedData(EXTRACTED_TCHIBO_PASSPORT);
+      if (sampleMode === 'both') {
+        setAnalyzedFileNames([
+          'Tchibo_FiTS_151546_Technical_Specification.pdf',
+          'Bureau_Veritas_6825_298_0551_Test_Report.pdf'
+        ]);
+        setExtractionSummary(
+          'Synthesized 2 multi-source documents: Technical Specification #151546 (measurements with tolerances, SKUs, yarn nominations) + Bureau Veritas Lab Report (ISO 1833 blend analysis, RSL compliance, and wash colourfastness).'
+        );
+      } else if (sampleMode === 'fits') {
+        setAnalyzedFileNames(['Tchibo_FiTS_151546_Spec.pdf']);
+        setExtractionSummary(
+          'Loaded data from Tchibo FiTS Spec #151546: 48/47/5 blend, S–XXL measurement grading with tolerances, 10 article SKUs, CmiA cotton & Birla modal.'
+        );
+      } else {
+        setAnalyzedFileNames(['Bureau_Veritas_Test_Report.pdf']);
+        setExtractionSummary(
+          'Loaded data from Bureau Veritas Report ((6825)298-0551): ISO 1833 fibre composition, RSL parameter tests, and 5 colourfastness lab cards.'
+        );
+      }
     }
     setActiveTab('preview');
   };
@@ -801,18 +818,35 @@ export default function PdfAutoFillModal({
 
                   <button
                     type="button"
-                    onClick={() => handleLoadSample('bureau-veritas')}
+                    onClick={() => handleLoadSample('baby-sleepsuit')}
                     className="text-left p-2.5 rounded-xl border border-[#D5CFBF] bg-white hover:border-[#2E6B4F] hover:bg-[#FAF8F3] transition-all group cursor-pointer"
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold text-[#17201B] flex items-center gap-1.5">
-                        <FlaskConical className="w-3.5 h-3.5 text-[#2E6B4F]" />
-                        Bureau Veritas Report
+                        <Layers className="w-3.5 h-3.5 text-[#2E6B4F]" />
+                        Baby Romper (1-Piece)
                       </span>
                       <ArrowRight className="w-3 h-3 text-[#6B726C] group-hover:translate-x-0.5 transition-transform" />
                     </div>
                     <p className="text-[10.5px] text-[#6B726C] line-clamp-1">
-                      ISO 1833 fibre analysis & colourfastness.
+                      100% GOTS cotton, 50/56–98/104, 8 POMs.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleLoadSample('bureau-veritas')}
+                    className="text-left p-2.5 rounded-xl border border-[#D5CFBF] bg-white hover:border-[#2E6B4F] hover:bg-[#FAF8F3] transition-all group cursor-pointer sm:col-span-2"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-[#17201B] flex items-center gap-1.5">
+                        <FlaskConical className="w-3.5 h-3.5 text-[#2E6B4F]" />
+                        Bureau Veritas Lab Report ((6825)298-0551)
+                      </span>
+                      <ArrowRight className="w-3 h-3 text-[#6B726C] group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <p className="text-[10.5px] text-[#6B726C] line-clamp-1">
+                      ISO 1833 certified fibre blend, RSL parameter tests & colourfastness cards.
                     </p>
                   </button>
                 </div>
@@ -865,46 +899,73 @@ export default function PdfAutoFillModal({
               )}
 
               {/* Quick Overview of what will be filled */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="p-3 rounded-xl bg-[#FAF8F3] border border-[#E0DBCF]">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#6B726C] uppercase tracking-wide mb-1">
-                    <Layers className="w-3.5 h-3.5 text-[#2E6B4F]" />
-                    Product Identity
-                  </div>
-                  <p className="text-xs font-bold text-[#17201B] truncate">
-                    {extractedData.general.productName || '—'}
-                  </p>
-                  <p className="text-[10.5px] text-[#6B726C] mt-0.5">
-                    Order #{extractedData.general.orderNo || '—'} · Project #{extractedData.general.projectId || '—'}
-                  </p>
-                </div>
+              {(() => {
+                const fiberParts: string[] = [];
+                if (extractedData.materials.cotton) fiberParts.push(`${extractedData.materials.cotton}% Cotton`);
+                if (extractedData.materials.modal) fiberParts.push(`${extractedData.materials.modal}% Modal`);
+                if (extractedData.materials.viscose) fiberParts.push(`${extractedData.materials.viscose}% Viscose`);
+                if (extractedData.materials.elastane) fiberParts.push(`${extractedData.materials.elastane}% Elastane`);
+                if (extractedData.materials.recycledContent) fiberParts.push(`${extractedData.materials.recycledContent}% Recycled`);
+                const fiberDisplay = fiberParts.length > 0 ? fiberParts.join(' · ') : 'Verified Composition';
 
-                <div className="p-3 rounded-xl bg-[#FAF8F3] border border-[#E0DBCF]">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#6B726C] uppercase tracking-wide mb-1">
-                    <FlaskConical className="w-3.5 h-3.5 text-[#2E6B4F]" />
-                    Material Composition
-                  </div>
-                  <p className="text-xs font-bold text-[#17201B]">
-                    {extractedData.materials.cotton}% Cotton · {extractedData.materials.modal}% Modal · {extractedData.materials.elastane}% Elastane
-                  </p>
-                  <p className="text-[10.5px] text-[#6B726C] mt-0.5">
-                    {extractedData.materials.fabricWeight} g/m² · {extractedData.materials.tolerance || '—'}
-                  </p>
-                </div>
+                const isOnePiece = extractedData.measurements?.categoryType === 'one_piece' ||
+                  ((extractedData.measurements?.onePiece || []).length > 0 && (extractedData.measurements?.top || []).length === 0);
 
-                <div className="p-3 rounded-xl bg-[#FAF8F3] border border-[#E0DBCF]">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#6B726C] uppercase tracking-wide mb-1">
-                    <Ruler className="w-3.5 h-3.5 text-[#2E6B4F]" />
-                    Technical Charts
+                const chartDisplay = isOnePiece
+                  ? `${(extractedData.measurements?.onePiece || []).length} One-Piece Rows (with Tolerances)`
+                  : `${(extractedData.measurements?.top || []).length} Top + ${(extractedData.measurements?.bottom || []).length} Bottom Rows`;
+
+                const sizeDisplay = (extractedData.measurements?.sizeHeaders && extractedData.measurements.sizeHeaders.length > 0)
+                  ? extractedData.measurements.sizeHeaders.join(', ') + ' Grading'
+                  : 'S, M, L, XL, XXL Grading';
+
+                const skuCount =
+                  Object.keys(extractedData.general.articleNumbers?.uni || {}).length +
+                  Object.keys(extractedData.general.articleNumbers?.aop || {}).length;
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div className="p-3 rounded-xl bg-[#FAF8F3] border border-[#E0DBCF]">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#6B726C] uppercase tracking-wide mb-1">
+                        <Layers className="w-3.5 h-3.5 text-[#2E6B4F]" />
+                        Product Identity
+                      </div>
+                      <p className="text-xs font-bold text-[#17201B] truncate">
+                        {extractedData.general.productName || '—'}
+                      </p>
+                      <p className="text-[10.5px] text-[#6B726C] mt-0.5 truncate">
+                        Order #{extractedData.general.orderNo || '—'} · Project #{extractedData.general.projectId || '—'}
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-[#FAF8F3] border border-[#E0DBCF]">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#6B726C] uppercase tracking-wide mb-1">
+                        <FlaskConical className="w-3.5 h-3.5 text-[#2E6B4F]" />
+                        Material Composition
+                      </div>
+                      <p className="text-xs font-bold text-[#17201B] truncate">
+                        {fiberDisplay}
+                      </p>
+                      <p className="text-[10.5px] text-[#6B726C] mt-0.5">
+                        {extractedData.materials.fabricWeight} g/m² · {extractedData.materials.tolerance || '—'}
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-[#FAF8F3] border border-[#E0DBCF]">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#6B726C] uppercase tracking-wide mb-1">
+                        <Ruler className="w-3.5 h-3.5 text-[#2E6B4F]" />
+                        Technical Charts
+                      </div>
+                      <p className="text-xs font-bold text-[#17201B]">
+                        {chartDisplay}
+                      </p>
+                      <p className="text-[10.5px] text-[#6B726C] mt-0.5 truncate">
+                        {sizeDisplay}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs font-bold text-[#17201B]">
-                    {(extractedData.measurements?.top || []).length} Top + {(extractedData.measurements?.bottom || []).length} Bottom Rows
-                  </p>
-                  <p className="text-[10.5px] text-[#6B726C] mt-0.5">
-                    S, M, L, XL, XXL Grading
-                  </p>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Additional Highlights */}
               <div className="p-3.5 rounded-xl border border-[#E0DBCF] bg-white text-xs space-y-2">
@@ -927,7 +988,11 @@ export default function PdfAutoFillModal({
                   </div>
                   <div>
                     <span className="text-[#6B726C] block">Article Numbers:</span>
-                    <span className="font-bold text-[#17201B]">10 Sizes mapped</span>
+                    <span className="font-bold text-[#17201B]">
+                      {Object.keys(extractedData.general.articleNumbers?.uni || {}).length +
+                        Object.keys(extractedData.general.articleNumbers?.aop || {}).length}{' '}
+                      SKUs mapped
+                    </span>
                   </div>
                 </div>
               </div>

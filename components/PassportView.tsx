@@ -547,9 +547,40 @@ interface PassportViewProps {
 
 export default function PassportView({ data: propData, isCustomActive, onResetCustom, isPreviewMode = false }: PassportViewProps) {
   const data = useMemo(() => normalizePassportData(propData), [propData]);
-  const [curSize, setCurSize] = useState<Size>('M');
+
+  const hasOnePiece = Array.isArray(data.measurements?.onePiece) && data.measurements.onePiece.length > 0;
+  const hasTop = Array.isArray(data.measurements?.top) && data.measurements.top.length > 0;
+  const hasBottom = Array.isArray(data.measurements?.bottom) && data.measurements.bottom.length > 0;
+
+  const availableSizes: string[] = useMemo(() => {
+    if (Array.isArray(data.measurements?.sizeHeaders) && data.measurements.sizeHeaders.length > 0) {
+      return data.measurements.sizeHeaders;
+    }
+    const sampleRow = data.measurements?.onePiece?.[0] || data.measurements?.top?.[0] || data.measurements?.bottom?.[0];
+    if (sampleRow?.vals && typeof sampleRow.vals === 'object') {
+      const customKeys = Object.keys(sampleRow.vals).filter(k => sampleRow.vals[k] !== undefined && sampleRow.vals[k] !== 0);
+      if (customKeys.length > 0) return customKeys;
+    }
+    return ['S', 'M', 'L', 'XL', 'XXL'];
+  }, [data.measurements]);
+
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const curSize = (selectedSize && availableSizes.includes(selectedSize))
+    ? selectedSize
+    : (availableSizes[1] || availableSizes[0] || 'M');
+  const setCurSize = setSelectedSize;
+
   const [curUnit, setCurUnit] = useState<Unit>('cm');
-  const [curGar, setCurGar] = useState<Garment>('top');
+
+  const defaultGarment: Garment = (data.measurements?.categoryType === 'one_piece' || (hasOnePiece && !hasTop))
+    ? 'onePiece'
+    : 'top';
+  const [selectedGar, setSelectedGar] = useState<Garment | null>(null);
+  const curGar: Garment = (selectedGar && ((selectedGar === 'onePiece' && hasOnePiece) || (selectedGar === 'top' && hasTop) || (selectedGar === 'bottom' && hasBottom)))
+    ? selectedGar
+    : defaultGarment;
+  const setCurGar = setSelectedGar;
+
   const [curStyle, setCurStyle] = useState<StyleType>('uni');
   const [curView, setCurView] = useState<'cw1' | 'cw2'>('cw1');
 
@@ -668,7 +699,12 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
     );
   };
 
-  const measurementsList = curGar === 'top' ? (data.measurements?.top || []) : (data.measurements?.bottom || []);
+  const measurementsList =
+    curGar === 'onePiece'
+      ? (data.measurements?.onePiece || [])
+      : curGar === 'top'
+      ? (data.measurements?.top || [])
+      : (data.measurements?.bottom || []);
   const activeArticleNo = data.general?.articleNumbers?.[curStyle]?.[curSize] || '';
   const activeGtinCode = data.general?.gtinCodes?.[curStyle]?.[curSize] || (curStyle === 'uni' ? '4061234730801' : '4061234730856');
 
@@ -1184,36 +1220,57 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                 <h3 className="text-[15px] font-bold text-ink">Measurement Map</h3>
                 <div className="flex gap-2">
                   <div className="flex bg-white border border-line rounded-full p-[3px]">
-                    <button
-                      onClick={() => setCurGar('top')}
-                      className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
-                        curGar === 'top' ? 'text-white' : 'text-muted hover:text-ink'
-                      }`}
-                    >
-                      {curGar === 'top' && (
-                        <motion.div
-                          layoutId="garToggle"
-                          className="absolute inset-0 bg-green rounded-full z-0"
-                          transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                        />
-                      )}
-                      <span className="relative z-10">Top</span>
-                    </button>
-                    <button
-                      onClick={() => setCurGar('bottom')}
-                      className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
-                        curGar === 'bottom' ? 'text-white' : 'text-muted hover:text-ink'
-                      }`}
-                    >
-                      {curGar === 'bottom' && (
-                        <motion.div
-                          layoutId="garToggle"
-                          className="absolute inset-0 bg-green rounded-full z-0"
-                          transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                        />
-                      )}
-                      <span className="relative z-10">Bottom</span>
-                    </button>
+                    {hasOnePiece && (
+                      <button
+                        onClick={() => setCurGar('onePiece')}
+                        className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
+                          curGar === 'onePiece' ? 'text-white' : 'text-muted hover:text-ink'
+                        }`}
+                      >
+                        {curGar === 'onePiece' && (
+                          <motion.div
+                            layoutId="garToggle"
+                            className="absolute inset-0 bg-green rounded-full z-0"
+                            transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                          />
+                        )}
+                        <span className="relative z-10">One-Piece</span>
+                      </button>
+                    )}
+                    {(hasTop || (!hasOnePiece && !hasBottom)) && (
+                      <button
+                        onClick={() => setCurGar('top')}
+                        className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
+                          curGar === 'top' ? 'text-white' : 'text-muted hover:text-ink'
+                        }`}
+                      >
+                        {curGar === 'top' && (
+                          <motion.div
+                            layoutId="garToggle"
+                            className="absolute inset-0 bg-green rounded-full z-0"
+                            transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                          />
+                        )}
+                        <span className="relative z-10">Top</span>
+                      </button>
+                    )}
+                    {(hasBottom || (!hasOnePiece && !hasTop)) && (
+                      <button
+                        onClick={() => setCurGar('bottom')}
+                        className={`relative border-none bg-transparent rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer ${
+                          curGar === 'bottom' ? 'text-white' : 'text-muted hover:text-ink'
+                        }`}
+                      >
+                        {curGar === 'bottom' && (
+                          <motion.div
+                            layoutId="garToggle"
+                            className="absolute inset-0 bg-green rounded-full z-0"
+                            transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                          />
+                        )}
+                        <span className="relative z-10">Bottom</span>
+                      </button>
+                    )}
                   </div>
                   <div className="flex bg-white border border-line rounded-full p-[3px]">
                     <button
@@ -1252,7 +1309,27 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
 
               <div className="relative aspect-[4/3] max-w-[340px] mx-auto w-full flex items-center justify-center p-2 bg-white rounded-xl border border-line">
                 <svg viewBox="0 0 340 300" className="w-full h-full stroke-ink" fill="none" strokeWidth="1.5">
-                  {curGar === 'top' ? (
+                  {curGar === 'onePiece' ? (
+                    <g>
+                      {/* One-Piece / Romper silhouette */}
+                      <path
+                        d="M 125 45 L 145 65 L 195 65 L 215 45 L 250 75 L 225 100 L 215 85 L 215 190 L 225 255 L 185 255 L 170 170 L 155 255 L 115 255 L 125 190 L 125 85 L 115 100 L 90 75 Z"
+                        fill="#F4F1EA"
+                      />
+                      <path d="M 145 65 Q 170 95 195 65" />
+                      <line x1="125" y1="110" x2="215" y2="110" stroke="var(--color-green)" strokeDasharray="3 3" />
+                      <line x1="170" y1="65" x2="170" y2="255" stroke="var(--color-green)" strokeDasharray="3 3" />
+                      <line x1="125" y1="45" x2="215" y2="45" stroke="#8FB79E" strokeDasharray="2 2" />
+                      <circle cx="170" cy="110" r="10" fill="var(--color-green)" className="opacity-90" />
+                      <text x="170" y="114" fill="white" fontSize="10" fontWeight="bold" textAnchor="middle" stroke="none">A</text>
+                      <circle cx="170" cy="170" r="10" fill="var(--color-green)" className="opacity-90" />
+                      <text x="170" y="174" fill="white" fontSize="10" fontWeight="bold" textAnchor="middle" stroke="none">B</text>
+                      <circle cx="105" cy="88" r="10" fill="var(--color-green)" className="opacity-90" />
+                      <text x="105" y="92" fill="white" fontSize="10" fontWeight="bold" textAnchor="middle" stroke="none">C</text>
+                      <circle cx="205" cy="225" r="10" fill="var(--color-green)" className="opacity-90" />
+                      <text x="205" y="229" fill="white" fontSize="10" fontWeight="bold" textAnchor="middle" stroke="none">D</text>
+                    </g>
+                  ) : curGar === 'top' ? (
                     <g>
                       <path d="M 110 50 L 140 75 L 200 75 L 230 50 L 260 85 L 230 110 L 225 95 L 225 240 L 115 240 L 115 95 L 110 110 L 80 85 Z" fill="#F4F1EA" />
                       <path d="M 140 75 Q 170 115 200 75" />
@@ -1288,12 +1365,12 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-[12px] font-bold text-muted uppercase tracking-wider">Select Size</span>
-                  <div className="flex gap-1">
-                    {(['S', 'M', 'L', 'XL', 'XXL'] as Size[]).map(sz => (
+                  <div className="flex gap-1 flex-wrap">
+                    {availableSizes.map(sz => (
                       <button
                         key={sz}
                         onClick={() => setCurSize(sz)}
-                        className={`w-9 h-9 rounded-xl font-bold text-[12px] transition-all cursor-pointer ${
+                        className={`min-w-9 h-9 px-2.5 rounded-xl font-bold text-[12px] transition-all cursor-pointer ${
                           curSize === sz
                             ? 'bg-ink text-white shadow-sm'
                             : 'bg-surface-2 border border-line text-muted hover:border-green'
@@ -1304,18 +1381,30 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                     ))}
                   </div>
                 </div>
-                <div className="text-[11.5px] text-muted mb-4 font-mono">
-                  Equivalent EU size: <b className="text-ink">{EU[curSize] || '48/50'}</b>
+                <div className="text-[11.5px] text-muted mb-3 font-mono flex flex-wrap items-center gap-x-2 gap-y-1">
+                  {EU[curSize as Size] && (
+                    <span>Equivalent EU size: <b className="text-ink">{EU[curSize as Size]}</b></span>
+                  )}
+                  {data.measurements?.allowedShrinkage && (
+                    <span className="inline-flex items-center gap-1 bg-green-soft text-green-dark border border-[#BCD8C6] px-2 py-0.5 rounded-md text-[11px] font-semibold">
+                      Allowed Shrinkage: {data.measurements.allowedShrinkage}
+                    </span>
+                  )}
+                  {data.measurements?.pomCount ? (
+                    <span className="text-[11px] text-muted">
+                      · {data.measurements.pomCount} POMs
+                    </span>
+                  ) : null}
                   {(data.general?.visuals?.cw1Name || data.general?.visuals?.cw2Name) && (
-                    <>
-                      {' '}· Style:{' '}
+                    <span>
+                      · Style:{' '}
                       <button
                         onClick={() => setCurStyle(curStyle === 'uni' ? 'aop' : 'uni')}
-                        className="underline cursor-pointer text-green-dark"
+                        className="underline cursor-pointer text-green-dark font-medium"
                       >
                         {curStyle === 'uni' ? (data.general?.visuals?.cw1Name || 'Style 1') : (data.general?.visuals?.cw2Name || 'Style 2')}
                       </button>
-                    </>
+                    </span>
                   )}
                 </div>
 
@@ -1324,6 +1413,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                     <tr className="border-b border-line-2 text-[11px] text-muted uppercase tracking-widest">
                       <th className="py-2">Point</th>
                       <th className="py-2">Measurement</th>
+                      <th className="py-2 text-center">Tol</th>
                       <th className="py-2 text-right">Spec ({curUnit})</th>
                     </tr>
                   </thead>
@@ -1334,7 +1424,18 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                           <td className="py-2.5 font-mono font-bold text-green">{r.k}</td>
                           <td className="py-2.5">
                             <div className="font-semibold text-ink">{r.name}</div>
-                            <div className="text-[11px] text-muted">{r.how}</div>
+                            {r.how && <div className="text-[11px] text-muted">{r.how}</div>}
+                          </td>
+                          <td className="py-2.5 text-center font-mono text-[11px] text-muted whitespace-nowrap">
+                            {(r.tolMinus !== undefined || r.tolPlus !== undefined) ? (
+                              <span className="px-1.5 py-0.5 rounded bg-surface-2 border border-line text-muted">
+                                {r.tolMinus === r.tolPlus || !r.tolMinus
+                                  ? `±${r.tolPlus || r.tolMinus}`
+                                  : `+${r.tolPlus || 0} / -${r.tolMinus || 0}`}
+                              </span>
+                            ) : (
+                              <span className="text-muted/40">—</span>
+                            )}
                           </td>
                           <td className="py-2.5 text-right font-mono font-bold text-ink">
                             <span className="inline-block val-tick" key={`${r.k}-${curSize}-${curUnit}`}>
@@ -1345,7 +1446,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={3} className="py-6 text-center text-muted text-xs">
+                        <td colSpan={4} className="py-6 text-center text-muted text-xs">
                           No measurement specifications entered yet. Add measurement points in the Measurements editor tab.
                         </td>
                       </tr>
@@ -1354,14 +1455,24 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                 </table>
               </div>
 
-              {(curGar === 'top' ? data.measurements?.topFit : data.measurements?.bottomFit) ? (
+              {Boolean(
+                curGar === 'onePiece'
+                  ? (data.measurements?.onePieceFit || data.measurements?.topFit)
+                  : curGar === 'top'
+                  ? data.measurements?.topFit
+                  : data.measurements?.bottomFit
+              ) && (
                 <div className="mt-4 bg-surface-2 border border-dashed border-line-2 rounded-[14px] p-4 px-[18px]">
                   <h4 className="text-[13px] tracking-widest uppercase text-green-dark mb-2 font-bold">Fit Guide</h4>
                   <p className="text-[13px] text-muted leading-relaxed">
-                    {curGar === 'top' ? data.measurements?.topFit : data.measurements?.bottomFit}
+                    {curGar === 'onePiece'
+                      ? (data.measurements?.onePieceFit || data.measurements?.topFit || 'Verified garment fit specification.')
+                      : curGar === 'top'
+                      ? data.measurements?.topFit
+                      : data.measurements?.bottomFit}
                   </p>
                 </div>
-              ) : null}
+              )}
             </div>
           </Reveal>
         </div>

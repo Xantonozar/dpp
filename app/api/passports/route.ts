@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isMongoConfigured, getMongoDb } from '@/lib/mongodb';
+import { isMongoConfigured, getMongoDb, withMongoDb } from '@/lib/mongodb';
 import { DEFAULT_CATALOG, PassportData, normalizePassportData } from '@/lib/passport-data';
 import { getInMemoryPassports, saveInMemoryPassport } from '@/lib/in-memory-db';
 
@@ -16,38 +16,35 @@ export async function GET() {
       });
     }
 
-    const db = await getMongoDb();
-    const collection = db.collection<PassportData>('passports');
+    const { passports, seeded } = await withMongoDb(async (db) => {
+      const collection = db.collection<PassportData>('passports');
 
-    const count = await collection.countDocuments();
-    if (count === 0) {
-      // Seed default catalog to MongoDB
-      const docsToInsert = DEFAULT_CATALOG.map(item => ({
-        ...item,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }));
-      await collection.insertMany(docsToInsert as any[]);
-      return NextResponse.json({
-        success: true,
-        source: 'mongodb',
-        connected: true,
-        seeded: true,
-        passports: DEFAULT_CATALOG,
+      const count = await collection.countDocuments();
+      if (count === 0) {
+        // Seed default catalog to MongoDB
+        const docsToInsert = DEFAULT_CATALOG.map((item) => ({
+          ...item,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }));
+        await collection.insertMany(docsToInsert as any[]);
+        return { passports: DEFAULT_CATALOG, seeded: true };
+      }
+
+      const docs = await collection.find({}).sort({ updatedAt: -1 }).toArray();
+      const list = docs.map((doc) => {
+        const { _id, ...rest } = doc as any;
+        return normalizePassportData(rest);
       });
-    }
 
-    const docs = await collection.find({}).sort({ updatedAt: -1 }).toArray();
-    const passports = docs.map(doc => {
-      // Remove mongo _id if needed or keep it
-      const { _id, ...rest } = doc as any;
-      return normalizePassportData(rest);
+      return { passports: list, seeded: false };
     });
 
     return NextResponse.json({
       success: true,
       source: 'mongodb',
       connected: true,
+      seeded,
       passports,
     });
   } catch (error: any) {
@@ -92,24 +89,24 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      const db = await getMongoDb();
-      const collection = db.collection('passports');
+      await withMongoDb(async (db) => {
+        const collection = db.collection('passports');
+        const projectId = normalized.general.projectId;
 
-      const projectId = normalized.general.projectId;
-
-      await collection.updateOne(
-        { 'general.projectId': projectId },
-        {
-          $set: {
-            ...normalized,
-            updatedAt: new Date(),
+        await collection.updateOne(
+          { 'general.projectId': projectId },
+          {
+            $set: {
+              ...normalized,
+              updatedAt: new Date(),
+            },
+            $setOnInsert: {
+              createdAt: new Date(),
+            },
           },
-          $setOnInsert: {
-            createdAt: new Date(),
-          },
-        },
-        { upsert: true }
-      );
+          { upsert: true }
+        );
+      });
 
       return NextResponse.json({
         success: true,

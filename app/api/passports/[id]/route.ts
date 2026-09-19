@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isMongoConfigured, getMongoDb } from '@/lib/mongodb';
+import { isMongoConfigured, getMongoDb, withMongoDb } from '@/lib/mongodb';
 import { normalizePassportData } from '@/lib/passport-data';
 import { getInMemoryPassportById, deleteInMemoryPassport } from '@/lib/in-memory-db';
 
@@ -26,10 +26,11 @@ export async function GET(
     }
 
     try {
-      const db = await getMongoDb();
-      const collection = db.collection('passports');
+      const doc = await withMongoDb(async (db) => {
+        const collection = db.collection('passports');
+        return await collection.findOne({ 'general.projectId': id });
+      });
 
-      const doc = await collection.findOne({ 'general.projectId': id });
       if (!doc) {
         const inMemory = getInMemoryPassportById(id);
         if (inMemory) {
@@ -93,10 +94,10 @@ export async function DELETE(
     }
 
     try {
-      const db = await getMongoDb();
-      const collection = db.collection('passports');
-
-      const result = await collection.deleteOne({ 'general.projectId': id });
+      const result = await withMongoDb(async (db) => {
+        const collection = db.collection('passports');
+        return await collection.deleteOne({ 'general.projectId': id });
+      });
 
       return NextResponse.json({
         success: true,

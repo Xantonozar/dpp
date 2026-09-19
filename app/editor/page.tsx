@@ -19,6 +19,7 @@ import {
   resetAllPassports,
   createEmptyPassport,
   normalizePassportData,
+  normalizeExtractedPassportData,
   fetchPassportsFromApi,
   savePassportToApi
 } from '@/lib/passport-data';
@@ -213,7 +214,7 @@ function EditorInner({
   const [jsonError, setJsonError] = useState<string | null>(null);
 
   const handleApplyPdfData = (extracted: PassportData, mode: 'replace' | 'merge') => {
-    const normExtracted = normalizePassportData(extracted);
+    const normExtracted = normalizeExtractedPassportData(extracted, data);
     let finalData: PassportData;
 
     if (mode === 'replace') {

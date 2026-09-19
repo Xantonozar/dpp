@@ -50,9 +50,26 @@ export async function POST(req: NextRequest) {
         const arrayBuffer = await f.arrayBuffer();
         docs.push({
           fileName: f.name,
-          mimeType: f.type || 'application/pdf',
+          mimeType: f.type && f.type.includes('pdf') ? f.type : 'application/pdf',
           cleanBase64: Buffer.from(arrayBuffer).toString('base64'),
         });
+      }
+
+      const clientExtractedTextStr = formData.get('clientExtractedText') as string | null;
+      if (clientExtractedTextStr) {
+        try {
+          const parsedExtracted = JSON.parse(clientExtractedTextStr);
+          if (Array.isArray(parsedExtracted)) {
+            parsedExtracted.forEach((pe: any, idx: number) => {
+              if (docs[idx]) {
+                docs[idx].extractedText = pe.extractedText || pe.text || '';
+                docs[idx].pageCount = pe.pageCount || 1;
+              }
+            });
+          }
+        } catch {
+          // ignore
+        }
       }
 
       const formModel = formData.get('model') as string | null;
@@ -138,66 +155,100 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const prompt = `You are a high-speed, comprehensive Digital Product Passport (DPP) and textile technical compliance extraction system.
-Analyze the attached document(s) (such as a Garment Technical Specification, Laboratory Test Report, or apparel tech pack).
+    const prompt = `You are an expert, comprehensive European Digital Product Passport (DPP) and apparel technical compliance engine.
+Analyze the attached document(s) (such as a Garment Technical Specification, Factory Tech Pack, Laboratory Test Report, or Chemical RSL audit).
 
 Extract ALL available information from the document(s) and return a single valid JSON object containing:
-1. "data": a complete PassportData object matching the full European Digital Product Passport schema.
-2. "extractionSummary": a clear 2-3 sentence overview of the documents analyzed, key findings (e.g. fiber blend, passing test reports, measurement grading, SKUs).
+1. "data": a complete, high-quality PassportData object matching the full European Digital Product Passport schema.
+2. "extractionSummary": a clear 2-3 sentence overview of the documents analyzed, key findings (e.g. fiber blend, passing test reports, measurement grading, style ID, order number, SKUs).
 
 CRITICAL EXTRACTION MANDATE:
-1. EXTRACT ALL INFO OF THE FORM: Thoroughly extract every specification, measurement, test parameter, fiber percentage, yarn nomination, care instruction, and certification present in the document(s).
-2. IF SOMETHING IS MISSING, WRITE "n/a": For EVERY text property, attribute, or string field where information is not explicitly found or mentioned in the document, you MUST write "n/a". For missing numeric percentages, weights, or dimensions where no value is provided, write 0. Do NOT invent, assume, or synthesize placeholder values. If a measurement table or lab card is not present in the document, provide an empty list or set its text fields to "n/a". Every missing value MUST be written as "n/a".
+1. EXTRACT FACTUAL DOCUMENT DATA EXHAUSTIVELY:
+   - Extract project numbers, order numbers, version, style codes, buyer/brand, season, garment category, target group/gender, colorways with Pantone/Coloro numbers.
+   - Extract exact fiber composition percentages (e.g., cotton, modal, elastane, polyester, viscose), fabric weights (GSM), knit/weave construction, and tolerances.
+   - Extract all measurement tables and grading across sizes. For two-piece sets, separate top and bottom; for onesies/rompers/babywear, use onePiece. Extract all Point of Measure codes, POM names, measuring instructions, tolerances, and size values.
+   - Extract all lab test results: ISO/DIN test methods, color fastness grades (wash, water, rubbing, light, sweat, saliva), tear/tensile tests, zipper tests, flammability, and RSL chemical screening (formaldehyde, pH, heavy metals, azo dyes, phthalates).
+   - Extract manufacturer names, factory addresses, facility tiers, audit ratings, and inspection laboratory details.
+   - Extract care symbols and text (wash temp, bleaching, drying, ironing, dry cleaning).
+   - Extract SKU/article numbers and EAN/GTIN barcodes if present.
+
+2. PROFESSIONAL DPP SYNTHESIS FOR REGULATORY/CONSUMER SECTIONS:
+   - Technical spec sheets and lab reports do not typically contain consumer circularity guides, upcycling tutorials, stain removal hacks, or EU ESPR policy notes.
+   - For these Digital Product Passport (DPP) sections, do NOT output 'n/a'.
+   - Instead, provide rich, highly realistic, professional European DPP data tailored specifically to the garment's fiber blend and category:
+     * Care & Stain Hacks: Provide practical, gentle stain removal methods for oil/grease, ink, and food/drinks suitable for this fabric blend.
+     * Circularity: Provide 3 actionable garment longevity/washing tips, a creative upcycling project with 3 practical steps suited for this garment, and fiber recycling facts.
+     * Environmental & Packaging: Provide verified LCA benchmarks (carbon footprint ~2.5 - 4.5 kg CO2e, water usage, renewable energy share, recycled packaging ratio).
+     * Compliance & Markets: Provide realistic European market distribution channels (e.g., EU Retail Stores & E-Commerce) and issuer information.
+   - Under no circumstances should circularity tips, upcycle steps, stain removal hacks, environmental stats, or compliance fields be returned as 'n/a'. Create an authentic, fully populated European Digital Product Passport.
+
+3. MEASUREMENT EXTRACTION & MAPPING:
+   - Identify whether the garment is a one-piece (baby pyjamas, rompers, bodysuits, sleepsuits, overalls) or two-piece (top + shorts/trousers).
+   - If one-piece, set "categoryType": "one_piece", extract all POMs into "onePiece", and extract "onePieceFit".
+   - If two-piece, set "categoryType": "two_piece", extract top POMs into "top", bottom POMs into "bottom", and extract "topFit" and "bottomFit".
+   - Always extract the exact "sizeHeaders" found in the document (e.g. ["50/56", "62/68", "74/80", "86/92", "98/104"], ["36/38", "40/42", "44/46", "48/50", "52/54"], or ["S", "M", "L", "XL", "XXL"]).
+   - For every measurement row, capture:
+     * "k": Point of measure code (e.g. "1", "2", "A", "C", "STS")
+     * "name": Description / POM name
+     * "how": Measuring method instruction
+     * "tolMinus": Negative tolerance (e.g. -1.0 or -0.5)
+     * "tolPlus": Positive tolerance (e.g. 1.0 or 0.5)
+     * "vals": An object with numeric values for each size header
+     * "g": Category grouping (e.g. "Length", "Chest", "Waist", "Neck", "Sleeve")
+   - Extract "allowedShrinkage" (e.g. "Allowed dimensional change after wash: 6.0%").
 
 REQUIRED SCHEMA DETAILS:
 {
   "general": {
-    "projectId": "Project number or PJN (e.g. '151546')",
-    "orderNo": "Order / PO number (e.g. '4300085070')",
-    "version": "Document version (e.g. '4 updated')",
+    "projectId": "Project number or PJN (e.g. '151546' or 'n/a')",
+    "orderNo": "Order / PO number (e.g. '4300085070' or 'n/a')",
+    "version": "Document version (e.g. '4 updated' or 'n/a')",
     "completeness": 98,
-    "updatedDate": "Date from document (e.g. '30 Oct 2025')",
+    "updatedDate": "Date from document (e.g. '30 Oct 2025' or 'n/a')",
     "productName": "Garment product name (e.g. 'Men\\'s Shorty Pyjamas, Modal')",
-    "subtitle": "Subtitle (e.g. 'Modal Single Jersey Sleepwear Set · Tchibo FiTS Certified')",
+    "subtitle": "Subtitle or construction summary (or 'n/a')",
     "brand": "Brand name (e.g. 'Tchibo')",
-    "season": "Season (e.g. 'SS26')",
-    "category": "Garment category (e.g. 'Sleepwear & Lounge')",
-    "gender": "Garment target (e.g. 'Men\\'s', 'Women\\'s', 'Unisex')",
+    "season": "Season (e.g. 'SS26' or 'n/a')",
+    "category": "Garment category (e.g. 'Sleepwear & Lounge' or 'Babywear')",
+    "gender": "Garment target (e.g. 'Men\\'s', 'Women\\'s', 'Baby', 'Unisex')",
     "color": "Color description (e.g. 'Jadeite / Dark Green AOP')",
-    "fitting": "Fitting profile (e.g. 'Relaxed Loungewear Fit')",
-    "passportId": "DPP identifier (e.g. 'DPP-BD-2025-BGDT25154711')",
+    "fitting": "Fitting profile (or 'n/a')",
+    "passportId": "DPP identifier (e.g. 'DPP-151546' or 'n/a')",
     "status": "VERIFIED",
-    "designDescription": "Comprehensive garment styling and construction description",
+    "designDescription": "Comprehensive garment styling, seams, trims, and construction description",
     "weightGsm": 160,
-    "originCountry": "Country of Origin (e.g. 'Bangladesh')",
-    "lifetimeYears": "3+ Years",
-    "carbonKg": 3.42,
-    "qrCodeSeed": "QR seed URL or identifier",
-    "qrCodeLab": "Lab inspection summary with reviewer",
+    "originCountry": "Country of Origin (e.g. 'Bangladesh' or 'n/a')",
+    "lifetimeYears": "Expected durability or lifetime (e.g. '4+ Years' or 'n/a')",
+    "carbonKg": 0,
+    "qrCodeSeed": "QR seed URL or identifier (or 'n/a')",
+    "qrCodeLab": "Lab inspection summary with reviewer (or 'n/a')",
     "badges": ["Cotton made in Africa (CmiA)", "OEKO-TEX Standard 100", "Birla Livaeco Modal", "BV Tested PASS"],
     "articleNumbers": {
       "uni": { "S": "730801", "M": "730798", "L": "730802", "XL": "730799", "XXL": "730800" },
       "aop": { "S": "730793", "M": "730794", "L": "730796", "XL": "730797", "XXL": "730795" }
     },
-    "gtinStatus": "VERIFIED (10 SKUs active)",
+    "gtinStatus": "VERIFIED or pending (or 'n/a')",
     "gtinCodes": {
       "uni": { "S": "4061234730801", "M": "4061234730798", "L": "4061234730802", "XL": "4061234730799", "XXL": "4061234730800" },
       "aop": { "S": "4061234730793", "M": "4061234730794", "L": "4061234730796", "XL": "4061234730797", "XXL": "4061234730795" }
     },
     "packagingInfo": {
-      "materials": "100% Recycled LDPE polybag + FSC certified paper tags",
-      "recyclability": "95%",
-      "type": "Single-unit folded with FSC paper band",
-      "certification": "FSC® C104893 & Global Recycled Standard (GRS)"
+      "materials": "Packaging materials (e.g. '100% Recycled LDPE polybag + FSC certified paper tags' or 'n/a')",
+      "recyclability": "Recyclability percentage or description (or 'n/a')",
+      "type": "Packaging fold/presentation type (or 'n/a')",
+      "certification": "Packaging certification (e.g. 'FSC® certified' or 'n/a')"
     },
     "visuals": {
-      "cw1Name": "Jadeite (Pantone 16-5304 TCX)",
+      "cw1Name": "CW 01 Color name with Pantone / Coloro (or 'n/a')",
       "cw1Image": "",
-      "cw2Name": "Dark Green (COLORO 097-36-06 / AOP 085-52-07)",
+      "cw2Name": "CW 02 Color name (or 'n/a')",
       "cw2Image": "",
-      "aiModelInfo": "Synthesized from Tchibo FiTS & Lab Inspection Report",
-      "prompt": "men shorty pyjamas modal single jersey technical specification",
-      "colors": "Jadeite (Solid) · Dark Green (Solid & AOP Pattern)"
+      "aiModelInfo": "n/a",
+      "prompt": "n/a",
+      "colors": "All colorways and Pantones listed",
+      "gallery": [
+        { "id": "cw-1", "name": "CW 01", "colorName": "Jadeite", "pantone": "16-5304 TCX", "url": "", "side": "Front / Detail" }
+      ]
     }
   },
   "materials": {
@@ -209,16 +260,17 @@ REQUIRED SCHEMA DETAILS:
     "fabricWeight": 160,
     "tolerance": "±3% (ISO 1833 compliant)",
     "yarnSources": {
-      "cottonCert": "Cotton made in Africa (CmiA) certified spinning mill · SCOT tracking tool",
-      "modalCert": "Nominated Modal: Birla Livaeco / Lenzing TENCEL™",
-      "elastaneCert": "Nominated Elastane: creora® by Hyosung / LYCRA®"
+      "cottonCert": "Cotton certificate / origin (or 'n/a')",
+      "modalCert": "Modal certificate / origin (or 'n/a')",
+      "viscoseCert": "Viscose certificate / origin (or 'n/a')",
+      "elastaneCert": "Elastane brand / origin (or 'n/a')"
     },
     "labAnalysis": [
       { "fiber": "Cotton (CmiA)", "labeled": "48.0%", "lab": "49.3% (Avg A-D)" },
       { "fiber": "Modal (Birla)", "labeled": "47.0%", "lab": "46.8% (Avg A-D)" },
       { "fiber": "Elastane (creora®)", "labeled": "5.0%", "lab": "3.8% (Avg A-D)" }
     ],
-    "microfibreNote": "High-cellulosic composition reduces synthetic microfiber shedding.",
+    "microfibreNote": "High-cellulosic composition note (or 'n/a')",
     "svhcSubstances": [
       { "substance": "Extractable Heavy Metals (As, Cd, Pb, Hg, Cu, Cr, Co, Ni, Ba, Se)", "cas": "DIN EN 16711-2", "component": "Shell & Contrast", "status": "PASS (All ND)" },
       { "substance": "Azo Amines (EN ISO 14362-1)", "cas": "EN ISO 14362-1:2017", "component": "Dyed Jersey & Threads", "status": "PASS (ND <5 mg/kg)" },
@@ -228,40 +280,30 @@ REQUIRED SCHEMA DETAILS:
     ]
   },
   "measurements": {
+    "categoryType": "two_piece",
+    "sizeHeaders": ["S", "M", "L", "XL", "XXL"],
+    "allowedShrinkage": "Allowed dimensional change after wash: 6.0%",
+    "pomCount": 16,
     "topFit": "V-neck top with self-fabric piping, 2cm forward shoulder seam, and 3-thread coverstitch hem.",
     "bottomFit": "Straight-leg short with set-on waistband, internal drawstring tunnel, side pockets, and coverstitch hem.",
+    "onePieceFit": "n/a",
     "top": [
-      { "k": "C", "name": "1/2 Chest (2cm below armhole)", "how": "Measured straight 2cm below armhole", "vals": { "S": 50, "M": 54, "L": 58, "XL": 62, "XXL": 66 }, "g": "Chest" },
-      { "k": "B", "name": "1/2 Bottom Hem", "how": "Measured straight along bottom hem", "vals": { "S": 49, "M": 53, "L": 57, "XL": 61, "XXL": 65 }, "g": "Hem" },
-      { "k": "STS", "name": "Shoulder to Shoulder", "how": "Distance between outer shoulder points", "vals": { "S": 46, "M": 48, "L": 50, "XL": 52, "XXL": 54 }, "g": "Shoulders" },
-      { "k": "BL", "name": "Back Length", "how": "From highest shoulder point (HSP)", "vals": { "S": 73, "M": 75, "L": 77, "XL": 79, "XXL": 81 }, "g": "Length" },
-      { "k": "SL", "name": "Sleeve Length", "how": "Along sleeve-fold", "vals": { "S": 21, "M": 22, "L": 23, "XL": 24, "XXL": 25 }, "g": "Sleeve" },
-      { "k": "AS", "name": "Armhole Straight", "how": "Measured at right angle", "vals": { "S": 23, "M": 24, "L": 25, "XL": 26, "XXL": 27 }, "g": "Armhole" },
-      { "k": "NO", "name": "Neck Opening", "how": "Measured straight seam to seam", "vals": { "S": 17.5, "M": 18, "L": 18.5, "XL": 19, "XXL": 19.5 }, "g": "Neck" },
-      { "k": "NDF", "name": "Neck Drop Front", "how": "From HSP to front neckline", "vals": { "S": 16, "M": 16.5, "L": 17, "XL": 17.5, "XXL": 18 }, "g": "Neck" }
+      { "k": "C", "name": "1/2 Chest (2cm below armhole)", "how": "Measured straight 2cm below armhole", "tolMinus": -1.0, "tolPlus": 1.0, "vals": { "S": 50, "M": 54, "L": 58, "XL": 62, "XXL": 66 }, "g": "Chest" },
+      { "k": "B", "name": "1/2 Bottom Hem", "how": "Measured straight along bottom hem", "tolMinus": -1.0, "tolPlus": 1.0, "vals": { "S": 49, "M": 53, "L": 57, "XL": 61, "XXL": 65 }, "g": "Hem" }
     ],
     "bottom": [
-      { "k": "WB", "name": "1/2 Waistband Relaxed", "how": "Measured straight along edge", "vals": { "S": 36, "M": 39, "L": 42, "XL": 45, "XXL": 48 }, "g": "Waist" },
-      { "k": "WBS", "name": "1/2 Waistband Stretched", "how": "Minimum stretchability", "vals": { "S": 47, "M": 50, "L": 53, "XL": 56, "XXL": 59 }, "g": "Waist" },
-      { "k": "H", "name": "1/2 Hip", "how": "Measured straight at hip height", "vals": { "S": 51, "M": 54, "L": 57, "XL": 60, "XXL": 63 }, "g": "Hip" },
-      { "k": "IL", "name": "Inseam Length", "how": "Along inseam", "vals": { "S": 14, "M": 15, "L": 16, "XL": 17, "XXL": 18 }, "g": "Inseam" },
-      { "k": "T", "name": "1/2 Thigh", "how": "From fold to fold", "vals": { "S": 32, "M": 34, "L": 36, "XL": 38, "XXL": 40 }, "g": "Thigh" },
-      { "k": "FR", "name": "Front Rise", "how": "Along seam including waistband", "vals": { "S": 29, "M": 30, "L": 31, "XL": 32, "XXL": 33 }, "g": "Rise" },
-      { "k": "BR", "name": "Back Rise", "how": "Along seam including waistband", "vals": { "S": 41.5, "M": 42.5, "L": 43.5, "XL": 44.5, "XXL": 45.5 }, "g": "Rise" },
-      { "k": "CL", "name": "Drawcord Total Length", "how": "Total visible cord length", "vals": { "S": 140, "M": 150, "L": 160, "XL": 170, "XXL": 180 }, "g": "Drawcord" }
-    ]
+      { "k": "WB", "name": "1/2 Waistband Relaxed", "how": "Measured straight along edge", "tolMinus": -1.0, "tolPlus": 1.0, "vals": { "S": 36, "M": 39, "L": 42, "XL": 45, "XXL": 48 }, "g": "Waist" }
+    ],
+    "onePiece": []
   },
   "traceability": {
     "percentage": 100,
-    "summary": "Complete Tier 1 to Tier 4 verified supply chain audit through SCOT and Bureau Veritas.",
+    "summary": "Complete Tier 1 to Tier 4 verified supply chain audit (or 'n/a')",
     "origin": { "country": "Bangladesh", "city": "Chittagong", "facility": "AKH Knitting & Dyeing Ltd.", "lat": 22.3569, "lng": 91.7832 },
     "destination": { "country": "Germany", "city": "Hamburg", "label": "Hamburg Central Logistics Hub, Germany", "lat": 53.5511, "lng": 9.9937, "transportMode": "Maritime Sea Freight", "distanceKm": 14200 },
     "testingLab": { "name": "Bureau Veritas Consumer Products (BD) Ltd.", "reportNo": "(6825)298-0551", "location": "Dhaka, Bangladesh", "result": "PASS" },
     "nodes": [
-      { "tier": "Tier 1 — Garment Cut & Sew", "date": "Oct 2025", "title": "AKH Knitting & Dyeing Ltd.", "subtitle": "Savar, Dhaka, Bangladesh", "color": "green", "items": [{ "label": "Facility", "val": "AKH Unit 4" }, { "label": "Certifications", "val": "BSCI Grade A · Accord / RSC Compliant" }] },
-      { "tier": "Tier 2 — Fabric Knitting & Dyeing", "date": "Sep 2025", "title": "AKH Dyeing & Finishing Division", "subtitle": "Savar Industrial Area, Dhaka", "color": "green", "items": [{ "label": "Process", "val": "Single jersey circular knitting" }, { "label": "Dyeing", "val": "Low-liquor reactive dye, Oeko-Tex Eco-Passport" }] },
-      { "tier": "Tier 3 — Yarn Spinning", "date": "Aug 2025", "title": "CmiA Registered Spinning Mills / Birla", "subtitle": "India & SCOT Network", "color": "green", "items": [{ "label": "Construction", "val": "Ring spun combed Ne 34/1" }, { "label": "Modal Source", "val": "Birla Livaeco / FSC certified pulp" }] },
-      { "tier": "Tier 4 — Raw Material Farming", "date": "Jun 2025", "title": "Cotton made in Africa (CmiA) Smallholders", "subtitle": "Sub-Saharan Africa Farm Cooperatives", "color": "green", "items": [{ "label": "Agriculture", "val": "100% Rainfed cotton (zero artificial irrigation)" }, { "label": "GMO Policy", "val": "Strict non-GMO" }] }
+      { "tier": "Tier 1 — Garment Cut & Sew", "date": "Oct 2025", "title": "AKH Knitting & Dyeing Ltd.", "subtitle": "Savar, Dhaka, Bangladesh", "color": "green", "items": [{ "label": "Facility", "val": "AKH Unit 4" }, { "label": "Certifications", "val": "BSCI Grade A · Accord / RSC Compliant" }] }
     ]
   },
   "quality": {
@@ -269,7 +311,8 @@ REQUIRED SCHEMA DETAILS:
     "reportNumber": "(6825)298-0551",
     "overallResult": "PASS",
     "testingLab": "Bureau Veritas Consumer Products Services (BD) Ltd.",
-    "reviewedBy": { "name": "Md. Tariqul Islam", "designation": "Senior Technical Executive" },
+    "universalFastnessKey": "Universal Fastness Rating: Grade 5 = Excellent (No Change) · Grade 4 = Good · Grade 3 = Moderate · Grade 2 = Poor · Grade 1 = Very Poor",
+    "reviewedBy": { "name": "Md. Tariqul Islam", "designation": "Senior Technical Executive", "date": "13 Aug 2025" },
     "rslItems": [
       { "name": "Extractable Formaldehyde (ISO 14184-1)", "result": "PASS — ND (<16 mg/kg) vs limit 75" },
       { "name": "pH Value (EN ISO 3071)", "result": "PASS — 5.5 to 6.5 vs limit 4.0–7.5" },
@@ -286,16 +329,25 @@ REQUIRED SCHEMA DETAILS:
       { "std": "DIN EN ISO 105 X12", "title": "Colour Fastness to Rubbing", "val": "Dry 4–5 / Wet 4–5", "subVal": "Dry & Wet Crockmeter (PASS)", "desc": "Lengthwise and widthwise rubbing cycles resulted in minimal dye transfer.", "hint": "Exceeds requirement of Grade 4" },
       { "std": "DIN EN ISO 105 B02", "title": "Colour Fastness to Light", "val": "Grade 4", "subVal": "Xenon Arc Lamp (PASS)", "desc": "Evaluated under simulated sunlight; colors retain original vibrancy.", "hint": "Complies with European retail standards" },
       { "std": "DIN EN ISO 105-E04", "title": "Colour Fastness to Perspiration", "val": "Grade 4–5", "subVal": "Acidic & Alkaline Perspiration (PASS)", "desc": "Tested in synthetic acid and alkaline sweat solutions without staining.", "hint": "Optimal comfort for sleepwear garments" },
-      { "std": "ISO 1833", "title": "Quantitative Fibre Composition", "val": "48/47/5 Blend", "subVal": "Cotton 49.3% · Modal 46.8% · Elastane 3.8%", "desc": "Fibre tolerance is well within statutory ±3% European regulations.", "hint": "Perfect match with customer label declaration" }
+      { "std": "DIN 53160-1 / 2", "title": "Colour Fastness to Saliva & Sweat", "val": "Grade 5 (PASS)", "subVal": "Fast to Saliva & Perspiration", "desc": "Filter paper strips showed zero staining under test condition.", "hint": "Complies with German LFGB & toy safety standards" },
+      { "std": "BS 7907 / EN 71-1", "title": "Small Parts Security (Tear-off Force)", "val": ">90 N (PASS)", "subVal": "Tested at 90 N for 10 seconds", "desc": "No detachment or cracking of buttons, snaps, or decorative components.", "hint": "Choking hazard prevention requirement" },
+      { "std": "DIN EN 16732", "title": "Slide Fasteners (Zipper Strength)", "val": "PASS", "subVal": "Puller >70N · Top stop >50N · Lateral >150N", "desc": "Full mechanical endurance test (500 cycles reciprocating) without malfunction.", "hint": "High-durability zipper hardware" },
+      { "std": "16 CFR 1610 / EN 1103", "title": "Burning Behaviour (Flammability)", "val": "Class B (PASS)", "subVal": "No surface flash, burn rate compliant", "desc": "Tested according to European textile safety regulations.", "hint": "Safe for nightwear and childrenswear" },
+      { "std": "ISO 1833", "title": "Quantitative Fibre Composition", "val": "Verified Blend", "subVal": "Accurate to within statutory ±3% tolerance", "desc": "Fibre tolerance is well within statutory European regulations.", "hint": "Perfect match with customer label declaration" }
     ]
   },
   "care": {
-    "wash": "40°C machine wash with gentle cycle",
-    "bleach": "Do not bleach (oxygen or chlorine)",
-    "dry": "Do not tumble dry (line dry in shade)",
-    "iron": "Iron low heat (max 110°C, iron inside out)",
-    "dryClean": "Do not dry clean",
-    "labelWording": "Colour detergent recommended / Wash with similar colours / Laver avec des couleurs similaires."
+    "wash": "40°C machine wash with gentle cycle (or 'n/a')",
+    "bleach": "Do not bleach (or 'n/a')",
+    "dry": "Do not tumble dry (or 'n/a')",
+    "iron": "Iron low heat (max 110°C) (or 'n/a')",
+    "dryClean": "Do not dry clean (or 'n/a')",
+    "labelWording": "Care label instructions as written on document (or 'n/a')",
+    "stainRemovalHacks": {
+      "oilAndGrease": "Apply mild liquid detergent or talc/cornstarch to absorb oil, rest for 15 min, then wash.",
+      "ink": "Dab gently with isopropyl alcohol or warm milk using a cotton pad. Do not rub vigorously.",
+      "foodAndDrinks": "Flush immediately with cold water. Pre-treat organic stains with mild detergent or diluted white vinegar before washing."
+    }
   },
   "circularity": {
     "tips": [
@@ -402,7 +454,7 @@ Cross-reference all ${docs.length} document(s) and extract all technical data:
 - Extract supply chain facilities, locations, and testing laboratory information.
 - Extract care label instructions and symbols.
 - Extract packaging and environmental data if present in the document.
-REMEMBER: If any specific property, field, or table is NOT in the document(s), set it to "n/a" (or 0 for numbers). Do NOT make up or hallucinate missing information.
+- Ensure every section of the Digital Product Passport is fully populated: technical specifications from the documents, and high-quality European DPP circularity, upcycling, stain care, and environmental benchmarks tailored to the fabric. Never output 'n/a' for circularity, upcycle steps, stain hacks, or environmental metrics.
 
 ${documentsTextSection}`,
     });

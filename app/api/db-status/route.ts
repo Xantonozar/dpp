@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isCloudinaryConfigured } from '@/lib/cloudinary';
-import { isMongoConfigured, getMongoDb } from '@/lib/mongodb';
+import { isMongoConfigured, withMongoDb, getResolvedDbName } from '@/lib/mongodb';
 import { getInMemoryPassports } from '@/lib/in-memory-db';
 
 export async function GET() {
@@ -14,18 +14,20 @@ export async function GET() {
 
   if (mongoConfigured) {
     try {
-      const db = await getMongoDb();
-      // Test ping
-      await db.command({ ping: 1 });
+      passportCount = await withMongoDb(async (db) => {
+        await db.command({ ping: 1 });
+        const collection = db.collection('passports');
+        return await collection.countDocuments();
+      });
       mongoConnected = true;
-      const collection = db.collection('passports');
-      passportCount = await collection.countDocuments();
     } catch (err: any) {
       mongoConnected = false;
       mongoError = err?.message || 'Connection test failed';
       passportCount = inMemoryPassports.length;
     }
   }
+
+  const activeDbName = getResolvedDbName();
 
   return NextResponse.json({
     cloudinary: {
@@ -39,10 +41,10 @@ export async function GET() {
       configured: mongoConfigured,
       connected: mongoConnected,
       passportCount,
-      dbName: process.env.MONGODB_DB_NAME || 'tchibo_dpp',
+      dbName: activeDbName,
       error: mongoError,
       message: mongoConnected
-        ? `Connected to MongoDB database with ${passportCount} passport document(s).`
+        ? `Connected to MongoDB database "${activeDbName}" with ${passportCount} passport document(s).`
         : mongoConfigured
         ? `MongoDB URI provided but connection failed (${mongoError}). Serving ${passportCount} passport(s) from in-memory store.`
         : `Active in-memory store with ${passportCount} passport(s). Set MONGODB_URI in Settings to connect external MongoDB.`,
