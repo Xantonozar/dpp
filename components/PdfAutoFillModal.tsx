@@ -239,7 +239,7 @@ export default function PdfAutoFillModal({
           .filter((p) => p.compressedImage)
           .map((p) => p.compressedImage!);
 
-        // Only attach base64 binary if file is under 1.5MB to ensure request stays under Vercel's limit
+        // Only attach base64 binary if file is under 1.5MB and total base64 budget permits
         let fileBase64: string | undefined = undefined;
         if (file.size < 1.5 * 1024 * 1024 && scannedImages.length === 0) {
           try {
@@ -262,36 +262,37 @@ export default function PdfAutoFillModal({
       }
 
       setLoadingStep(
-        `Uploading ${files.length} document(s) with pre-extracted text (${totalExtractedChars.toLocaleString()} chars) to ${modelMeta.name}...`
+        `Synthesizing ${files.length} document(s) (${totalExtractedChars.toLocaleString()} chars across ${totalPages} pages) with ${modelMeta.name}...`
       );
 
-      // Send via FormData so full PDF binaries are transferred natively alongside extracted text
-      const formData = new FormData();
-      for (const file of files) {
-        formData.append('files', file);
-      }
-      formData.append('model', modelToUse);
-      if (currentData) {
-        formData.append('existingData', JSON.stringify(currentData));
-      }
-      formData.append('clientExtractedText', JSON.stringify(extractedDocs.map((d) => ({
-        fileName: d.fileName,
-        pageCount: d.pageCount,
-        extractedText: d.extractedText,
-      }))));
-
+      // Send via JSON to stay safely under Vercel's 4.5MB serverless payload limit
       const response = await fetch('/api/extract-passport', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          extractedDocs,
+          existingData: currentData,
+          model: modelToUse,
+        }),
       });
 
       setLoadingStep('Synthesizing specs, lab test cards, measurements, and circularity data...');
+
+      // Read response stream ONCE as text to completely eliminate "Body is disturbed or locked"
+      const rawResponseText = await response.text();
       let result: any = null;
       try {
-        result = await response.json();
+        result = JSON.parse(rawResponseText);
       } catch {
-        const text = await response.text();
-        result = { error: text || `HTTP ${response.status}: Server returned an error` };
+        if (response.status === 413) {
+          result = { error: 'Payload exceeded serverless execution limit (HTTP 413).' };
+        } else if (response.status === 504) {
+          result = { error: 'Extraction request timed out (HTTP 504). Please retry with Gemini 3.1 Flash Lite.' };
+        } else {
+          result = { error: rawResponseText.slice(0, 300) || `HTTP ${response.status}: Server returned an error` };
+        }
       }
 
       if (!response.ok || !result || result.error) {
