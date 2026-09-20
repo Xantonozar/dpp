@@ -1100,7 +1100,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                 </div>
                 <div className="bg-surface-2 border border-line rounded-xl p-2.5 sm:p-3 text-center sm:text-left">
                   <div className="text-[9px] font-semibold text-muted uppercase tracking-widest mb-1">Lifetime</div>
-                  <div className="text-[13px] sm:text-[14px] font-bold text-ink">{data.general.lifetimeYears || '4+ Years'}</div>
+                  <div className="text-[13px] sm:text-[14px] font-bold text-ink">{data.general.lifetimeYears || 'Not Specified'}</div>
                 </div>
                 <div className="bg-surface-2 border border-line rounded-xl p-2.5 sm:p-3 text-center sm:text-left">
                   <div className="text-[9px] font-semibold text-muted uppercase tracking-widest mb-1">Impact Status</div>
@@ -1506,8 +1506,8 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                   </thead>
                   <tbody>
                     {measurementsList && measurementsList.length > 0 ? (
-                      measurementsList.map(r => (
-                        <tr key={r.k} className="border-b border-line last:border-b-0 hover:bg-surface-2 transition-colors">
+                      measurementsList.map((r, idx) => (
+                        <tr key={`${r.k}-${idx}`} className="border-b border-line last:border-b-0 hover:bg-surface-2 transition-colors">
                           <td className="py-2.5 font-mono font-bold text-green">{r.k}</td>
                           <td className="py-2.5">
                             <div className="font-semibold text-ink">{r.name}</div>
@@ -1614,6 +1614,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
               {(data.traceability?.nodes || [])
                 .filter(
                   node =>
+                    Boolean(node.title && node.title.trim() !== '') &&
                     !node.tier?.toLowerCase().includes('tier 4') &&
                     !node.title?.toLowerCase().includes('cooperative') &&
                     !node.title?.toLowerCase().includes('raw material')
@@ -2329,55 +2330,6 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
               </div>
             </Reveal>
           )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-[26px]">
-            <Reveal className="bg-green-dark text-[#EAF3EC] border border-none rounded-[18px] shadow-custom p-5 sm:p-[26px]">
-              <h3 className="text-[16px] font-bold text-white mb-1.5">♻️ Fibre Facts & Take-Back Information</h3>
-              <p className="text-[12.5px] text-[#B9D3C1] mb-4">What happens after the last wear</p>
-              <ul className="list-none grid gap-2.5 text-[13px]">
-                {data.circularity?.fibreRecyclingFacts && data.circularity.fibreRecyclingFacts.length > 0 ? (
-                  (data.circularity?.fibreRecyclingFacts || []).map((fact, i) => (
-                    <li key={i} className="flex gap-2.5 items-start">
-                      <i className="not-italic text-lime">→</i> {fact}
-                    </li>
-                  ))
-                ) : (
-                  <li className="text-xs italic text-[#B9D3C1]">
-                    Standard municipal and retailer textile collection streams apply.
-                  </li>
-                )}
-              </ul>
-            </Reveal>
-
-            <Reveal className="bg-surface border border-line rounded-[18px] shadow-custom p-[26px]">
-              <h3 className="text-[16px] font-bold mb-1.5 text-ink">📍 Local Textile Drop-Off Finder</h3>
-              <p className="text-[12.5px] text-muted mb-4">EU separate textile collection active</p>
-              <form onSubmit={handleLocSearch} className="flex gap-2.5 mb-3.5">
-                <input
-                  type="text"
-                  placeholder="Enter city or postcode..."
-                  required
-                  className="flex-1 border border-line-2 rounded-xl p-2.5 px-3.5 text-[13px] bg-surface-2 outline-none transition-colors focus:border-green focus:bg-white text-ink"
-                />
-                <button
-                  type="submit"
-                  className="bg-ink text-lime border-none rounded-xl p-2.5 px-[18px] font-bold text-[13px] cursor-pointer hover:bg-ink/80 transition-colors"
-                >
-                  Find
-                </button>
-              </form>
-              <AnimatePresence>
-                {locResult && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-green-soft border border-[#BCD8C6] rounded-xl p-3.5 px-4 text-[13px] text-ink"
-                    dangerouslySetInnerHTML={{ __html: locResult }}
-                  />
-                )}
-              </AnimatePresence>
-            </Reveal>
-          </div>
         </div>
       </section>
 

@@ -910,57 +910,46 @@ export function createEmptyPassport(customId?: string): PassportData {
 export const BABY_WEAR_PASSPORT_PRESET: PassportData = {
   general: {
     projectId: '151525',
-    orderNo: '4300085070',
-    version: 'v3.0',
+    orderNo: '4300088539',
+    version: 'v4',
     completeness: 100,
-    updatedDate: '30 Oct 2025',
-    productName: "Baby Sleepsuit & Romper (1-Piece Organic Cotton)",
-    subtitle: '100% Organic Cotton Ribbed Single Jersey · Asymmetrical YKK Zip & Snap · Sizes 50/56 to 98/104',
+    updatedDate: '10 Mar 2026',
+    productName: "baby pyjamas, 3pcs",
+    subtitle: '100% Cotton Single Jersey · 180 g/m² · Sizes 50/56 to 98/104',
     brand: 'Tchibo GmbH',
-    season: 'AW 2025',
+    season: 'SS26',
     category: 'Babywear & Sleepwear',
     gender: 'Baby / Unisex',
-    color: '9 Colorways Collection (Egret, Beige Melange, Pristine Pink, Oil Green, Tanzine, Beaujolais, etc.)',
+    color: '9 Colorways Collection (Egret Stripe, Pristine Pink AOP, Oil Green, Tanzine, Beaujolais, etc.)',
     fitting: 'Regular Baby Sleepsuit Fit with Chin Guard & Foldover Cuffs',
-    passportId: 'DPP-BD-2025-BV93252950371',
+    passportId: 'DPP-BD-2026-BV68260540500',
     status: 'VERIFIED',
-    designDescription: '1-piece baby sleepsuit with full-length diagonal chin-guarded YKK nylon coil zipper, snap button at collar, ribbed neck trim, set-in sleeves with extensible cuffs, and elasticated ankle openings.',
-    weightGsm: 200,
+    designDescription: '1-piece baby pyjamas set in 100% cotton single jersey 180 g/m². Features full-length diagonal chin-guarded YKK nylon coil zipper, snap button at collar, ribbed neck trim, set-in sleeves with extensible cuffs, and elasticated ankle openings.',
+    weightGsm: 180,
     originCountry: 'Bangladesh',
-    lifetimeYears: '2+ Years (Circular Resale Ready)',
-    carbonKg: 2.1,
-    qrCodeSeed: '151525-4300085070-BV93252950371',
-    qrCodeLab: 'Testing by Bureau Veritas Consumer Products Services (BD) Ltd. · Report (9325)295-0371 · PASS\nReviewed by Belal Hossain, Senior Manager',
+    lifetimeYears: '',
+    carbonKg: 0,
+    qrCodeSeed: '151525-4300088539-BV68260540500',
+    qrCodeLab: 'Testing by Bureau Veritas Consumer Products Services (BD) Ltd. · Report (6826)054-0500 · PASS\nReviewed by Belal Hossain, Senior Manager',
     badges: [
-      'GOTS Certified Organic Cotton',
+      'Tchibo GOTS Standard Version 1/2024 PASS',
       'Bureau Veritas Tested & Approved',
       'DIN 53160 Saliva & Sweat Fastness Grade 5',
-      'DIN EN 71-1 Toy & Baby Safety >200N',
+      'DIN EN 71-1 Toy & Baby Safety >190N',
       'AFIRM RSL Category 1 PASS',
-      'Nickel-Free Prym Snaps',
+      'Nickel-Free Snaps',
       'Oeko-Tex Standard 100 Class I'
     ],
     articleNumbers: {
-      cw1: { '50/56': '731101', '62/68': '731102', '74/80': '731103', '86/92': '731104', '98/104': '731105' },
-      cw2: { '50/56': '731106', '62/68': '731107', '74/80': '731108', '86/92': '731109', '98/104': '731110' },
-      cw3: { '50/56': '731111', '62/68': '731112', '74/80': '731113', '86/92': '731114', '98/104': '731115' },
-      cw4: { '50/56': '731116', '62/68': '731117', '74/80': '731118', '86/92': '731119', '98/104': '731120' },
-      cw5: { '50/56': '731121', '62/68': '731122', '74/80': '731123', '86/92': '731124', '98/104': '731125' },
-      cw6: { '50/56': '731126', '62/68': '731127', '74/80': '731128', '86/92': '731129', '98/104': '731130' },
-      cw7: { '50/56': '731131', '62/68': '731132', '74/80': '731133', '86/92': '731134', '98/104': '731135' },
-      cw8: { '50/56': '731136', '62/68': '731137', '74/80': '731138', '86/92': '731139', '98/104': '731140' },
-      cw9: { '50/56': '731141', '62/68': '731142', '74/80': '731143', '86/92': '731144', '98/104': '731145' }
+      cwA: { '50/56': '737854', '62/68': '737855', '74/80': '737857', '86/92': '737858', '98/104': '737856' },
+      cwB: { '50/56': '737859', '62/68': '737860', '74/80': '737861', '86/92': '737862', '98/104': '737863' },
+      cwC: { '50/56': '737865', '62/68': '737866', '74/80': '737867', '86/92': '737868', '98/104': '737864' }
     },
+    gtinStatus: 'Pending manual input (45 GTIN codes = 9 colors x 5 sizes)',
     gtinCodes: {
-      cw1: { '50/56': '4061234850011', '62/68': '4061234850028', '74/80': '4061234850035', '86/92': '4061234850042', '98/104': '4061234850059' },
-      cw2: { '50/56': '4061234850066', '62/68': '4061234850073', '74/80': '4061234850080', '86/92': '4061234850097', '98/104': '4061234850103' },
-      cw3: { '50/56': '4061234850110', '62/68': '4061234850127', '74/80': '4061234850134', '86/92': '4061234850141', '98/104': '4061234850158' },
-      cw4: { '50/56': '4061234850165', '62/68': '4061234850172', '74/80': '4061234850189', '86/92': '4061234850196', '98/104': '4061234850202' },
-      cw5: { '50/56': '4061234850219', '62/68': '4061234850226', '74/80': '4061234850233', '86/92': '4061234850240', '98/104': '4061234850257' },
-      cw6: { '50/56': '4061234850264', '62/68': '4061234850271', '74/80': '4061234850288', '86/92': '4061234850295', '98/104': '4061234850301' },
-      cw7: { '50/56': '4061234850318', '62/68': '4061234850325', '74/80': '4061234850332', '86/92': '4061234850349', '98/104': '4061234850356' },
-      cw8: { '50/56': '4061234850363', '62/68': '4061234850370', '74/80': '4061234850387', '86/92': '4061234850394', '98/104': '4061234850400' },
-      cw9: { '50/56': '4061234850417', '62/68': '4061234850424', '74/80': '4061234850431', '86/92': '4061234850448', '98/104': '4061234850455' }
+      cwA: { '50/56': '', '62/68': '', '74/80': '', '86/92': '', '98/104': '' },
+      cwB: { '50/56': '', '62/68': '', '74/80': '', '86/92': '', '98/104': '' },
+      cwC: { '50/56': '', '62/68': '', '74/80': '', '86/92': '', '98/104': '' }
     },
     packagingInfo: {
       materials: '',
@@ -969,23 +958,23 @@ export const BABY_WEAR_PASSPORT_PRESET: PassportData = {
       certification: ''
     },
     visuals: {
-      cw1Name: 'CW 1: Egret Stripe',
+      cw1Name: 'Color A: 11-0103 TCX Egret (Stripe)',
       cw1Image: '',
-      cw2Name: 'CW 2: Beige Melange',
+      cw2Name: 'Color B: 13201 VOL.41',
       cw2Image: '',
       aiModelInfo: 'Technical CAD Pattern 151525',
-      prompt: 'Baby romper 1-piece with diagonal zipper and neck snap in certified organic cotton',
-      colors: 'Egret, Beige, Pristine Pink, Oil Green, Tanzine, Beaujolais, Yellow, Bridal Rose',
+      prompt: 'Baby pyjamas 3pcs 1-piece with diagonal zipper and neck snap in certified cotton',
+      colors: 'Egret (Stripe), 13201 VOL.41, Egret (AOP), Pristine Pink (AOP), Oil Green, Tanzine, Beaujolais, Pristine (Beige/Yellow AOP), Bridal Rose',
       colorways: [
-        { id: 'cw1', code: 'CW1', name: 'CW 1: Egret Stripe', pantone: '11-0103 TCX Egret', hex: '#F3EFE0', url: '' },
-        { id: 'cw2', code: 'CW2', name: 'CW 2: Beige Melange', pantone: '14-1107 TCX Beige Melange', hex: '#D6C6B2', url: '' },
-        { id: 'cw3', code: 'CW3', name: 'CW 3: Egret AOP Stars', pantone: '11-0103 TCX Egret', hex: '#EDE8D5', url: '' },
-        { id: 'cw4', code: 'CW4', name: 'CW 4: Pristine Pink AOP', pantone: '12-1305 TCX Pristine Pink', hex: '#F4D8D8', url: '' },
-        { id: 'cw5', code: 'CW5', name: 'CW 5: Oil Green', pantone: '18-0317 TCX Oil Green', hex: '#586E4B', url: '' },
-        { id: 'cw6', code: 'CW6', name: 'CW 6: Tanzine', pantone: '19-3950 TCX Tanzine', hex: '#2C3E55', url: '' },
-        { id: 'cw7', code: 'CW7', name: 'CW 7: Beaujolais', pantone: '19-2430 TCX Beaujolais', hex: '#632A39', url: '' },
-        { id: 'cw8', code: 'CW8', name: 'CW 8: Pristine Yellow AOP', pantone: '11-0604 TCX Pristine Yellow', hex: '#F9EBAE', url: '' },
-        { id: 'cw9', code: 'CW9', name: 'CW 9: Bridal Rose', pantone: '14-1310 TCX Bridal Rose', hex: '#E8B4B8', url: '' }
+        { id: 'cwA', code: 'A', name: 'Color A: 11-0103 TCX Egret (Stripe)', pantone: '11-0103 TCX Egret (Stripe)', hex: '#F3EFE0', url: '' },
+        { id: 'cwB', code: 'B', name: 'Color B: 13201 VOL.41', pantone: '13201 VOL.41', hex: '#D6C6B2', url: '' },
+        { id: 'cwC', code: 'C', name: 'Color C: 11-0103 TCX Egret (AOP)', pantone: '11-0103 TCX Egret (AOP)', hex: '#EDE8D5', url: '' },
+        { id: 'cwD', code: 'D', name: 'Color D: 11-0606 TCX Pristine Pink (AOP)', pantone: '11-0606 TCX Pristine Pink (AOP)', hex: '#F4D8D8', url: '' },
+        { id: 'cwE', code: 'E', name: 'Color E: 17-0115 TCX Oil Green', pantone: '17-0115 TCX Oil Green', hex: '#586E4B', url: '' },
+        { id: 'cwF', code: 'F', name: 'Color F: 17-1328 TCX Tanzine', pantone: '17-1328 TCX Tanzine', hex: '#2C3E55', url: '' },
+        { id: 'cwG', code: 'G', name: 'Color G: 18-2027 TCX Beaujolais', pantone: '18-2027 TCX Beaujolais', hex: '#632A39', url: '' },
+        { id: 'cwH', code: 'H', name: 'Color H: 11-0606 TCX Pristine (Beige/Yellow AOP)', pantone: '11-0606 TCX Pristine (Beige/Yellow AOP)', hex: '#F9EBAE', url: '' },
+        { id: 'cwI', code: 'I', name: 'Color I: 15-1611 TCX Bridal Rose', pantone: '15-1611 TCX Bridal Rose', hex: '#E8B4B8', url: '' }
       ]
     }
   },
@@ -995,27 +984,28 @@ export const BABY_WEAR_PASSPORT_PRESET: PassportData = {
     modal: 0,
     elastane: 0,
     recycledContent: 0,
-    fabricWeight: 200,
-    tolerance: '±3%',
+    fabricWeight: 180,
+    tolerance: '±5%',
     yarnSources: {
-      cottonCert: 'GOTS Organic Cotton · Scope Certificate CU812345 · Non-GMO Verified',
-      modalCert: 'N/A (100% Pure Organic Cotton)',
-      elastaneCert: 'N/A (Mechanical rib stretch without synthetic elastane)'
+      cottonCert: 'GOTS Organic Cotton · 100% Cotton single jersey 180 g/m²',
+      modalCert: 'N/A (100% Cotton)',
+      elastaneCert: 'N/A'
     },
     labAnalysis: [
-      { fiber: 'Organic Cotton (ISO 1833)', labeled: '100%', lab: '100% (PASS)' }
+      { fiber: 'Cotton (ISO 1833)', labeled: '100%', lab: '100% (PASS)' }
     ],
-    microfibreNote: '100% natural organic cotton fibers. Zero synthetic microplastic shedding during domestic laundry.',
+    microfibreNote: '100% natural cotton fibers. Zero synthetic microplastic shedding during domestic laundry.',
     svhcSubstances: [
-      { substance: 'REACH SVHC Candidate List (240 Substances)', cas: 'Various', component: 'Fabric, Zipper, Snaps & Sewing Thread', status: 'PASS (<0.01% ND)' },
-      { substance: 'Extractable Heavy Metals (Lead, Cadmium, Nickel)', cas: 'Various', component: 'Metal Snaps & Zipper Puller', status: 'PASS (Compliant EN 71-3)' },
-      { substance: 'Phthalates & Plasticizers', cas: 'Various', component: 'Printed Labels & Coatings', status: 'PASS (ND <0.005%)' }
+      { substance: 'Extractable heavy metals (Arsenic, Lead, Cadmium, Mercury, Copper, Chromium, Cobalt, Nickel, Barium, Selenium)', cas: 'ISO 17294-2 / EN 16711-2', component: 'Shell & Contrast', status: 'PASS (ND)' },
+      { substance: 'Azo amines and Arylamine salts (Splitting off Amines)', cas: 'EN 14362-1 and -3', component: 'Dyed Jersey & Threads', status: 'PASS (ND <5 mg/kg)' },
+      { substance: 'Phthalates', cas: 'DIN EN 15777 / ISO 14389', component: 'Elastic tape & prints', status: 'PASS (ND <50 mg/kg)' },
+      { substance: 'Formaldehyde', cas: 'DIN EN ISO 14184-1', component: 'Shell & pockets', status: 'PASS (ND <16 mg/kg)' }
     ]
   },
   measurements: {
     categoryType: 'one_piece',
     sizeHeaders: ['50/56', '62/68', '74/80', '86/92', '98/104'],
-    allowedShrinkage: 'Length: max -4.0% · Width: max -4.0% (after 60°C wash)',
+    allowedShrinkage: 'Allowed dimensional change after wash: 6.0%',
     pomCount: 16,
     topFit: 'N/A (One-Piece Garment)',
     bottomFit: 'N/A (One-Piece Garment)',
@@ -1023,33 +1013,33 @@ export const BABY_WEAR_PASSPORT_PRESET: PassportData = {
     top: [],
     bottom: [],
     onePiece: [
-      { k: 'C', name: '1/2 Chest width (measured 1cm below armhole)', how: 'Measure horizontally straight across front from armhole crease to armhole crease', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 23.0, '62/68': 25.0, '74/80': 27.0, '86/92': 29.0, '98/104': 31.0 } },
-      { k: 'H', name: '1/2 Hip width (measured at widest seat point)', how: 'Measure horizontally straight across hips at widest point', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 25.0, '62/68': 27.0, '74/80': 29.0, '86/92': 31.0, '98/104': 33.0 } },
-      { k: 'STS', name: 'Shoulder to shoulder width', how: 'Measure straight across back from shoulder tip seam to shoulder tip seam', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 18.0, '62/68': 19.5, '74/80': 21.0, '86/92': 22.5, '98/104': 24.0 } },
-      { k: 'SL', name: 'Sleeve length incl. cuff', how: 'Measure along outside sleeve edge from shoulder point seam down to folded cuff edge', tolMinus: 0.8, tolPlus: 0.8, g: null, vals: { '50/56': 20.0, '62/68': 23.5, '74/80': 27.0, '86/92': 31.0, '98/104': 35.0 } },
-      { k: 'AS', name: 'Armhole straight', how: 'Measure straight from top shoulder point to bottom underarm seam', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 10.0, '62/68': 11.0, '74/80': 12.0, '86/92': 13.0, '98/104': 14.0 } },
-      { k: 'UAW', name: '1/2 Upper arm width', how: 'Measure straight across sleeve perpendicular to grain at widest point', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 8.0, '62/68': 8.8, '74/80': 9.6, '86/92': 10.4, '98/104': 11.2 } },
-      { k: 'NO', name: 'Neck opening (seam to seam)', how: 'Measure straight across neck opening from high shoulder points', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 11.0, '62/68': 11.5, '74/80': 12.0, '86/92': 12.5, '98/104': 13.0 } },
-      { k: 'NDF', name: 'Neck drop front', how: 'Measure vertically from imaginary line across high shoulder points to front center neck seam', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 4.5, '62/68': 5.0, '74/80': 5.5, '86/92': 6.0, '98/104': 6.5 } },
-      { k: 'T', name: '1/2 Thigh width', how: 'Measure straight across leg perpendicular to inseam 2cm below crotch gusset', tolMinus: 0.8, tolPlus: 0.8, g: null, vals: { '50/56': 13.0, '62/68': 14.0, '74/80': 15.0, '86/92': 16.0, '98/104': 17.0 } },
-      { k: 'TH', name: 'Trim height (Neck ribbing collar)', how: 'Measure height of neck rib band', tolMinus: 0.2, tolPlus: 0.2, g: null, vals: { '50/56': 1.5, '62/68': 1.5, '74/80': 1.5, '86/92': 1.5, '98/104': 1.5 } },
-      { k: 'LO', name: '1/2 Leg opening (Ankle width above cuff)', how: 'Measure straight across lower leg above ankle cuff ribbing', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 7.0, '62/68': 7.5, '74/80': 8.0, '86/92': 8.5, '98/104': 9.0 } },
-      { k: 'CUH', name: 'Leg cuff height', how: 'Measure height of ribbed ankle cuff', tolMinus: 0.3, tolPlus: 0.3, g: null, vals: { '50/56': 4.0, '62/68': 4.0, '74/80': 4.5, '86/92': 4.5, '98/104': 5.0 } },
-      { k: 'CUW', name: 'Sleeve 1/2 cuff width', how: 'Measure straight across sleeve opening edge', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 5.5, '62/68': 6.0, '74/80': 6.5, '86/92': 7.0, '98/104': 7.5 } },
-      { k: 'SCUH', name: 'Sleeve cuff height', how: 'Measure height of ribbed sleeve wrist cuff', tolMinus: 0.3, tolPlus: 0.3, g: null, vals: { '50/56': 3.5, '62/68': 3.5, '74/80': 4.0, '86/92': 4.0, '98/104': 4.5 } },
-      { k: 'IL', name: 'Inseam length', how: 'Measure along inside leg seam from crotch point down to lower leg cuff edge', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 16.0, '62/68': 20.5, '74/80': 25.5, '86/92': 31.0, '98/104': 36.5 } },
-      { k: 'CBL', name: 'Center back length (Total body length)', how: 'Measure vertically from center back neck seam straight down to crotch seam', tolMinus: 1.5, tolPlus: 1.5, g: null, vals: { '50/56': 50.0, '62/68': 58.0, '74/80': 66.0, '86/92': 75.0, '98/104': 84.0 } }
+      { k: 'C', name: '1/2 chest', how: '2 cm below armhole', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 25.0, '62/68': 27.0, '74/80': 29.0, '86/92': 31.0, '98/104': 33.0 } },
+      { k: 'H', name: '1/2 hip', how: 'across 1. button above crotch, at right angle to grainline', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 26.0, '62/68': 28.0, '74/80': 30.0, '86/92': 32.0, '98/104': 34.0 } },
+      { k: 'STS', name: 'shoulder to shoulder', how: 'distance outer shoulder points', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 19.0, '62/68': 21.0, '74/80': 23.0, '86/92': 25.0, '98/104': 26.0 } },
+      { k: 'SL', name: 'sleeve length', how: 'along sleeve-fold', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 23.5, '62/68': 27.5, '74/80': 29.0, '86/92': 32.5, '98/104': 36.0 } },
+      { k: 'AS', name: 'armhole straight', how: 'at right angle', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 9.5, '62/68': 10.5, '74/80': 11.5, '86/92': 12.5, '98/104': 13.5 } },
+      { k: 'UAW', name: '1/2 upper arm width', how: 'right angle to sleeve-fold', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 8.5, '62/68': 9.5, '74/80': 10.5, '86/92': 11.5, '98/104': 12.5 } },
+      { k: 'NO', name: 'neckopening', how: 'edge to edge', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 10.5, '62/68': 11.5, '74/80': 12.5, '86/92': 13.5, '98/104': 14.5 } },
+      { k: 'NDF', name: 'neck drop, front', how: 'edge to edge', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 3.0, '62/68': 3.5, '74/80': 4.0, '86/92': 4.5, '98/104': 5.0 } },
+      { k: 'T', name: '1/2 thigh', how: 'from fold to fold (as per sketch)', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 15.5, '62/68': 16.0, '74/80': 16.5, '86/92': 17.0, '98/104': 17.5 } },
+      { k: 'TH', name: 'trim height', how: 'binding', tolMinus: 0.2, tolPlus: 0.2, g: null, vals: { '50/56': 1.5, '62/68': 1.5, '74/80': 1.5, '86/92': 1.5, '98/104': 1.5 } },
+      { k: 'LO', name: '1/2 leg opening', how: 'along edge', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 6.5, '62/68': 7.0, '74/80': 7.5, '86/92': 8.0, '98/104': 8.5 } },
+      { k: 'CUH', name: 'cuff height', how: 'ONLY: 50/56 + 62/68 (or 74/80-98/104)', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 8.0, '62/68': 8.5, '74/80': 11.5, '86/92': 12.0, '98/104': 12.0 } },
+      { k: 'CUW', name: 'sleeve 1/2 cuff width', how: 'measured straight at edge', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 6.0, '62/68': 7.0, '74/80': 7.0, '86/92': 8.0, '98/104': 8.0 } },
+      { k: 'SCUH', name: 'sleeve cuff height', how: 'ONLY: 50/56 + 62/68 (or 74/80-98/104)', tolMinus: 0.5, tolPlus: 0.5, g: null, vals: { '50/56': 6.0, '62/68': 7.0, '74/80': 9.0, '86/92': 10.0, '98/104': 10.0 } },
+      { k: 'IL', name: 'inseam length', how: 'along inseam measured as per how to sketch', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 16.5, '62/68': 22.5, '74/80': 25.0, '86/92': 31.0, '98/104': 36.0 } },
+      { k: 'CBL', name: 'center back length', how: 'from neckseam', tolMinus: 1.0, tolPlus: 1.0, g: null, vals: { '50/56': 36.0, '62/68': 40.0, '74/80': 44.0, '86/92': 48.0, '98/104': 52.0 } }
     ]
   },
   traceability: {
     percentage: 100,
-    summary: 'Tier 1 (Garment Assembly), Tier 2 (Fabric Manufacturing), Tier 3 (Fiber/Yarn) & Testing Facility verified.',
+    summary: 'Tier 1 (Garment Assembly), Tier 2 (Fabric Manufacturing), Tier 3 (Fiber/Yarn) & Bureau Veritas Testing Facility verified.',
     origin: {
       country: 'Bangladesh',
-      city: 'Gazipur, Dhaka',
-      facility: 'Fakir Fashion Ltd. (Garment Assembly)',
-      lat: 23.9999,
-      lng: 90.4203
+      city: 'Dhaka',
+      facility: 'AKH KNITTING & DYEING LTD.',
+      lat: 23.8103,
+      lng: 90.4125
     },
     destination: {
       country: 'Germany',
@@ -1060,7 +1050,7 @@ export const BABY_WEAR_PASSPORT_PRESET: PassportData = {
     },
     testingLab: {
       name: 'Bureau Veritas Consumer Products Services (BD) Ltd.',
-      reportNo: '(9325)295-0371',
+      reportNo: '(6826)054-0500',
       location: 'Dhaka, Bangladesh',
       result: 'PASS'
     },
@@ -1068,237 +1058,212 @@ export const BABY_WEAR_PASSPORT_PRESET: PassportData = {
       {
         tier: 'Tier 1 (Garment Assembly)',
         date: '',
-        title: 'Fakir Fashion Ltd.',
-        subtitle: 'Gazipur, Dhaka, Bangladesh',
+        title: 'AKH KNITTING & DYEING LTD.',
+        subtitle: 'Dhaka, Bangladesh',
         color: 'green',
         items: [
           { label: 'Role', val: 'Garment Assembly (Cut, Make & Trim)' },
-          { label: 'Location', val: 'Gazipur, Dhaka, Bangladesh' },
-          { label: 'Audit / Standard', val: 'BSCI Grade A / SA8000' }
+          { label: 'Location', val: 'Dhaka, Bangladesh' }
         ]
       },
       {
         tier: 'Tier 2 (Fabric Manufacturing)',
         date: '',
-        title: 'Fakir Knitwear & Textile Processing Ltd.',
-        subtitle: 'Narayanganj, Bangladesh',
+        title: '',
+        subtitle: '',
         color: 'green',
         items: [
-          { label: 'Knitting', val: 'Knitting Facility, Narayanganj' },
-          { label: 'Dyeing / Printing', val: 'Water-based Pigment Printing' },
-          { label: 'Finishing', val: 'Mechanical Pre-Shrink Finishing' }
+          { label: 'Knitting', val: '' },
+          { label: 'Dyeing / Printing', val: '' },
+          { label: 'Finishing', val: '' }
         ]
       },
       {
         tier: 'Tier 3 (Fiber / Yarn)',
         date: '',
-        title: 'Square Spinning Mills Ltd.',
-        subtitle: 'Hobiganj, Bangladesh',
+        title: '',
+        subtitle: '',
         color: 'green',
         items: [
-          { label: 'Role', val: 'Fiber / Yarn Spinning' },
-          { label: 'Location', val: 'Hobiganj, Bangladesh' }
+          { label: 'Role', val: '' },
+          { label: 'Location', val: '' }
         ]
       }
     ]
   },
   quality: {
-    rslStandards: 'Tested under EU REACH SVHC, AFIRM Baby RSL Category 1 & German LFGB § 30/31',
-    reportNumber: '(9325)295-0371',
+    rslStandards: 'TCHIBO GOTS Standard Version 1/2024 dated (28 January 2026)',
+    reportNumber: '(6826)054-0500',
     overallResult: 'PASS',
     testingLab: 'Bureau Veritas Consumer Products Services (BD) Ltd.',
     universalFastnessKey: 'Tested under DIN EN ISO 105 & DIN 53160:2023-07. Grade 5 = Negligible or no staining / color change (Highest standard).',
     reviewedBy: {
-      name: 'Belal Hossain',
-      designation: 'Senior Manager – Analytical & Physical Testing, Bureau Veritas BD',
-      date: '30 Oct 2025'
+      name: 'BELAL HOSSAIN',
+      designation: 'SENIOR MANAGER, Bureau Veritas BD',
+      date: 'March 4, 2026'
     },
     rslItems: [
-      { name: 'Extractable Heavy Metals (Lead, Cadmium, Nickel)', result: 'PASS — ND (<0.1 mg/kg)' },
-      { name: 'Formaldehyde (ISO 14184-1)', result: 'PASS — ND (<5 mg/kg, Limit: <16 ppm)' },
-      { name: 'pH Value of Aqueous Extract (ISO 3071)', result: 'PASS — 6.2 (Skin Neutral range 4.0–7.5)' },
-      { name: 'Phthalates (DBP, BBP, DEHP, DINP, DIDP, DNOP)', result: 'PASS — ND (<0.005%)' },
-      { name: 'Organotin Compounds (TBT, DBT, DOT)', result: 'PASS — ND (<0.02 mg/kg)' },
-      { name: 'Arylamines from Cleavable Azo Dyes (EN ISO 14362-1)', result: 'PASS — ND (<5 mg/kg, Limit: 20 ppm)' },
-      { name: 'Alkylphenol Ethoxylates (APEO/NPEO/OPEO)', result: 'PASS — ND (<10 mg/kg)' },
-      { name: 'Chlorinated Phenols (PCP/TeCP/TCP)', result: 'PASS — ND (<0.05 mg/kg)' }
+      { name: 'Formaldehyde', result: 'ND(<16) mg/kg · limit 16' },
+      { name: 'pH value', result: '6.0 - 6.8 · limit 4.5 - 7.5' },
+      { name: 'Odour test', result: 'Grade 1 · limit Grade 3' },
+      { name: 'Extractable heavy metals (Arsenic, Lead, Cadmium, Mercury, Copper, Chromium, Cobalt, Nickel, Barium, Selenium)', result: 'ND · PASS' },
+      { name: 'Total Heavy metals (Arsenic, Lead, Cadmium, Mercury, Chromium, Chromium VI)', result: 'Lead 34.2 mg/kg (limit 75 babywear) · PASS' },
+      { name: 'Pentachlorophenol (PCP), Tetrachlorophenol (TeCP) & Trichlorophenol (TriCP)', result: 'ND (<0.05) mg/kg · PASS' },
+      { name: 'Chlorinated paraffins (SCCP & MCCP)', result: 'ND (<50) mg/kg · PASS' },
+      { name: 'Azo amines and Arylamine salts (Splitting off Amines)', result: 'ND (<5) mg/kg · limit 20' },
+      { name: 'Aniline', result: 'ND (<5) mg/kg · limit 20' },
+      { name: 'Dyes (disperse and forbidden)', result: 'ND (<15) mg/kg · limit 20' },
+      { name: 'Phthalates', result: 'ND (<50) mg/kg · limit 100' },
+      { name: 'Organotin compounds', result: 'ND (<0.1) mg/kg · limit 1 (babywear)' },
+      { name: 'Alkylphenols (AP)', result: 'ND (<10) mg/kg · limit 10' },
+      { name: 'Alkylphenols (AP) & Alkylphenolethoxylates (APEO)', result: 'ND (<20) mg/kg · limit 20' },
+      { name: 'Nickel release', result: 'ND (<0.1) µg/cm²/week · limit 0.5' },
+      { name: 'Polycyclic Aromatic Hydrocarbons (PAHs)', result: 'ND (<0.2) mg/kg · limit 0.5' }
     ],
     labCards: [
       {
-        std: 'DIN EN ISO 105-C06',
+        std: 'DIN EN ISO 105 C06',
         title: 'Colour Fastness to Washing',
         val: 'Grade 4–5 (PASS)',
         subVal: 'Colour change 4–5 · Staining 4–5',
-        desc: 'Test A2S, 30 min @ 60°C / 40°C with ECE detergent + sodium perborate, 10 steel balls. Zero dye transfer or degradation.',
-        hint: '60°C Baby Hygiene Wash Cycle certified'
+        desc: 'Mechanical wash at 40°C in 0.4% ECE reference detergent with 10 steel balls. Zero dye transfer.',
+        hint: '40°C Wash Cycle certified'
       },
       {
-        std: 'DIN EN ISO 105-X12',
-        title: 'Colour Fastness to Rubbing / Crocking',
+        std: 'DIN EN ISO 105 X12',
+        title: 'Colour Fastness to Rubbing',
         val: 'Grade 4–5 (PASS)',
         subVal: 'Dry 4–5 · Wet 4–5',
-        desc: 'Friction test on solid dyed fabric and all-over-prints (AOP) lengthwise and widthwise under standard pressure.',
-        hint: 'Commercial benchmark: ≥ 4.0 · Exceeds baby specifications'
+        desc: 'Tested length wise and width wise on dry and wet crockmeter.',
+        hint: 'Exceeds requirement of Grade 3-4'
       },
       {
-        std: 'DIN EN ISO 105-B02',
-        title: 'Colour Fastness to Artificial Light',
-        val: 'Grade 4–5 (PASS)',
+        std: 'DIN EN ISO 105 B02',
+        title: 'Colour Fastness to Light',
+        val: 'Grade 4 (PASS)',
         subVal: 'Xenon Arc Lamp Exposure',
-        desc: 'Artificial xenon arc exposure under ISO 105-B02 humidity conditions. Shade variance graded against blue wool scale.',
-        hint: 'UV light resistance verified for infant garments'
+        desc: 'Artificial light exposure evaluated against Grade 3-4 requirement.',
+        hint: 'UV light resistance verified'
       },
       {
-        std: 'DIN 53160 / DIN EN ISO 105-E04',
+        std: 'DIN EN ISO 105-E04',
         title: 'Colour Fastness to Perspiration',
-        val: 'Grade 5 (PASS)',
-        subVal: 'Acidic (pH 5.5) & Alkaline (pH 8.0)',
-        desc: 'Tested against synthetic human sweat in acidic and alkaline conditions. Zero discoloration or cross-staining.',
-        hint: 'Grade 5 on all multifibre adjacent test strips'
+        val: 'Grade 4–5 (PASS)',
+        subVal: 'Acidic & Alkaline Perspiration',
+        desc: 'Tested in synthetic acid and alkaline sweat solutions.',
+        hint: 'Grade 4-5 on all adjacent swatches'
       },
       {
-        std: 'DIN 53160:2023-07 / BVL B 82.92.3',
-        title: 'Colour Fastness to Saliva (Baby Safe)',
+        std: 'DIN 53160:2023-07',
+        title: 'Colour Fastness to Saliva',
         val: 'Grade 5 (PASS)',
-        subVal: 'Negligible or No Staining',
-        desc: 'Testing color bleeding against synthetic baby saliva solution. Zero pigment migration observed.',
-        hint: 'German Food & Feed Code (LFGB § 30) Baby Standard compliant'
+        subVal: 'Colour Staining On Filter Paper: Grade 5',
+        desc: 'Tested against synthetic saliva solution. Zero pigment migration.',
+        hint: 'Grade 5 negligible or no change/staining'
+      },
+      {
+        std: 'DIN 53160:2023-07',
+        title: 'Colour Fastness to Sweat',
+        val: 'Grade 5 (PASS)',
+        subVal: 'Colour Staining On Filter Paper: Grade 5',
+        desc: 'Tested against synthetic sweat solution. Zero pigment migration.',
+        hint: 'Grade 5 negligible or no change/staining'
       },
       {
         std: 'DIN EN 71-1 Point 8.4',
-        title: 'Small Parts Security & Tear-off Force',
-        val: '> 200 N (PASS)',
-        subVal: 'Safety Requirement F > 90 N',
-        desc: 'Press studs, zipper puller, and snap buttons tested under mechanical tension to prevent choking hazards.',
-        hint: 'Exceeds EN 71-1 Toy Safety & European Babywear Directives'
+        title: 'Tear-off Force of Small Parts',
+        val: '> 198 N (PASS)',
+        subVal: 'Requirement F > 90 N',
+        desc: 'Neck stud (231.5N), neck socket (220.3N), and zipper puller (359.8N) detached without damage under heavy force.',
+        hint: 'Exceeds EN 71-1 Toy & Baby Safety Requirement F > 90 N'
       },
       {
-        std: 'ASTM D4846 / DIN EN ISO 13934-2',
-        title: 'Opening & Closing Force of Press Studs',
-        val: '9.8 N / 9.5 N (PASS)',
-        subVal: 'Target: 8.0 N ≤ F ≤ 10.0 N',
-        desc: 'Snap action: 9.8–10.0 N; Unsnap action: 9.5–10.0 N. Smooth, secure operation for easy dressing.',
-        hint: 'Prym baby-safety ring spring snap buttons certified'
+        std: 'ASTMD 4846 / DIN EN ISO 13934-2',
+        title: 'Opening Force of Press Studs',
+        val: '9.5 N – 10.0 N (PASS)',
+        subVal: 'Target 8N <= F <= 10N',
+        desc: 'Snap action: 9.5N - 10.0N; Unsnap action: 9.5N - 10.0N. Smooth operation for baby garments.',
+        hint: 'Complies with 8N <= F <= 10N requirement'
       },
       {
         std: 'DIN EN 16732',
-        title: 'Zipper Strength & Lateral Pull Test',
-        val: '> 560 N (PASS)',
-        subVal: 'Puller > 340 N · Cycles > 500',
-        desc: 'Nylon coil continuous zipper tested for lateral joint strength, top stop security, and 500 reciprocating cycles.',
-        hint: 'Certified YKK baby-friendly zipper with soft protective chin guard'
+        title: 'Zipper Strength',
+        val: '> 372 N (PASS)',
+        subVal: 'Puller >372N · Top stop >150N · Lateral >756N',
+        desc: 'Full mechanical test (500 cycles reciprocating) without malfunction.',
+        hint: 'Exceeds requirement standards'
       },
       {
-        std: 'BS EN 1103 / EN 1103:2005',
-        title: 'Burning Behaviour (Children Sleepwear)',
+        std: 'EN 1103 / BS EN 1103',
+        title: 'Burning Behaviour Children Nightwear',
         val: 'Class B (PASS)',
-        subVal: 'Surface Flash Flame Spread Tested',
-        desc: 'Evaluated in accordance with EU Children Sleepwear Flammability standard. Zero surface flash observed.',
-        hint: 'Compliant with European General Product Safety Regulation (GPSR)'
-      },
-      {
-        std: 'DIN EN ISO 6330 (60°C Domestic Wash)',
-        title: 'Dimensional Stability & Spirality',
-        val: '-1.8% / -1.2% (PASS)',
-        subVal: 'Max Tolerance: ±4.0%',
-        desc: 'Lengthwise shrinkage: -1.8%, Widthwise shrinkage: -1.2%, Spirality rotation: 0.8% (PASS).',
-        hint: 'Pre-shrunk 100% organic cotton interlock knit'
+        subVal: 'Mean flame spread time 22.5s - 23.3s',
+        desc: 'Tested according to European textile safety regulations. Meets Class A criteria as well.',
+        hint: 'Safe for nightwear and childrenswear'
       }
     ]
   },
   care: {
-    wash: '60°C Machine wash, delicate / cotton cycle. Wash inside out with similar baby clothing.',
-    bleach: 'Do not bleach. Use only chlorine-free, enzyme-free baby detergents.',
-    dry: 'Tumble dry low heat or line dry in shade to preserve cotton elasticity and soft hand-feel.',
-    iron: 'Iron at medium temperature (max 150°C). Do not iron directly on snap buttons or zipper.',
-    dryClean: 'Do not dry clean. Professional wet cleaning only.',
+    wash: '60°C Machine wash with similar colours.',
+    bleach: 'Do not bleach.',
+    dry: 'Do not tumble dry.',
+    iron: 'Iron low heat.',
+    dryClean: 'Do not dry clean.',
     washIcon: 'wash_60',
     bleachIcon: 'bleach_no',
     dryIcon: 'dry_tumble_low',
     ironIcon: 'iron_med',
     dryCleanIcon: 'dryclean_no',
-    labelWording: '100% ORGANIC COTTON (GOTS) · WASH AT 60°C · TUMBLE DRY LOW · MADE IN BANGLADESH',
+    labelWording: '100% COTTON · WASH WITH SIMILAR COLOURS · CLOSE FASTENER BEFORE WASHING · WASH AND IRON INSIDE OUT',
     stainRemovalHacks: {
-      oilAndGrease: 'Pre-treat baby food or milk stains by gently applying mild liquid baby soap or baking soda paste. Let rest for 15 minutes before running the 60°C cycle.',
-      ink: 'Dab gently with warm whole milk or glycerin-based soap using a clean white cloth. Never scrub furiously.',
-      foodAndDrinks: 'Rinse immediately with cold water. For fruit/berry purees, apply a drop of diluted lemon water or mild oxygen-based baby stain remover before washing.'
+      oilAndGrease: 'Pending manual input',
+      ink: 'Pending manual input',
+      foodAndDrinks: 'Pending manual input'
     }
   },
   circularity: {
     tips: [
-      { emoji: '👶', title: 'Pass-It-Down & Hand-Me-Down', text: 'Baby sleepsuits are outgrown quickly before wearing out. Pass this 100% organic romper to siblings or friends to double its usable lifespan.' },
-      { emoji: '🔁', title: 'Circular Resale & Trade-In', text: 'Eligible for return via Tchibo Second-Chance Baby Wear collection points or partner resale hubs for store credit.' },
-      { emoji: '🧵', title: 'Easy Snap & Seam Repair', text: 'Snap buttons and seams are reinforced with generous margins for easy hand-mending or snap replacement.' },
-      { emoji: '🌱', title: '100% Biodegradable Pure Fiber', text: 'Made from 100% pure organic cotton without synthetic elastane blending, enabling true fiber-to-fiber mechanical re-spinning.' }
+      { emoji: '👶', title: 'Pass-It-Down & Hand-Me-Down', text: 'Pass this 100% cotton pyjamas set to siblings or friends.' }
     ],
-    upcycleTitle: 'DIY Baby Memory Keepsake & Soft Rattle',
-    upcycleSubtitle: 'Transform outgrown sleepsuits into a soft handmade toy or sensory baby quilt',
-    upcycleImage: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800&auto=format&fit=crop&q=80',
-    upcycleSteps: [
-      { title: 'Step 1: Cut Clean Fabric Panels', text: 'Trim 10cm x 10cm squares from the organic cotton chest and back panels of your outgrown romper.' },
-      { title: 'Step 2: Sew Soft Sensory Cushion', text: 'Layer two squares with recycled organic cotton batting inside and stitch 3 edges.' },
-      { title: 'Step 3: Insert Baby-Safe Bell or Crinkle Paper', text: 'Add a clean crinkle insert inside for baby sensory exploration, then stitch the final edge closed.' }
-    ],
+    upcycleTitle: 'DIY Baby Memory Keepsake',
+    upcycleSubtitle: 'Pending manual input',
+    upcycleImage: '',
+    upcycleSteps: [],
     fibreRecyclingFacts: [
-      '100% Mono-material Organic Cotton construction allows 100% closed-loop mechanical fiber recycling.',
-      'Saves approximately 85% water and 70% CO₂ compared to manufacturing virgin non-organic fibers.',
-      'All snap components are 100% recyclable nickel-free brass alloy, detachable in standard textile shredders.'
+      '100% Cotton construction allows 100% mechanical fiber recycling.'
     ]
   },
   environmental: {
     carbonStatus: 'not_provided',
-    carbonDataStatus: 'Data Not Provided',
-    carbonSource: 'Not Provided (Manual Input Required)',
+    carbonDataStatus: 'Data Not Provided (Requires Manual Input)',
+    carbonSource: 'Not Provided',
     totalCarbon: 0,
     carbonBreakdown: [],
-    packagingMaterials: '',
+    packagingMaterials: 'Pending manual input',
     euPolicyNote: ''
   },
   compliance: {
     certifications: [
-      { name: 'GOTS (Global Organic Textile Standard)', scope: 'Version 7.0 · Scope Certificate CU812345 · 100% Organic Cotton', status: 'Certified' },
-      { name: 'OEKO-TEX® Standard 100 Class I (Baby)', scope: 'Annex 4 / Baby Class I · Tested for >300 harmful chemicals', status: 'Certified' },
-      { name: 'Bureau Veritas Quality & Safety Audit', scope: 'Report (9325)295-0371 · LFGB § 30/31 & DIN EN 71-1', status: 'Approved' },
-      { name: 'Cotton made in Africa (CmiA)', scope: 'Sustainable rainfed African organic cotton initiative', status: 'Verified' },
-      { name: 'FSC (Forest Stewardship Council)', scope: 'FSC-C123456 Recycled Packaging Band', status: 'Certified' }
+      { name: 'Tchibo GOTS Standard Version 1/2024', scope: 'Harmful substances & physical testing', status: 'PASS' },
+      { name: 'Bureau Veritas Lab Inspection', scope: 'Report (6826)054-0500', status: 'Full PASS' }
     ],
-    salesChannel: 'Tchibo Stores & European Omnichannel E-commerce',
-    availableFrom: 'Autumn / Winter 2025',
-    usageClass: 'Class 1 (Direct Skin Contact - Infant & Baby Underwear / Sleepwear)',
-    afterSale: 'Tchibo Customer Care & EU Product Safety Representative (Hamburg, Germany)',
-    issuer: 'Tchibo Quality Assurance & Compliance Dept.',
-    markets: 'European Union (Germany, Austria, Switzerland, Poland, Czech Republic)'
+    salesChannel: 'Tchibo Retail Stores & E-Commerce',
+    availableFrom: 'Spring / Summer 2026',
+    usageClass: 'Class 1 (Direct Skin Contact - Babywear)',
+    afterSale: 'Tchibo Guarantee',
+    issuer: 'Tchibo GmbH · Hamburg, Germany',
+    markets: 'Germany, Austria, Czech Republic, Poland, Slovakia, Hungary, Switzerland, Turkey'
   },
   annexure: [
     {
       id: 'annex-1',
-      title: 'Bureau Veritas Official Lab Test Report (9325)295-0371',
+      title: 'Bureau Veritas Official Lab Test Report (6826)054-0500',
       type: 'Laboratory Test Certificate',
-      docNumber: '(9325)295-0371',
+      docNumber: '(6826)054-0500',
       issuer: 'Bureau Veritas Consumer Products Services (BD) Ltd.',
-      date: '30 Oct 2025',
+      date: 'March 4, 2026',
       url: '',
-      fileSize: '2.4 MB'
-    },
-    {
-      id: 'annex-2',
-      title: 'GOTS Scope Certificate CU812345 (Organic Cotton)',
-      type: 'Scope Certificate',
-      docNumber: 'CU812345GOTS-2025-01',
-      issuer: 'Control Union Certifications B.V.',
-      date: '15 Sep 2025',
-      url: '',
-      fileSize: '1.8 MB'
-    },
-    {
-      id: 'annex-3',
-      title: 'EU REACH SVHC & AFIRM Baby RSL Declaration',
-      type: 'Regulatory Compliance Declaration',
-      docNumber: 'REACH-DECL-151525',
-      issuer: 'Fakir Fashion Ltd. Compliance Dept.',
-      date: '28 Oct 2025',
-      url: '',
-      fileSize: '890 KB'
+      fileSize: '3.8 MB'
     }
   ]
 };
@@ -1362,39 +1327,35 @@ export function ensureFullSupplyChainNodes(
       {
         tier: 'Tier 1 (Garment Assembly)',
         date: '',
-        title: 'Fakir Fashion Ltd.',
-        subtitle: 'Gazipur, Dhaka, Bangladesh',
+        title: 'AKH KNITTING & DYEING LTD.',
+        subtitle: 'Dhaka, Bangladesh',
         color: 'green',
         items: [
           { label: 'Role', val: 'Garment Assembly (Cut, Make & Trim)' },
-          { label: 'Location', val: 'Gazipur, Dhaka, Bangladesh' },
-          { label: 'Audit Standard', val: 'BSCI Grade A / SA8000' }
+          { label: 'Location', val: 'Dhaka, Bangladesh' }
         ]
       },
       {
         tier: 'Tier 2 (Fabric Manufacturing)',
         date: '',
-        title: 'Fakir Knitwear & Textile Processing Ltd.',
-        subtitle: 'Narayanganj, Bangladesh',
+        title: '',
+        subtitle: '',
         color: 'green',
         items: [
-          { label: 'Knitting', val: 'Knitting Facility, Narayanganj' },
-          { label: 'Dyeing / Printing', val: 'Water-based Baby-safe Pigment Reactive Print' },
-          { label: 'Finishing', val: 'Mechanical Pre-Shrink Finishing' },
-          { label: 'Standard', val: 'OEKO-TEX STeP & GOTS' }
+          { label: 'Knitting', val: '' },
+          { label: 'Dyeing / Printing', val: '' },
+          { label: 'Finishing', val: '' }
         ]
       },
       {
         tier: 'Tier 3 (Fiber / Yarn)',
         date: '',
-        title: 'Square Spinning Mills Ltd.',
-        subtitle: 'Hobiganj, Bangladesh',
+        title: '',
+        subtitle: '',
         color: 'green',
         items: [
-          { label: 'Role', val: 'Fiber / Yarn Spinning' },
-          { label: 'Location', val: 'Hobiganj, Bangladesh' },
-          { label: 'Yarn Count', val: '30s/1 Combed 100% Organic Ring Spun Cotton' },
-          { label: 'Standard', val: 'GOTS CU812345 / Cotton made in Africa' }
+          { label: 'Role', val: '' },
+          { label: 'Location', val: '' }
         ]
       }
     ];

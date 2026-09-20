@@ -831,12 +831,13 @@ function EditorInner({
                         </div>
                         <div>
                           <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Passport Version
+                            Unique DPP Id
                           </label>
                           <input
                             type="text"
-                            value={data.general.version || ''}
-                            onChange={e => updateGeneral('version', e.target.value)}
+                            value={data.general.passportId || ''}
+                            onChange={e => updateGeneral('passportId', e.target.value)}
+                            placeholder="e.g., DPP-BD-2026-BV68260540500"
                             className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px] font-mono outline-none focus:border-green"
                           />
                         </div>
@@ -874,19 +875,6 @@ function EditorInner({
                             value={data.general.updatedDate || ''}
                             onChange={e => updateGeneral('updatedDate', e.target.value)}
                             className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px] outline-none focus:border-green"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Completeness Percentage (%)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={data.general.completeness === 0 ? '' : data.general.completeness}
-                            onChange={e => updateGeneral('completeness', e.target.value === '' ? 0 : Number(e.target.value))}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[13px] font-mono outline-none focus:border-green"
                           />
                         </div>
                         <div>
@@ -1364,51 +1352,7 @@ function EditorInner({
                         })}
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-line grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="sm:col-span-2">
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            AI Model / Render Engine Info
-                          </label>
-                          <input
-                            type="text"
-                            value={data.general.visuals.aiModelInfo || ''}
-                            onChange={(e) => {
-                              const v = { ...data.general.visuals, aiModelInfo: e.target.value };
-                              updateGeneral('visuals', v);
-                            }}
-                            placeholder="e.g., Stable Diffusion XL / Midjourney v6 (Photorealistic Garment Render)"
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12px]"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Prompt
-                          </label>
-                          <input
-                            type="text"
-                            value={data.general.visuals.prompt || ''}
-                            onChange={(e) => {
-                              const v = { ...data.general.visuals, prompt: e.target.value };
-                              updateGeneral('visuals', v);
-                            }}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12px]"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Colour References (Pantone / Coloro)
-                          </label>
-                          <input
-                            type="text"
-                            value={data.general.visuals.colors || ''}
-                            onChange={(e) => {
-                              const v = { ...data.general.visuals, colors: e.target.value };
-                              updateGeneral('visuals', v);
-                            }}
-                            className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12px]"
-                          />
-                        </div>
-                      </div>
+
                     </div>
                   </div>
                 )}
@@ -3116,12 +3060,111 @@ function EditorInner({
                       </div>
                     </div>
 
-                    {/* Circularity Tips */}
+                    {/* Stain Removal Hacks / Guidance */}
                     <div className="border border-line rounded-xl p-5 bg-surface-2">
-                      <h3 className="text-[14px] font-bold text-ink mb-3">Circularity Tips (4 Highlight Cards)</h3>
+                      <h3 className="text-[15px] font-bold text-ink mb-1 flex items-center gap-2">
+                        <Sparkles size={16} className="text-red" /> Stain Removal Guidance & Tips
+                      </h3>
+                      <p className="text-[12px] text-muted mb-4">
+                        Manually input custom stain removal instructions for oil/milk, ink/marker, and food/drinks.
+                      </p>
+
+                      <div className="space-y-4">
+                        <div className="bg-white p-3.5 rounded-lg border border-line space-y-1.5">
+                          <label className="block text-[11.5px] font-bold text-ink flex items-center gap-1.5">
+                            🧴 1. Oil &amp; Grease / Milk Stain Tip
+                          </label>
+                          <textarea
+                            rows={3}
+                            placeholder="Enter manual stain removal steps for oil, grease, or baby milk..."
+                            value={data.care.stainRemovalHacks?.oilAndGrease || ''}
+                            onChange={(e) =>
+                              setData((prev) => ({
+                                ...prev,
+                                care: {
+                                  ...prev.care,
+                                  stainRemovalHacks: {
+                                    ...prev.care.stainRemovalHacks,
+                                    oilAndGrease: e.target.value,
+                                  },
+                                },
+                              }))
+                            }
+                            className="w-full bg-surface-2 border border-line rounded px-3 py-2 text-[12px]"
+                          />
+                        </div>
+
+                        <div className="bg-white p-3.5 rounded-lg border border-line space-y-1.5">
+                          <label className="block text-[11.5px] font-bold text-ink flex items-center gap-1.5">
+                            🖋️ 2. Ink &amp; Marker Stain Tip
+                          </label>
+                          <textarea
+                            rows={3}
+                            placeholder="Enter manual stain removal steps for ink or marker stains..."
+                            value={data.care.stainRemovalHacks?.ink || ''}
+                            onChange={(e) =>
+                              setData((prev) => ({
+                                ...prev,
+                                care: {
+                                  ...prev.care,
+                                  stainRemovalHacks: {
+                                    ...prev.care.stainRemovalHacks,
+                                    ink: e.target.value,
+                                  },
+                                },
+                              }))
+                            }
+                            className="w-full bg-surface-2 border border-line rounded px-3 py-2 text-[12px]"
+                          />
+                        </div>
+
+                        <div className="bg-white p-3.5 rounded-lg border border-line space-y-1.5">
+                          <label className="block text-[11.5px] font-bold text-ink flex items-center gap-1.5">
+                            🍎 3. Food, Purees &amp; Drinks Stain Tip
+                          </label>
+                          <textarea
+                            rows={3}
+                            placeholder="Enter manual stain removal steps for food, purees, or fruit juice..."
+                            value={data.care.stainRemovalHacks?.foodAndDrinks || ''}
+                            onChange={(e) =>
+                              setData((prev) => ({
+                                ...prev,
+                                care: {
+                                  ...prev.care,
+                                  stainRemovalHacks: {
+                                    ...prev.care.stainRemovalHacks,
+                                    foodAndDrinks: e.target.value,
+                                  },
+                                },
+                              }))
+                            }
+                            className="w-full bg-surface-2 border border-line rounded px-3 py-2 text-[12px]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 1. Product Life Extension Tips */}
+                    <div className="border border-line rounded-xl p-5 bg-surface-2">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-[14px] font-bold text-ink flex items-center gap-2">
+                          <Recycle size={16} className="text-green" /> 1. Product Life Extension Tips
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const list = [...(data.circularity?.tips || [])];
+                            list.push({ emoji: '💡', title: 'New Care Tip', text: 'Enter tip description here.' });
+                            setData(prev => ({ ...prev, circularity: { ...prev.circularity, tips: list } }));
+                          }}
+                          className="px-2.5 py-1 text-[11px] font-semibold bg-white border border-line rounded-lg hover:bg-surface text-ink transition-colors flex items-center gap-1"
+                        >
+                          <Plus size={12} /> Add Tip
+                        </button>
+                      </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {(data.circularity?.tips || []).map((tip, idx) => (
-                          <div key={idx} className="bg-white p-3 rounded-lg border border-line space-y-1.5">
+                          <div key={idx} className="bg-white p-3 rounded-lg border border-line space-y-1.5 relative group">
                             <div className="flex gap-2 items-center">
                               <input
                                 type="text"
@@ -3132,6 +3175,7 @@ function EditorInner({
                                   setData(prev => ({ ...prev, circularity: { ...prev.circularity, tips: list } }));
                                 }}
                                 className="w-10 text-center text-[16px] bg-surface-2 border border-line rounded py-0.5"
+                                placeholder="Emoji"
                               />
                               <input
                                 type="text"
@@ -3142,7 +3186,19 @@ function EditorInner({
                                   setData(prev => ({ ...prev, circularity: { ...prev.circularity, tips: list } }));
                                 }}
                                 className="flex-1 font-bold text-[12.5px] border-b border-transparent focus:border-green outline-none"
+                                placeholder="Tip Title"
                               />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const list = (data.circularity?.tips || []).filter((_, i) => i !== idx);
+                                  setData(prev => ({ ...prev, circularity: { ...prev.circularity, tips: list } }));
+                                }}
+                                className="text-gray-400 hover:text-red-500 p-1"
+                                title="Remove tip"
+                              >
+                                <X size={13} />
+                              </button>
                             </div>
                             <textarea
                               rows={2}
@@ -3153,19 +3209,22 @@ function EditorInner({
                                 setData(prev => ({ ...prev, circularity: { ...prev.circularity, tips: list } }));
                               }}
                               className="w-full text-[11.5px] text-muted border border-line/60 rounded px-2 py-1"
+                              placeholder="Tip description text..."
                             />
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Upcycling Module */}
+                    {/* 2. Upcycling & Re-use Ideas */}
                     <div className="border border-line rounded-xl p-5 bg-surface-2">
-                      <h3 className="text-[14px] font-bold text-ink mb-3">DIY Upcycling Tutorial</h3>
-                      <div className="space-y-3">
+                      <h3 className="text-[14px] font-bold text-ink mb-3 flex items-center gap-2">
+                        <Sparkles size={16} className="text-green" /> 2. Upcycling & Re-use Ideas
+                      </h3>
+                      <div className="space-y-4">
                         <div>
                           <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Upcycle Tutorial Title
+                            Upcycle Title
                           </label>
                           <input
                             type="text"
@@ -3181,7 +3240,7 @@ function EditorInner({
                         </div>
                         <div>
                           <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-1">
-                            Upcycle Subtitle
+                            Upcycle Subtitle / Description
                           </label>
                           <input
                             type="text"
@@ -3198,7 +3257,7 @@ function EditorInner({
                         <div>
                           <div className="flex items-center justify-between mb-1">
                             <label className="block text-[11px] font-bold text-muted uppercase tracking-wider">
-                              Upcycle Image URL / Upload
+                              Upcycle Workshop Image
                             </label>
                             <div className="flex items-center gap-1.5">
                               <input
@@ -3223,93 +3282,131 @@ function EditorInner({
                                 type="button"
                                 disabled={uploadingField === 'upcycleImage'}
                                 onClick={() => upcycleFileInputRef.current?.click()}
-                                className="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-[#2E6B4F]/10 hover:bg-[#2E6B4F]/20 text-[#2E6B4F] flex items-center gap-1 transition-colors cursor-pointer"
-                                title="Upload upcycle image to Cloudinary"
+                                className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-[#2E6B4F]/10 hover:bg-[#2E6B4F]/20 text-[#2E6B4F] flex items-center gap-1 transition-colors cursor-pointer"
+                                title="Upload image"
                               >
                                 {uploadingField === 'upcycleImage' ? (
                                   <>
-                                    <Loader2 size={11} className="animate-spin" />
+                                    <Loader2 size={12} className="animate-spin" />
                                     <span>Uploading...</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Upload size={11} />
-                                    <span>Upload</span>
+                                    <Upload size={12} />
+                                    <span>Upload Image</span>
                                   </>
                                 )}
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setData(prev => ({
-                                    ...prev,
-                                    circularity: { ...prev.circularity, upcycleImage: '' }
-                                  }));
-                                }}
-                                className="px-1.5 py-0.5 rounded text-[10.5px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center gap-0.5 transition-colors cursor-pointer"
-                                title="Set to blank"
-                              >
-                                <X size={11} /> Blank
-                              </button>
+                              {data.circularity.upcycleImage && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setData(prev => ({
+                                      ...prev,
+                                      circularity: { ...prev.circularity, upcycleImage: '' }
+                                    }));
+                                  }}
+                                  className="px-2 py-1 rounded-md text-[11px] font-semibold bg-red-50 hover:bg-red-100 text-red-600 flex items-center gap-1 transition-colors cursor-pointer"
+                                  title="Remove image"
+                                >
+                                  <X size={12} /> Remove Image
+                                </button>
+                              )}
                             </div>
                           </div>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={data.circularity.upcycleImage || ''}
-                              placeholder="Paste Cloudinary/image URL, click Upload, or leave blank"
-                              onChange={e =>
-                                setData(prev => ({
-                                  ...prev,
-                                  circularity: { ...prev.circularity, upcycleImage: e.target.value }
-                                }))
-                              }
-                              className="w-full bg-white border border-line rounded-lg px-3 py-2 text-[12px] font-mono pr-8"
-                            />
-                            {data.circularity.upcycleImage && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setData(prev => ({
-                                    ...prev,
-                                    circularity: { ...prev.circularity, upcycleImage: '' }
-                                  }));
-                                }}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 cursor-pointer p-0.5"
-                                title="Clear image"
-                              >
-                                <X size={13} />
-                              </button>
-                            )}
-                          </div>
                           {data.circularity.upcycleImage ? (
-                            <div className="mt-1.5 flex items-center gap-2">
-                              <span className="w-5 h-5 rounded overflow-hidden bg-gray-100 border border-line shrink-0 inline-block relative">
+                            <div className="mt-2 p-2 bg-white rounded-lg border border-line flex items-center gap-3">
+                              <span className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 border border-line shrink-0 inline-block relative">
                                 <img
                                   src={data.circularity.upcycleImage}
                                   alt="Preview"
                                   className="w-full h-full object-cover"
                                 />
                               </span>
-                              {data.circularity.upcycleImage.includes('cloudinary.com') ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">
-                                  <Cloud size={10} /> Cloudinary CDN
-                                </span>
-                              ) : data.circularity.upcycleImage.startsWith('data:') ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                  <ImageIcon size={10} /> Uploaded Image
-                                </span>
-                              ) : (
-                                <span className="text-[10.5px] text-green-800 font-medium truncate max-w-[200px]">
-                                  Image linked
-                                </span>
-                              )}
+                              <div className="flex-1 min-w-0">
+                                <span className="text-[12px] font-bold text-ink block truncate">Custom Upcycle Image Attached</span>
+                                <span className="text-[10.5px] text-muted block truncate font-mono">{data.circularity.upcycleImage}</span>
+                              </div>
                             </div>
                           ) : (
-                            <span className="text-[10.5px] text-muted italic mt-0.5 block">
-                              Blank (shows default upcycling craft workshop icon)
+                            <span className="text-[11px] text-muted italic mt-1 block">
+                              No image attached (displays clean default upcycling icon workshop banner).
                             </span>
                           )}
+                        </div>
+
+                        {/* Step by Step Upcycling Instructions */}
+                        <div className="pt-2 border-t border-line">
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-[11px] font-bold text-muted uppercase tracking-wider">
+                              Step-by-Step Upcycling Instructions
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const steps = [...(data.circularity.upcycleSteps || [])];
+                                steps.push({ title: `Step ${steps.length + 1}`, text: '' });
+                                setData(prev => ({
+                                  ...prev,
+                                  circularity: { ...prev.circularity, upcycleSteps: steps }
+                                }));
+                              }}
+                              className="px-2 py-0.5 text-[11px] font-semibold bg-white border border-line rounded hover:bg-surface text-ink transition-colors flex items-center gap-1"
+                            >
+                              <Plus size={11} /> Add Step
+                            </button>
+                          </div>
+                          <div className="space-y-2">
+                            {(data.circularity.upcycleSteps || []).map((step, idx) => (
+                              <div key={idx} className="bg-white p-3 rounded-lg border border-line space-y-1.5 relative">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-[11px] font-bold text-muted uppercase">Step {idx + 1}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const steps = (data.circularity.upcycleSteps || []).filter((_, i) => i !== idx);
+                                      setData(prev => ({
+                                        ...prev,
+                                        circularity: { ...prev.circularity, upcycleSteps: steps }
+                                      }));
+                                    }}
+                                    className="text-gray-400 hover:text-red-500 p-0.5"
+                                    title="Remove step"
+                                  >
+                                    <X size={13} />
+                                  </button>
+                                </div>
+                                <input
+                                  type="text"
+                                  value={step.title || ''}
+                                  placeholder="Step Title"
+                                  onChange={e => {
+                                    const steps = [...(data.circularity.upcycleSteps || [])];
+                                    steps[idx].title = e.target.value;
+                                    setData(prev => ({
+                                      ...prev,
+                                      circularity: { ...prev.circularity, upcycleSteps: steps }
+                                    }));
+                                  }}
+                                  className="w-full bg-surface-2 border border-line rounded px-2.5 py-1 text-[12px] font-semibold"
+                                />
+                                <textarea
+                                  rows={2}
+                                  value={step.text || ''}
+                                  placeholder="Step instruction details..."
+                                  onChange={e => {
+                                    const steps = [...(data.circularity.upcycleSteps || [])];
+                                    steps[idx].text = e.target.value;
+                                    setData(prev => ({
+                                      ...prev,
+                                      circularity: { ...prev.circularity, upcycleSteps: steps }
+                                    }));
+                                  }}
+                                  className="w-full bg-white border border-line rounded px-2.5 py-1 text-[11.5px] text-muted"
+                                />
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>

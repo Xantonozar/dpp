@@ -170,17 +170,23 @@ CRITICAL EXTRACTION MANDATE:
    - Extract all lab test results: ISO/DIN test methods, color fastness grades (wash, water, rubbing, light, sweat, saliva), tear/tensile tests, zipper tests, flammability, and RSL chemical screening (formaldehyde, pH, heavy metals, azo dyes, phthalates).
    - Extract manufacturer names, factory addresses, facility tiers, audit ratings, and inspection laboratory details.
    - Extract care symbols and text (wash temp, bleaching, drying, ironing, dry cleaning).
-   - Extract SKU/article numbers and EAN/GTIN barcodes if present.
+   - Extract SKU/article numbers and EAN/GTIN barcodes ONLY IF PRESENT in the uploaded documents.
 
-2. PROFESSIONAL DPP SYNTHESIS FOR REGULATORY/CONSUMER SECTIONS:
-   - Technical spec sheets and lab reports do not typically contain consumer circularity guides, upcycling tutorials, stain removal hacks, or EU ESPR policy notes.
-   - For these Digital Product Passport (DPP) sections, do NOT output 'n/a'.
-   - Instead, provide rich, highly realistic, professional European DPP data tailored specifically to the garment's fiber blend and category:
-     * Care & Stain Hacks: Provide practical, gentle stain removal methods for oil/grease, ink, and food/drinks suitable for this fabric blend.
-     * Circularity: Provide 3 actionable garment longevity/washing tips, a creative upcycling project with 3 practical steps suited for this garment, and fiber recycling facts.
-     * Environmental & Packaging: Provide verified LCA benchmarks (carbon footprint ~2.5 - 4.5 kg CO2e, water usage, renewable energy share, recycled packaging ratio).
-     * Compliance & Markets: Provide realistic European market distribution channels (e.g., EU Retail Stores & E-Commerce) and issuer information.
-   - Under no circumstances should circularity tips, upcycle steps, stain removal hacks, environmental stats, or compliance fields be returned as 'n/a'. Create an authentic, fully populated European Digital Product Passport.
+2. STRICT FACTUALITY & HALLUCINATION PREVENTION:
+   - DO NOT HALLUCINATE OR GENERATE FAKE GTIN / EAN BARCODES! If GTIN codes are not explicitly listed in the PDF document, return empty strings ("").
+   - DO NOT HALLUCINATE FAKE PACKAGING INFO! If packaging details are not in the document, leave packagingInfo fields as empty strings ("").
+   - DO NOT HALLUCINATE FAKE TRACEABILITY TIERS! Tier 1 (Garment Assembly) MUST be extracted directly from the factory/vendor name in the document (e.g. AKH KNITTING & DYEING LTD.). Tier 2 (Fabric) and Tier 3 (Yarn/Fiber) MUST be returned with empty title ("") and empty subtitle ("") so they can be filled manually by the user!
+   - Extract exact laboratory test report numbers (e.g. "(6826)054-0500"), report dates, laboratory names, and reviewer names/designations verbatim from the test report.
+    - For these Digital Product Passport (DPP) sections, do NOT output 'n/a'.
+    - Instead, provide rich, highly realistic, professional European DPP data tailored specifically to the garment's fiber blend and category:
+      * Care & Stain Hacks: Provide practical, gentle stain removal methods for oilAndGrease, ink, and foodAndDrinks suitable for this fabric blend.
+      * Circularity: Provide ONLY 2 parts for Circularity:
+        1) "tips": 3-4 actionable Product Life Extension Tips (with emoji, title, text).
+        2) "upcycleTitle", "upcycleSubtitle", "upcycleImage" (""), and "upcycleSteps": 3 practical step-by-step upcycling ideas.
+        Do NOT output Fibre Facts or Drop-off finder locations.
+      * Environmental & Packaging: Provide verified LCA benchmarks (water usage, renewable energy share, recycled packaging ratio). Set carbonStatus to "not_provided" and totalCarbon to 0 if not explicitly in PDF.
+      * Compliance & Markets: Provide realistic European market distribution channels (e.g., EU Retail Stores & E-Commerce) and issuer information.
+    - Under no circumstances should circularity tips, upcycle steps, stain removal hacks, or compliance fields be returned as 'n/a'. Create an authentic, fully populated European Digital Product Passport.
 
 3. MEASUREMENT EXTRACTION & MAPPING:
    - Exhaustive POM Extraction: You MUST extract EVERY SINGLE ROW and Point of Measure (POM) from the measurement chart in the document. NEVER truncate or omit measurement rows (e.g. if the document has 16 POMs, you must extract all 16 rows).
@@ -304,9 +310,9 @@ REQUIRED SCHEMA DETAILS:
     "destination": { "country": "Germany", "city": "Hamburg", "label": "Destination Market Hub, Hamburg, Germany", "lat": 53.5511, "lng": 9.9937 },
     "testingLab": { "name": "Bureau Veritas Consumer Products (BD) Ltd.", "reportNo": "(9325)295-0371", "location": "Dhaka, Bangladesh", "result": "PASS" },
     "nodes": [
-      { "tier": "Tier 1 (Garment Assembly)", "date": "", "title": "Fakir Fashion Ltd.", "subtitle": "Gazipur, Dhaka, Bangladesh", "color": "green", "items": [{ "label": "Role", "val": "Garment Assembly (Cut, Make & Trim)" }, { "label": "Certifications", "val": "BSCI Grade A / SA8000 · GOTS Scope" }] },
-      { "tier": "Tier 2 (Fabric Manufacturing)", "date": "", "title": "Fakir Knitwear & Textile Processing Ltd.", "subtitle": "Narayanganj, Bangladesh", "color": "green", "items": [{ "label": "Knitting & Printing", "val": "Water-based baby-safe reactive printing" }, { "label": "Standard", "val": "OEKO-TEX STeP & GOTS" }] },
-      { "tier": "Tier 3 (Fiber / Yarn)", "date": "", "title": "Square Spinning Mills Ltd.", "subtitle": "Hobiganj, Bangladesh", "color": "green", "items": [{ "label": "Yarn Count", "val": "30s/1 Combed 100% Organic Cotton" }, { "label": "Standard", "val": "GOTS CU812345 / Cotton made in Africa" }] }
+      { "tier": "Tier 1 (Garment Assembly)", "date": "", "title": "AKH KNITTING & DYEING LTD.", "subtitle": "Dhaka, Bangladesh", "color": "green", "items": [{ "label": "Role", "val": "Garment Assembly (Cut, Make & Trim)" }, { "label": "Location", "val": "Dhaka, Bangladesh" }] },
+      { "tier": "Tier 2 (Fabric Manufacturing)", "date": "", "title": "", "subtitle": "", "color": "green", "items": [{ "label": "Knitting", "val": "" }, { "label": "Dyeing / Printing", "val": "" }, { "label": "Finishing", "val": "" }] },
+      { "tier": "Tier 3 (Fiber / Yarn)", "date": "", "title": "", "subtitle": "", "color": "green", "items": [{ "label": "Role", "val": "" }, { "label": "Location", "val": "" }] }
     ]
   },
   "quality": {
