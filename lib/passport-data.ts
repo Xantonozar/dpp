@@ -869,9 +869,9 @@ export function createEmptyPassport(customId?: string): PassportData {
       dryClean: '',
       labelWording: '',
       stainRemovalHacks: {
-        oilAndGrease: 'Apply mild liquid detergent or talc/cornstarch to absorb oil, rest for 15 min, then wash.',
-        ink: 'Dab gently with isopropyl alcohol or warm milk using a clean cloth. Do not rub to avoid spreading.',
-        foodAndDrinks: 'Flush immediately with cold water. Pre-treat organic stains with mild detergent or diluted white vinegar before washing.'
+        oilAndGrease: '',
+        ink: '',
+        foodAndDrinks: ''
       }
     },
     circularity: {
@@ -1216,9 +1216,9 @@ export const BABY_WEAR_PASSPORT_PRESET: PassportData = {
     dryCleanIcon: 'dryclean_no',
     labelWording: '100% COTTON · WASH WITH SIMILAR COLOURS · CLOSE FASTENER BEFORE WASHING · WASH AND IRON INSIDE OUT',
     stainRemovalHacks: {
-      oilAndGrease: 'Pending manual input',
-      ink: 'Pending manual input',
-      foodAndDrinks: 'Pending manual input'
+      oilAndGrease: '',
+      ink: '',
+      foodAndDrinks: ''
     }
   },
   circularity: {
@@ -1317,7 +1317,7 @@ export function ensureFullSupplyChainNodes(
       )
       .map((n) => ({
         ...n,
-        items: Array.isArray(n.items) && n.items.length > 0 ? n.items : [{ label: 'Status', val: 'Verified' }]
+        items: Array.isArray(n.items) ? n.items : []
       }));
   }
 
@@ -1811,9 +1811,9 @@ export function normalizePassportData(raw: any): PassportData {
       dryClean: valOrFallback(raw.care?.dryClean, base.care?.dryClean || DEFAULT_PASSPORT_DATA.care.dryClean),
       labelWording: valOrFallback(raw.care?.labelWording, base.care?.labelWording || DEFAULT_PASSPORT_DATA.care.labelWording),
       stainRemovalHacks: {
-        oilAndGrease: valOrFallback(raw.care?.stainRemovalHacks?.oilAndGrease, base.care?.stainRemovalHacks?.oilAndGrease || DEFAULT_PASSPORT_DATA.care.stainRemovalHacks?.oilAndGrease || ''),
-        ink: valOrFallback(raw.care?.stainRemovalHacks?.ink, base.care?.stainRemovalHacks?.ink || DEFAULT_PASSPORT_DATA.care.stainRemovalHacks?.ink || ''),
-        foodAndDrinks: valOrFallback(raw.care?.stainRemovalHacks?.foodAndDrinks, base.care?.stainRemovalHacks?.foodAndDrinks || DEFAULT_PASSPORT_DATA.care.stainRemovalHacks?.foodAndDrinks || ''),
+        oilAndGrease: isMeaningfulStainHack(raw.care?.stainRemovalHacks?.oilAndGrease) ? String(raw.care.stainRemovalHacks.oilAndGrease).trim() : '',
+        ink: isMeaningfulStainHack(raw.care?.stainRemovalHacks?.ink) ? String(raw.care.stainRemovalHacks.ink).trim() : '',
+        foodAndDrinks: isMeaningfulStainHack(raw.care?.stainRemovalHacks?.foodAndDrinks) ? String(raw.care.stainRemovalHacks.foodAndDrinks).trim() : '',
       }
     },
     circularity: {
@@ -1850,6 +1850,25 @@ export function isMeaningfulVal(val: any): boolean {
   if (val === null || val === undefined) return false;
   const s = String(val).trim().toLowerCase();
   return s !== '' && s !== 'n/a' && s !== 'na' && s !== 'null' && s !== 'undefined' && s !== 'none' && s !== '-';
+}
+
+export function isMeaningfulStainHack(val: any): boolean {
+  if (!isMeaningfulVal(val)) return false;
+  const s = String(val).trim().toLowerCase();
+  if (
+    s === 'pending manual input' ||
+    s.includes('apply mild detergent') ||
+    s.includes('apply mild liquid detergent') ||
+    s.includes('dab gently with isopropyl') ||
+    s.includes('dab with alcohol') ||
+    s.includes('rinse with cold water') ||
+    s.includes('pre-treat with detergent') ||
+    s.includes('flush immediately with cold water') ||
+    s.includes('talc/cornstarch')
+  ) {
+    return false;
+  }
+  return true;
 }
 
 export function valOrFallback(val: any, fallback: string = ''): string {
@@ -2056,18 +2075,18 @@ export function normalizeExtractedPassportData(raw: any, existingVisuals?: any):
   const rawExtractedNodes =
     Array.isArray(raw.traceability?.nodes) && raw.traceability.nodes.length > 0
       ? raw.traceability.nodes.map((node: any) => ({
-          tier: valOrFallback(node?.tier, 'Tier 1 — Cut & Sew'),
-          date: valOrFallback(node?.date, 'Oct 2025'),
-          title: valOrFallback(node?.title, 'Manufacturing Partner'),
-          subtitle: valOrFallback(node?.subtitle, 'Dhaka, Bangladesh'),
+          tier: isMeaningfulVal(node?.tier) ? String(node.tier).trim() : 'Tier 1 — Garment Assembly',
+          date: isMeaningfulVal(node?.date) ? String(node.date).trim() : '',
+          title: isMeaningfulVal(node?.title) ? String(node.title).trim() : '',
+          subtitle: isMeaningfulVal(node?.subtitle) ? String(node.subtitle).trim() : '',
           color: (node?.color === 'amber' ? 'amber' : 'green') as 'green' | 'amber',
           items:
             Array.isArray(node?.items) && node.items.length > 0
               ? node.items.map((it: any) => ({
-                  label: valOrFallback(it?.label, 'Detail'),
-                  val: valOrFallback(it?.val, 'Verified'),
+                  label: isMeaningfulVal(it?.label) ? String(it.label).trim() : '',
+                  val: isMeaningfulVal(it?.val) ? String(it.val).trim() : '',
                 }))
-              : [{ label: 'Status', val: 'Verified' }],
+              : [],
         }))
       : defaultPreset.traceability.nodes;
 
@@ -2353,9 +2372,9 @@ export function normalizeExtractedPassportData(raw: any, existingVisuals?: any):
       dryClean: valOrFallback(raw.care?.dryClean, DEFAULT_PASSPORT_DATA.care.dryClean),
       labelWording: valOrFallback(raw.care?.labelWording, DEFAULT_PASSPORT_DATA.care.labelWording),
       stainRemovalHacks: {
-        oilAndGrease: valOrFallback(raw.care?.stainRemovalHacks?.oilAndGrease, DEFAULT_PASSPORT_DATA.care.stainRemovalHacks?.oilAndGrease || 'Apply mild liquid detergent or talc/cornstarch to absorb oil, rest for 15 min, then wash.'),
-        ink: valOrFallback(raw.care?.stainRemovalHacks?.ink, DEFAULT_PASSPORT_DATA.care.stainRemovalHacks?.ink || 'Dab gently with isopropyl alcohol or warm milk using a clean cloth. Do not rub to avoid spreading.'),
-        foodAndDrinks: valOrFallback(raw.care?.stainRemovalHacks?.foodAndDrinks, DEFAULT_PASSPORT_DATA.care.stainRemovalHacks?.foodAndDrinks || 'Flush immediately with cold water. Pre-treat organic stains with mild detergent or diluted white vinegar before washing.'),
+        oilAndGrease: isMeaningfulStainHack(raw.care?.stainRemovalHacks?.oilAndGrease) ? String(raw.care.stainRemovalHacks.oilAndGrease).trim() : '',
+        ink: isMeaningfulStainHack(raw.care?.stainRemovalHacks?.ink) ? String(raw.care.stainRemovalHacks.ink).trim() : '',
+        foodAndDrinks: isMeaningfulStainHack(raw.care?.stainRemovalHacks?.foodAndDrinks) ? String(raw.care.stainRemovalHacks.foodAndDrinks).trim() : '',
       },
     },
     circularity: {

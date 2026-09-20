@@ -27,7 +27,8 @@ import {
   normalizeExtractedPassportData,
   fetchPassportsFromApi,
   savePassportToApi,
-  deletePassportFromApi
+  deletePassportFromApi,
+  isMeaningfulStainHack
 } from '@/lib/passport-data';
 import PassportView from '@/components/PassportView';
 import PdfAutoFillModal from '@/components/PdfAutoFillModal';
@@ -3077,7 +3078,7 @@ function EditorInner({
                           <textarea
                             rows={3}
                             placeholder="Enter manual stain removal steps for oil, grease, or baby milk..."
-                            value={data.care.stainRemovalHacks?.oilAndGrease || ''}
+                            value={isMeaningfulStainHack(data.care.stainRemovalHacks?.oilAndGrease) ? data.care.stainRemovalHacks!.oilAndGrease! : ''}
                             onChange={(e) =>
                               setData((prev) => ({
                                 ...prev,
@@ -3101,7 +3102,7 @@ function EditorInner({
                           <textarea
                             rows={3}
                             placeholder="Enter manual stain removal steps for ink or marker stains..."
-                            value={data.care.stainRemovalHacks?.ink || ''}
+                            value={isMeaningfulStainHack(data.care.stainRemovalHacks?.ink) ? data.care.stainRemovalHacks!.ink! : ''}
                             onChange={(e) =>
                               setData((prev) => ({
                                 ...prev,
@@ -3125,7 +3126,7 @@ function EditorInner({
                           <textarea
                             rows={3}
                             placeholder="Enter manual stain removal steps for food, purees, or fruit juice..."
-                            value={data.care.stainRemovalHacks?.foodAndDrinks || ''}
+                            value={isMeaningfulStainHack(data.care.stainRemovalHacks?.foodAndDrinks) ? data.care.stainRemovalHacks!.foodAndDrinks! : ''}
                             onChange={(e) =>
                               setData((prev) => ({
                                 ...prev,

@@ -4,6 +4,103 @@ import { normalizeExtractedPassportData, type PassportData } from '@/lib/passpor
 
 export const maxDuration = 60;
 
+function repairAndParseJson(rawText: string): any {
+  let cleaned = rawText.trim();
+
+  // Strip markdown code fences if present
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  }
+
+  // 1. Direct parse attempt
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Continue
+  }
+
+  // 2. Extract outer object boundaries
+  const firstBrace = cleaned.indexOf('{');
+  const lastBrace = cleaned.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+  }
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Continue
+  }
+
+  // 3. Remove trailing commas before closing braces/brackets
+  let sanitized = cleaned.replace(/,\s*([\}\]])/g, '$1');
+
+  // 4. Sanitize unescaped control characters inside string values
+  sanitized = sanitized.replace(/"([^"\\]*(\\.[^"\\]*)*)"/g, (match) => {
+    return match.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
+  });
+
+  try {
+    return JSON.parse(sanitized);
+  } catch {
+    // Continue
+  }
+
+  // 5. Attempt auto-repair for truncated JSON streams (balancing open brackets/braces/strings)
+  try {
+    let openBrackets = 0;
+    let openBraces = 0;
+    let inString = false;
+    let isEscaped = false;
+
+    let repaired = '';
+    for (let i = 0; i < sanitized.length; i++) {
+      const char = sanitized[i];
+      if (isEscaped) {
+        repaired += char;
+        isEscaped = false;
+        continue;
+      }
+      if (char === '\\') {
+        isEscaped = true;
+        repaired += char;
+        continue;
+      }
+      if (char === '"') {
+        inString = !inString;
+        repaired += char;
+        continue;
+      }
+      if (!inString) {
+        if (char === '{') openBraces++;
+        if (char === '}') openBraces--;
+        if (char === '[') openBrackets++;
+        if (char === ']') openBrackets--;
+      }
+      repaired += char;
+    }
+
+    if (inString) {
+      repaired += '"';
+    }
+
+    repaired = repaired.replace(/,\s*$/, '').replace(/:\s*$/, ': null');
+
+    while (openBrackets > 0) {
+      repaired += ']';
+      openBrackets--;
+    }
+    while (openBraces > 0) {
+      repaired += '}';
+      openBraces--;
+    }
+
+    return JSON.parse(repaired);
+  } catch (finalErr: any) {
+    throw new Error(`AI returned invalid JSON: ${finalErr.message}`);
+  }
+}
+
 export async function POST(req: NextRequest) {
   let requestedModel = 'gemini-3.1-flash-lite';
 
@@ -353,9 +450,9 @@ REQUIRED SCHEMA DETAILS:
     "dryClean": "Do not dry clean (or 'n/a')",
     "labelWording": "Care label instructions as written on document (or 'n/a')",
     "stainRemovalHacks": {
-      "oilAndGrease": "Apply mild liquid detergent or talc/cornstarch to absorb oil, rest for 15 min, then wash.",
-      "ink": "Dab gently with isopropyl alcohol or warm milk using a cotton pad. Do not rub vigorously.",
-      "foodAndDrinks": "Flush immediately with cold water. Pre-treat organic stains with mild detergent or diluted white vinegar before washing."
+      "oilAndGrease": "Stain removal instructions from document (or 'n/a')",
+      "ink": "Stain removal instructions from document (or 'n/a')",
+      "foodAndDrinks": "Stain removal instructions from document (or 'n/a')"
     }
   },
   "circularity": {
@@ -463,7 +560,11 @@ Cross-reference all ${docs.length} document(s) and extract all technical data:
 - Extract supply chain facilities, locations, and testing laboratory information.
 - Extract care label instructions and symbols.
 - Extract packaging and environmental data if present in the document.
-- Ensure every section of the Digital Product Passport is fully populated: technical specifications from the documents, and high-quality European DPP circularity, upcycling, stain care, and environmental benchmarks tailored to the fabric. Never output 'n/a' for circularity, upcycle steps, stain hacks, or environmental metrics.
+- CRITICAL EXTRACTION RULES (STRICT NON-HALLUCINATION POLICY):
+  1. Extract ONLY data that is explicitly written in the attached document(s).
+  2. NEVER invent, hallucinate, assume, or auto-generate fake stain removal tips, upcycle steps, circularity facts, supplier names, or quality testing values if they are not explicitly written in the document.
+  3. For stainRemovalHacks (oilAndGrease, ink, foodAndDrinks), if stain tips are NOT explicitly detailed in the PDF, output "n/a" for every stain field.
+  4. For any field not mentioned in the documents, output "n/a" or leave empty ("").
 
 ${documentsTextSection}`,
     });
@@ -491,7 +592,7 @@ ${documentsTextSection}`,
           config: {
             responseMimeType: 'application/json',
             temperature: 0.1,
-            maxOutputTokens: 8192,
+            maxOutputTokens: 16384,
           },
         });
         modelUsed = candidateModel;
@@ -531,17 +632,7 @@ ${documentsTextSection}`,
     const responseText = response.text?.trim() || '{}';
     let parsedResult: { data?: PassportData; extractionSummary?: string } = {};
 
-    try {
-      parsedResult = JSON.parse(responseText);
-    } catch {
-      // If output wrapped or raw JSON
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedResult = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('Could not parse JSON response from AI extraction');
-      }
-    }
+    parsedResult = repairAndParseJson(responseText);
 
     // Extract the raw passport data from AI
     const rawExtracted: any = parsedResult.data || parsedResult;

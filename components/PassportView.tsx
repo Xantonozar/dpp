@@ -32,7 +32,7 @@ import {
   PackageCheck
 } from 'lucide-react';
 import type { PassportData, Size, Unit, Garment, StyleType } from '@/lib/passport-data';
-import { normalizePassportData } from '@/lib/passport-data';
+import { normalizePassportData, isMeaningfulStainHack } from '@/lib/passport-data';
 import SupplyChainMap from '@/components/SupplyChainMap';
 import { CareIconRenderer } from '@/lib/care-icons';
 
@@ -1582,30 +1582,7 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
             </div>
           </Reveal>
 
-          {/* Interactive Supply Chain Map from Bangladesh to Destination */}
-          <Reveal className="mb-6">
-            <SupplyChainMap
-              origin={
-                data.traceability.origin || {
-                  country: 'Bangladesh',
-                  city: 'Chittagong',
-                  facility: 'Fakir Fashion Ltd. (Composite Knitting & Dyeing)',
-                  lat: 22.3569,
-                  lng: 91.7832
-                }
-              }
-              destination={destState}
-              testingLabName={data.quality?.testingLab || 'ITS Labtest Bangladesh Ltd.'}
-              testingReportNo={data.quality?.reportNumber || 'BGDT25154711'}
-              onUpdateDestination={(newDest) => setDestState(newDest)}
-            />
-          </Reveal>
 
-          {(data.traceability.percentage > 0 || data.traceability.summary) ? (
-            <Reveal>
-              <TraceBar percentage={data.traceability.percentage} summary={data.traceability.summary} />
-            </Reveal>
-          ) : null}
 
           {data.traceability?.nodes && data.traceability.nodes.length > 0 ? (
             <RevealGroup className="relative pl-6 sm:pl-[34px] grid gap-4 sm:gap-[22px] mb-3.5">
@@ -2176,72 +2153,46 @@ export default function PassportView({ data: propData, isCustomActive, onResetCu
                   <AnimatePresence mode="wait">
                     {stainTab === 'oil' && (
                       <motion.div key="oil" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-                        {data.care.stainRemovalHacks?.oilAndGrease ? (
+                        {isMeaningfulStainHack(data.care.stainRemovalHacks?.oilAndGrease) ? (
                           <div className="text-[13px] text-muted leading-relaxed bg-surface-2 p-3.5 rounded-xl border border-line mb-3.5">
-                            {data.care.stainRemovalHacks.oilAndGrease}
+                            {data.care.stainRemovalHacks?.oilAndGrease}
                           </div>
                         ) : (
-                          <ol className="list-decimal pl-4 mb-3.5 grid gap-[9px] text-[13px] text-muted">
-                            <li><b className="text-ink">Blot</b> — never rub — excess oil or milk with a soft cloth.</li>
-                            <li>Sprinkle <b className="text-ink">baking soda</b> on the spot, wait 10 min to absorb, brush off.</li>
-                            <li>Work one drop of <b className="text-ink">mild baby liquid soap</b> into the stain from the back side.</li>
-                            <li>Rinse warm, then machine wash at 60°C on delicate baby cycle.</li>
-                          </ol>
+                          <div className="text-[12.5px] text-muted italic bg-surface-2 p-3.5 rounded-xl border border-line/60 mb-3.5">
+                            No stain removal instructions provided in document.
+                          </div>
                         )}
-                        <div className="flex gap-2 flex-wrap">
-                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">baby liquid soap</span>
-                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">baking soda</span>
-                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">60°C wash</span>
-                        </div>
                       </motion.div>
                     )}
                     {stainTab === 'ink' && (
                       <motion.div key="ink" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-                        {data.care.stainRemovalHacks?.ink ? (
+                        {isMeaningfulStainHack(data.care.stainRemovalHacks?.ink) ? (
                           <div className="text-[13px] text-muted leading-relaxed bg-surface-2 p-3.5 rounded-xl border border-line mb-3.5">
-                            {data.care.stainRemovalHacks.ink}
+                            {data.care.stainRemovalHacks?.ink}
                           </div>
                         ) : (
-                          <ol className="list-decimal pl-4 mb-3.5 grid gap-[9px] text-[13px] text-muted">
-                            <li>Place a folded towel <b className="text-ink">inside</b> the garment under the stain.</li>
-                            <li>Dab gently with <b className="text-ink">glycerin-based soap or warm milk</b> on a cotton pad.</li>
-                            <li>Repeat until transfer stops; avoid harsh chemical alcohol on baby cotton.</li>
-                            <li>Rinse cold, then wash with similar colours at 60°C.</li>
-                          </ol>
+                          <div className="text-[12.5px] text-muted italic bg-surface-2 p-3.5 rounded-xl border border-line/60 mb-3.5">
+                            No stain removal instructions provided in document.
+                          </div>
                         )}
-                        <div className="flex gap-2 flex-wrap">
-                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">glycerin soap</span>
-                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">cotton pads</span>
-                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">cold water</span>
-                        </div>
                       </motion.div>
                     )}
                     {stainTab === 'food' && (
                       <motion.div key="food" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-                        {data.care.stainRemovalHacks?.foodAndDrinks ? (
+                        {isMeaningfulStainHack(data.care.stainRemovalHacks?.foodAndDrinks) ? (
                           <div className="text-[13px] text-muted leading-relaxed bg-surface-2 p-3.5 rounded-xl border border-line mb-3.5">
-                            {data.care.stainRemovalHacks.foodAndDrinks}
+                            {data.care.stainRemovalHacks?.foodAndDrinks}
                           </div>
                         ) : (
-                          <ol className="list-decimal pl-4 mb-3.5 grid gap-[9px] text-[13px] text-muted">
-                            <li>Rinse immediately with <b className="text-ink">cold running water through the back</b> of the fabric.</li>
-                            <li>For fruit/berry purees, apply a drop of <b className="text-ink">diluted lemon water or oxygen baby stain remover</b>.</li>
-                            <li>Rest for 15 minutes, then machine wash at 60°C.</li>
-                            <li>Never tumble dry if residue is still visible.</li>
-                          </ol>
+                          <div className="text-[12.5px] text-muted italic bg-surface-2 p-3.5 rounded-xl border border-line/60 mb-3.5">
+                            No stain removal instructions provided in document.
+                          </div>
                         )}
-                        <div className="flex gap-2 flex-wrap">
-                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">cold water flush</span>
-                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">oxygen baby remover</span>
-                          <span className="text-[11px] bg-red-soft text-red font-semibold rounded-full px-[11px] py-1.5">air dry</span>
-                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-                <div className="mt-3.5 text-[12px] text-amber bg-amber-soft border border-dashed border-amber-line rounded-[10px] p-2.5 px-[14px] font-semibold">
-                  ⚠️ Never tumble-dry a stained garment — heat permanently bakes stains into natural organic cotton fibres.
-                </div>
+
               </Reveal>
             </div>
           ) : (

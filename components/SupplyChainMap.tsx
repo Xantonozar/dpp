@@ -217,20 +217,7 @@ export default function SupplyChainMap({
           </p>
         </div>
 
-        {/* Live Lab & Status Pill */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="bg-[#1C2C23] border border-[#2D4738] rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-left">
-            <div className="text-[9.5px] sm:text-[10px] uppercase tracking-wider text-[#8EAA97] font-semibold">Testing Authority</div>
-            <div className="text-[11.5px] sm:text-[12px] font-bold text-white flex items-center gap-1.5">
-              <ShieldCheck size={13} className="text-lime shrink-0" />
-              <span className="truncate max-w-[180px] sm:max-w-none">{testingLabName}</span>
-            </div>
-          </div>
-          <div className="bg-lime text-[#121A16] rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 font-bold text-[11.5px] sm:text-[12px] flex items-center gap-1.5 shadow-md shrink-0">
-            <span>PASS</span>
-            <span className="text-[10px] font-mono opacity-80">#{testingReportNo}</span>
-          </div>
-        </div>
+
       </div>
 
       {/* Interactive Map Canvas */}
@@ -436,44 +423,7 @@ export default function SupplyChainMap({
         </div>
       )}
 
-      {/* 4 Traceability Blocks directly matching PDF requirements */}
-      <div className="p-4 sm:p-5 bg-[#101713] border-t border-[#203328] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Tier 1 */}
-        <div className="p-3.5 rounded-xl bg-[#15201A] border border-[#203328]">
-          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Tier 1 · Garment Assembly</div>
-          <div className="text-[13px] font-bold text-white mb-0.5">Fakir Fashion Ltd.</div>
-          <p className="text-[11.5px] text-[#8EAA97] leading-relaxed">
-            Gazipur, Dhaka, Bangladesh. Garment assembly, cutting &amp; sewing.
-          </p>
-        </div>
 
-        {/* Tier 2 */}
-        <div className="p-3.5 rounded-xl bg-[#15201A] border border-[#203328]">
-          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Tier 2 · Fabric Manufacturing</div>
-          <div className="text-[13px] font-bold text-white mb-0.5">Fakir Knitwear &amp; Processing</div>
-          <p className="text-[11.5px] text-[#8EAA97] leading-relaxed">
-            *Knitting *Dyeing / Printing *Finishing. Narayanganj, Bangladesh.
-          </p>
-        </div>
-
-        {/* Tier 3 */}
-        <div className="p-3.5 rounded-xl bg-[#15201A] border border-[#203328]">
-          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Tier 3 · Fiber / Yarn</div>
-          <div className="text-[13px] font-bold text-white mb-0.5">Square Spinning Mills Ltd.</div>
-          <p className="text-[11.5px] text-[#8EAA97] leading-relaxed">
-            Hobiganj, Bangladesh. Ring spun organic cotton yarn spinning.
-          </p>
-        </div>
-
-        {/* Testing Facility */}
-        <div className="p-3.5 rounded-xl bg-[#15201A] border border-lime/30 bg-gradient-to-br from-[#15201A] to-[#1C2C23]">
-          <div className="text-[10px] font-bold text-lime uppercase tracking-widest mb-1">Testing Facility</div>
-          <div className="text-[13px] font-bold text-white mb-0.5">{testingLabName}</div>
-          <p className="text-[11.5px] text-[#8EAA97] leading-relaxed">
-            Location: Dhaka, Bangladesh · Report <strong>#{testingReportNo}</strong> (PASS)
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
